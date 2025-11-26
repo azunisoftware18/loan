@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, Menu, X, Phone, MapPin, Clock } from "lucide-react";
 import ApplyLoanModal from "./Form/ApplyLoanModal";
-// import LoginPopup from "./LoginPopup"; // Add this import
+import LoginPopup from "./LoginPopup";
 
 export default function Header() {
   const [showModal, setShowModal] = useState(false);
-  const [showLoginPopup, setShowLoginPopup] = useState(false); // Add login popup state
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileSubmenu, setMobileSubmenu] = useState(null);
@@ -85,32 +85,27 @@ export default function Header() {
 
   // Top info bar for desktop
   const TopInfoBar = () => (
-    <div className="hidden lg:flex bg-blue-900 text-white text-sm py-2 px-6 justify-between items-center">
-      <div className="flex items-center space-x-6">
-        <div className="flex items-center space-x-2">
-          <Phone className="w-4 h-4" />
-          <span>+1-800-FINOVA</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <MapPin className="w-4 h-4" />
-          <span>Jaipur, Rajasthan</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Clock className="w-4 h-4" />
-          <span>Mon-Fri: 9AM-6PM</span>
-        </div>
+  <div className="hidden lg:flex bg-blue-900 text-white text-sm py-2 px-6 justify-between items-center">
+    <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-2">
+        <Phone className="w-4 h-4" />
+        <span>+1-800-FINOVA</span>
       </div>
-      {/* <div className="flex items-center space-x-4">
-        <button 
-          onClick={handleLoginClick}
-          className="hover:text-blue-200 transition"
-        >
-          Customer Login
-        </button>
-        <Link to="/branch-locator" className="hover:text-blue-200 transition">Branch Locator</Link>
-      </div> */}
+      <div className="flex items-center space-x-2">
+        <MapPin className="w-4 h-4" />
+        <span>Jaipur, Rajasthan</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Clock className="w-4 h-4" />
+        <span>Mon-Fri: 9AM-6PM</span>
+      </div>
     </div>
-  );
+    <div className="flex items-center space-x-4">
+      {/* Login button removed from here - only Branch Locator remains */}
+      <Link to="/branch-locator" className="hover:text-blue-200 transition">Branch Locator</Link>
+    </div>
+  </div>
+);
 
   // Desktop dropdown menu
   const DesktopDropdownMenu = ({ items }) => {
@@ -217,8 +212,6 @@ export default function Header() {
                 {item.submenu ? (
                   <button
                     onClick={() => {
-                      // For mobile, we can show submenu items directly or implement another level
-                      // For simplicity, we'll link to the main page
                       setIsMobileMenuOpen(false);
                     }}
                     className="w-full text-left px-4 py-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition text-sm font-semibold flex items-center justify-between"
@@ -376,9 +369,17 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - YAHAN PAR CHANGE KIYA HAI */}
             <div className="hidden lg:flex items-center space-x-3">
-             
+              {/* Login Button */}
+              <button
+                onClick={handleLoginClick}
+                className="border border-blue-600 text-blue-600 px-6 py-2.5 rounded-lg hover:bg-blue-50 transition-all font-semibold"
+              >
+                Login
+              </button>
+              
+              {/* Apply For Loan Button */}
               <button
                 onClick={handleApplyLoanModal}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl font-semibold"
@@ -435,12 +436,12 @@ export default function Header() {
                 >
                   Apply For Loan
                 </button>
-                {/* <button
+                <button
                   onClick={handleLoginClick}
                   className="w-full border border-white text-white py-3 rounded-lg font-semibold hover:bg-white hover:bg-opacity-20 transition-all text-center"
                 >
-                  Customer Login
-                </button> */}
+                  Login
+                </button>
               </div>
             </div>
 
@@ -479,4 +480,4 @@ export default function Header() {
       {showLoginPopup && <LoginPopup isOpen={showLoginPopup} onClose={closeLoginPopup} />}
     </>
   );
-}
+} 
