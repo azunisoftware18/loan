@@ -36,8 +36,8 @@ import OtherDisclosures from "./pages/OtherDisclosures.jsx";
 import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
 
 // Admin Pages (add your real pages)
-import AdminDashboard from "./admin/AdminDashboard.jsx";
-import AdminUsers from "./admin/AdminUsers.jsx";
+// import AdminDashboard from "./admin/AdminDashboard.jsx";   
+// import AdminUsers from "./admin/AdminUsers.jsx";
 
 function App() {
   return (
@@ -80,9 +80,9 @@ function App() {
 
       {/* ⭐ ADMIN ROUTES */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        {/* Add more admin pages here */}
+        {/* <Route index element={<Admin />} />
+        <Route path="users" element={<AdminUsers />} /> */}
+        {/* Add more admin pages here */}   
       </Route>
 
     </Routes>
