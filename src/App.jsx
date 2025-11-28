@@ -1,11 +1,12 @@
 // src/App.jsx
 import { Routes, Route } from "react-router-dom";
+
 import Layout from "./layouts/Layout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 
-/* ----------------------------------
+/* -------------------------------
    PUBLIC WEBSITE PAGES
----------------------------------- */
+-------------------------------- */
 import Home from "./pages/Home.jsx";
 import Products from "./pages/Products.jsx";
 import ContactUs from "./pages/ContactUs.jsx";
@@ -38,27 +39,27 @@ import PublicDisclosureUnderLiquidityRisk from "./pages/PublicDisclosureUnderLiq
 import OtherDisclosures from "./pages/OtherDisclosures.jsx";
 import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
 
-/* ----------------------------------
+/* -------------------------------
    ADMIN PAGES
----------------------------------- */
+-------------------------------- */
+
 import Dashboard from "./pages/adminPages/Dashboard.jsx";
-import LOS from "./pages/admin/LOS.jsx";
-import LMS from "./pages/admin/LMS.jsx";
-import LoanRequests from "./pages/admin/LoanRequests.jsx";
-import Borrowers from "./pages/admin/Borrowers.jsx";
-import Accounting from "./pages/admin/Accounting.jsx";
-import Reports from "./pages/admin/Reports.jsx";
-import Configuration from "./pages/admin/Configuration.jsx";
-import AdminRoles from "./pages/admin/AdminRoles.jsx";
-import SystemSettings from "./pages/admin/SystemSettings.jsx";
+import Los from "./pages/adminPages/Los.jsx";
+import Lms from "./pages/adminPages/Lms.jsx";
+import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
+import Borrowers from "./pages/adminPages/Borrowers.jsx";
+import Accounting from "./pages/adminPages/Accounting.jsx";
+import Reports from "./pages/adminPages/Reports.jsx";
+import Configuration from "./pages/adminPages/Configuration.jsx";
+import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
+import SystemSettings from "./pages/adminPages/SystemSettings.jsx";
+
 
 function App() {
   return (
     <Routes>
 
-      {/* ------------------------- */}
-      {/* PUBLIC WEBSITE ROUTES     */}
-      {/* ------------------------- */}
+      {/* PUBLIC ROUTES */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="products" element={<Products />} />
@@ -89,22 +90,17 @@ function App() {
         <Route path="credit-rating" element={<CreditRating />} />
         <Route path="notice-of-ballot" element={<NoticeOfBallot />} />
         <Route path="under-regulation" element={<UnderRegulation />} />
-        <Route 
-          path="public-disclosure-under-liquidity-risk" 
-          element={<PublicDisclosureUnderLiquidityRisk />} 
-        />
+        <Route path="public-disclosure-under-liquidity-risk" element={<PublicDisclosureUnderLiquidityRisk />} />
         <Route path="others-disclosures" element={<OtherDisclosures />} />
       </Route>
 
-      {/* ------------------------- */}
-      {/* ADMIN ROUTES              */}
-      {/* ------------------------- */}
+      {/* ADMIN ROUTES */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="los" element={<LOS />} />
-        <Route path="lms" element={<LMS />} />
+        <Route path="los" element={<Los />} />
+        <Route path="lms" element={<Lms />} />
         <Route path="loan-requests" element={<LoanRequests />} />
-        <Route path="borrowers" element={<Borrowers />} />
+        <Route path="borrowers" element={<Borrowers  />} />
         <Route path="accounting" element={<Accounting />} />
         <Route path="reports" element={<Reports />} />
         <Route path="configuration" element={<Configuration />} />

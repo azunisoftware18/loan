@@ -1,6 +1,6 @@
 // src/components/admin/SidebarNav.jsx
 import React, { useState } from "react";
-import { 
+import {
   Users, FileText, Settings, ShieldCheck, Banknote, PieChart,
   ChevronLeft, ChevronRight, Menu, X, Briefcase,
   Calculator, Sliders, FilePlus2
@@ -15,7 +15,7 @@ const menuItems = [
     ]
   },
   {
-    category: "Loan Operations",
+    category: "Loan Ops",
     items: [
       { name: "LOS", icon: <FilePlus2 size={20} />, path: "/admin/los" },
       { name: "LMS", icon: <Briefcase size={20} />, path: "/admin/lms" },
@@ -24,14 +24,14 @@ const menuItems = [
     ]
   },
   {
-    category: "Finance & Data",
+    category: "Finance",
     items: [
       { name: "Accounting", icon: <Calculator size={20} />, path: "/admin/accounting" },
       { name: "Reports", icon: <FileText size={20} />, path: "/admin/reports" },
     ]
   },
   {
-    category: "System & Admin",
+    category: "Admin Control",
     items: [
       { name: "Configuration", icon: <Sliders size={20} />, path: "/admin/configuration" },
       { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
@@ -46,45 +46,50 @@ export default function SidebarNav() {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <>
+      {/* Mobile top menu button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-2 rounded-md"
+      >
+        <Menu size={22} />
+      </button>
 
-      {/* Overlay for mobile */}
+      {/* Mobile Overlay */}
       {mobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-40 lg:hidden"
           onClick={() => setMobileOpen(false)}
-        />
+        ></div>
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
-          bg-[#0d1117] text-gray-400 flex flex-col z-50
-          transition-all duration-300 fixed lg:relative h-full
+          fixed lg:relative z-50 h-full bg-[#0d1117] text-gray-400
+          flex flex-col transition-all duration-300
           ${expanded ? "w-64" : "w-20"}
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-center relative border-b border-gray-800/50">
-          <div 
-            className="flex items-center gap-2 font-bold text-white text-xl cursor-pointer"
-          >
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">L</div>
 
+        {/* LOGO SECTION */}
+        <div className="h-16 flex items-center justify-center border-b border-gray-800 relative">
+          <div className="flex items-center gap-2 text-white text-xl font-semibold">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">L</div>
             {expanded && <span>LoanAdmin</span>}
           </div>
 
-          {/* Expand/Collapse */}
-          <button 
+          {/* Collapse Button */}
+          <button
             onClick={() => setExpanded(!expanded)}
-            className="absolute -right-3 top-6 p-1 rounded-full bg-blue-600 hidden lg:flex"
+            className="absolute -right-3 top-6 hidden lg:flex bg-blue-600 text-white p-1 rounded-full"
           >
             {expanded ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
           </button>
 
           {/* Mobile Close */}
-          <button 
+          <button
             onClick={() => setMobileOpen(false)}
             className="absolute right-4 top-5 text-gray-400 lg:hidden"
           >
@@ -92,17 +97,17 @@ export default function SidebarNav() {
           </button>
         </div>
 
-        {/* Menu list */}
-        <div className="flex-1 overflow-y-auto py-4">
-          {menuItems.map((section, i) => (
-            <div key={i} className="mb-6">
-              
-              <div className="px-4 mb-2 text-xs font-semibold text-gray-500 uppercase">
-                {expanded ? section.category : <hr className="border-gray-700 w-8 mx-auto" />}
+        {/* MENU LIST */}
+        <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+          {menuItems.map((section, index) => (
+            <div key={index} className="mb-6">
+
+              <div className="px-4 mb-2 text-xs uppercase font-semibold text-gray-500">
+                {expanded ? section.category : <hr className="border-gray-700 w-10 mx-auto" />}
               </div>
 
               <div className="space-y-1 px-3">
-                {section.items.map(item => {
+                {section.items.map((item) => {
                   const isActive = location.pathname === item.path;
 
                   return (
@@ -111,39 +116,39 @@ export default function SidebarNav() {
                       to={item.path}
                       onClick={() => setMobileOpen(false)}
                       className={`
-                        flex items-center w-full p-3 rounded-xl transition-all
-                        ${isActive ? "bg-white text-gray-900 shadow-md" : "hover:bg-gray-800 hover:text-white"}
+                        flex items-center p-3 rounded-xl transition-all 
                         ${expanded ? "gap-3" : "justify-center"}
+                        ${isActive ? "bg-white text-gray-900 shadow" : "hover:bg-gray-800 hover:text-white"}
                       `}
                     >
                       <span className={isActive ? "text-blue-600" : ""}>{item.icon}</span>
-
-                      {expanded && <span className="text-sm font-medium">{item.name}</span>}
+                      {expanded && <span className="text-sm">{item.name}</span>}
                     </Link>
                   );
                 })}
               </div>
+
             </div>
           ))}
         </div>
 
-        {/* Profile */}
-        <div className="p-3 border-t border-gray-800/50">
+        {/* PROFILE SECTION */}
+        <div className="p-4 border-t border-gray-800">
           <div className={`flex items-center p-2 rounded-xl bg-gray-800/40 ${expanded ? "gap-3" : "justify-center"}`}>
-            <img 
-              src="https://i.pravatar.cc/150?img=11" 
+            <img
+              src="https://i.pravatar.cc/100?img=11"
               className="w-10 h-10 rounded-full border border-gray-700"
             />
             {expanded && (
               <div>
                 <h4 className="text-white text-sm font-semibold">Rahul Kumar</h4>
-                <p className="text-xs text-gray-500">Super Admin</p>
+                <p className="text-xs text-gray-400">Super Admin</p>
               </div>
             )}
           </div>
         </div>
 
       </aside>
-    </div>
+    </>
   );
 }
