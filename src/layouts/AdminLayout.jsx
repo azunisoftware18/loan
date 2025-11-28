@@ -1,20 +1,20 @@
+// src/layouts/AdminLayout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
-
+import SidebarNav from "../components/admin/SidebarNav";
 import AdminNavbar from "../components/admin/AdminNavbar";
-// import DashboardFooter from "../components/admin/AdminFooter";
-import SidebarNav from "../components/admin/SidebarNav";  
 import AdminFooter from "../components/admin/AdminFooter";
 
 export default function AdminLayout() {
   return (
     <div className="min-h-screen flex">
+      
       {/* Sidebar */}
       <SidebarNav />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        
+
         {/* Navbar */}
         <AdminNavbar />
 
