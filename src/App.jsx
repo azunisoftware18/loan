@@ -45,7 +45,7 @@ import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
 
 import Dashboard from "./pages/adminPages/Dashboard.jsx";
 import Los from "./pages/adminPages/Los.jsx";
-import Lms from "./pages/adminPages/Lms.jsx";
+// import Lms from "./pages/adminPages/Loan Entry.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Accounting from "./pages/adminPages/Accounting.jsx";
@@ -53,6 +53,8 @@ import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
 import SystemSettings from "./pages/adminPages/SystemSettings.jsx";
+import LoanEntry from "./pages/adminPages/LoanEntry.jsx";
+import Repayment from "./pages/adminPages/Repayment.JSX";
 
 
 function App() {
@@ -94,11 +96,11 @@ function App() {
         <Route path="others-disclosures" element={<OtherDisclosures />} />
       </Route>
 
+
       {/* ADMIN ROUTES */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="los" element={<Los />} />
-        <Route path="lms" element={<Lms />} />
         <Route path="loan-requests" element={<LoanRequests />} />
         <Route path="borrowers" element={<Borrowers  />} />
         <Route path="accounting" element={<Accounting />} />
@@ -106,6 +108,11 @@ function App() {
         <Route path="configuration" element={<Configuration />} />
         <Route path="admin-roles" element={<AdminRoles />} />
         <Route path="system-settings" element={<SystemSettings />} />
+
+        //LMS 
+        <Route path="repayment" element={<Repayment />} />
+        <Route path="loanEntry" element={<LoanEntry />} />
+
       </Route>
 
     </Routes>
