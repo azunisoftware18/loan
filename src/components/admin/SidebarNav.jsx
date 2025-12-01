@@ -1,9 +1,8 @@
-// src/components/admin/SidebarNav.jsx
 import React, { useState } from "react";
 import {
   Users, FileText, Settings, ShieldCheck, Banknote, PieChart,
   ChevronLeft, ChevronRight, Menu, X, Briefcase,
-  Calculator, Sliders, FilePlus2, ChevronDown, Circle
+  Calculator, Sliders, FilePlus2, ChevronDown, UserPlus, Handshake
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -11,7 +10,7 @@ export default function SidebarNav() {
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   
-  // State for Level 1 Menu (like LMS)
+  // State for Level 1 Menu (like LMS, Configuration)
   const [openMenu, setOpenMenu] = useState(null); 
   
   // State for Level 2 Menu (like Repayment inside LMS)
@@ -19,7 +18,7 @@ export default function SidebarNav() {
 
   const location = useLocation();
 
-  // Handle Level 1 Click (LMS)
+  // Handle Level 1 Click (LMS, Configuration etc.)
   const handleMenuClick = (name) => {
     if (!expanded) setExpanded(true);
     setOpenMenu(openMenu === name ? null : name);
@@ -27,7 +26,7 @@ export default function SidebarNav() {
 
   // Handle Level 2 Click (Repayment inside LMS)
   const handleSubMenuClick = (name, e) => {
-    e.stopPropagation(); // Parent menu (LMS) ko band hone se rokne ke liye
+    e.stopPropagation(); // Stop bubbling to Parent
     setOpenSubMenu(openSubMenu === name ? null : name);
   };
 
@@ -53,10 +52,9 @@ export default function SidebarNav() {
             { name: "Loan Statement", path: "/admin/lms/loan-statement"},
             { name: "Loan Entry", path: "/admin/loanEntry"},
             
-            // --- REPAYMENT (Ab ye khud ek dropdown hai) ---
+            // --- REPAYMENT (Dropdown) ---
             { 
               name: "Repayment", 
-              // Iska path hata diya, kyunki ye dropdown ban gaya hai
               subItems: [
                 { name: "NACH Registration", path: "/admin/lms/repayment/nach-registration" },
                 { name: "NACH Repayment Process", path: "/admin/lms/repayment/nach-process" },
@@ -99,7 +97,15 @@ export default function SidebarNav() {
     {
       category: "Admin Control",
       items: [
-        { name: "Configuration", icon: <Sliders size={20} />, path: "/admin/configuration" },
+        // --- CONFIGURATION (Updated with Sub-items) ---
+        { 
+          name: "Configuration", 
+          icon: <Sliders size={20} />, 
+          subItems: [
+            { name: "Employee Add", path: "/admin/configuration/employee", icon: <UserPlus size={16} /> },
+            { name: "Partner Add", path: "/admin/configuration/partner", icon: <Handshake size={16} /> },
+          ]
+        },
         { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
         { name: "System Settings", icon: <Settings size={20} />, path: "/admin/system-settings" },
       ]
@@ -169,7 +175,7 @@ export default function SidebarNav() {
               <div className="space-y-1 px-3">
                 {section.items.map((item) => {
                   
-                  // Level 1 Logic (LMS, LOS, etc)
+                  // Level 1 Logic (LMS, Configuration, etc)
                   const hasSubMenu = item.subItems && item.subItems.length > 0;
                   const isMenuOpen = openMenu === item.name;
                   const isActive = !hasSubMenu && location.pathname === item.path;
@@ -214,7 +220,7 @@ export default function SidebarNav() {
                         </Link>
                       )}
 
-                      {/* LEVEL 2 LIST (Inside LMS) */}
+                      {/* LEVEL 2 LIST (Inside LMS / Configuration) */}
                       {hasSubMenu && isMenuOpen && expanded && (
                         <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
                           {item.subItems.map((subItem) => {
@@ -242,7 +248,7 @@ export default function SidebarNav() {
                                        />
                                     </button>
                                  ) : (
-                                    // NORMAL SUB-ITEMS
+                                    // NORMAL SUB-ITEMS (Employee Add, Partner Add, etc)
                                     <Link
                                       to={subItem.path}
                                       onClick={() => setMobileOpen(false)}

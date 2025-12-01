@@ -55,6 +55,8 @@ import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
 import SystemSettings from "./pages/adminPages/SystemSettings.jsx";
 import LoanEntry from "./pages/adminPages/LoanEntry.jsx";
 import Repayment from "./pages/adminPages/Repayment.JSX";
+import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
+import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
 
 
 function App() {
@@ -113,6 +115,9 @@ function App() {
         <Route path="repayment" element={<Repayment />} />
         <Route path="loanEntry" element={<LoanEntry />} />
 
+        //Configuration
+        <Route path="Configuration/Partner" element={<PartnerAdd />} />
+        <Route path="Configuration/Employee" element={<EmployeeAdd />} />
       </Route>
 
     </Routes>
