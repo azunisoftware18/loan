@@ -48,38 +48,28 @@ export default function SidebarNav() {
           name: "LMS", 
           icon: <Briefcase size={20} />, 
           subItems: [
-            { name: "Home", path: "/admin/lms/home"},
-            { name: "Loan Statement", path: "/admin/lms/loan-statement"},
+            
             { name: "Loan Entry", path: "/admin/loanEntry"},
             
             // --- REPAYMENT (Dropdown) ---
             { 
               name: "Repayment", 
               subItems: [
-                { name: "NACH Registration", path: "/admin/lms/repayment/nach-registration" },
-                { name: "NACH Repayment Process", path: "/admin/lms/repayment/nach-process" },
-                { name: "PDC Repayment Process", path: "/admin/lms/repayment/pdc-process" },
-                { name: "Receipt Entry", path: "/admin/lms/repayment/receipt-entry" },
-                { name: "Receipt Book", path: "/admin/lms/repayment/receipt-book" },
-                { name: "Receipt Book Detail", path: "/admin/lms/repayment/receipt-book-detail" },
-                { name: "Receipt Import", path: "/admin/lms/repayment/receipt-import" },
-                { name: "Receipt Book By Team", path: "/admin/lms/repayment/receipt-team" },
-                { name: "PDC Cheque Detail", path: "/admin/lms/repayment/pdc-detail" },
-                { name: "E-NACH AU Process", path: "/admin/lms/repayment/enach-process" },
+                { name: "NACH Registration", path: "/admin/nach" },
+                { name: "PDC Receipt", path: "/admin/PdcReceipts" },
               ]
             },
             
-            { name: "Customer", path: "/admin/lms/customer"},
-            { name: "Disbursement Detail", path: "/admin/lms/disbursement"},
-            { name: "Schedule Re-Generate", path: "/admin/lms/schedule-regenerate"},
-            { name: "Loan Reschedule", path: "/admin/lms/loan-reschedule"},
-            { name: "Loan Closer", path: "/admin/lms/loan-closer"},
-            { name: "DUE List", path: "/admin/lms/due-list"},
-            { name: "Coll. Executive Assign", path: "/admin/lms/collection-assign"},
-            { name: "Request & Task", path: "/admin/lms/request-task" },
-            { name: "Legal", path: "/admin/lms/legal" },
-            { name: "Waiver Request", path: "/admin/lms/waiver" },
-            { name: "Repossess", path: "/admin/lms/repossess" },
+            { name: "Customer", path: "/admin/customer"},
+            { name: "Disbursement", path: "/admin/disbursement"},
+            { name: "Schedule", path: "/admin/schedule"},
+            { name: "Loan Closer", path: "/admin/loan-closer"},
+            { name: "DUE List", path: "/admin/due-list"},
+            { name: "Collection Executive", path: "/admin/collection-executive"},
+            { name: "Task", path: "/admin/task" },
+            // { name: "Legal", path: "/admin/legal" },
+            { name: "Waiver", path: "/admin/waiver" },
+            { name: "Repossess", path: "/admin/repossess" },
           ]
         },
         
