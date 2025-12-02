@@ -40,12 +40,11 @@ import OtherDisclosures from "./pages/OtherDisclosures.jsx";
 import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
 
 /* -------------------------------
-   ADMIN PAGES
+   ADMIN PAGES  
 -------------------------------- */
 
 import Dashboard from "./pages/adminPages/Dashboard.jsx";
 import Los from "./pages/adminPages/Los.jsx";
-// import Lms from "./pages/adminPages/Loan Entry.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Accounting from "./pages/adminPages/Accounting.jsx";
@@ -53,10 +52,14 @@ import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
 import SystemSettings from "./pages/adminPages/SystemSettings.jsx";
-import LoanEntry from "./pages/adminPages/LoanEntry.jsx";
-import Repayment from "./pages/adminPages/Repayment.JSX";
 import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
 import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
+import LoanEntry from "./pages/adminPages/Lms/LoanEntry.jsx";
+import Nach from "./pages/adminPages/Lms/Nach.jsx";
+import PdcReceipt from "./pages/adminPages/Lms/PdcReceipt.jsx";
+import Customer from "./pages/adminPages/Lms/Customer.jsx";
+import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
+import Schedule from "./pages/adminPages/Lms/Schedule.jsx";
 
 
 function App() {
@@ -112,12 +115,19 @@ function App() {
         <Route path="system-settings" element={<SystemSettings />} />
 
         //LMS 
-        <Route path="repayment" element={<Repayment />} />
         <Route path="loanEntry" element={<LoanEntry />} />
+        <Route path="nach" element={<Nach />} />
+        <Route path="PdcReceipts" element={<PdcReceipt />} />
+        <Route path="Customer" element={<Customer />} />
+        <Route path="Disbursement" element={<Disbursement />} />
+        <Route path="Schedule" element={<Schedule />} />
+
 
         //Configuration
         <Route path="Configuration/Partner" element={<PartnerAdd />} />
         <Route path="Configuration/Employee" element={<EmployeeAdd />} />
+
+        
       </Route>
 
     </Routes>
