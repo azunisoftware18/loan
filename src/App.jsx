@@ -65,6 +65,15 @@ import DueList from "./pages/adminPages/Lms/DueList.jsx";
 import Task from "./pages/adminPages/Lms/Task.jsx";
 import Waiver from "./pages/adminPages/Lms/Waiver.jsx";
 import Repossess from "./pages/adminPages/Lms/Repossess.jsx";
+import Branch from "./pages/adminPages/Configuration/BranchManagement.jsx";
+import LoanSwap from "./pages/adminPages/Configuration/LoanSwap.jsx";
+import LoanProduct from "./pages/adminPages/Configuration/LoanProduct.jsx";
+import Location from "./pages/adminPages/Configuration/Location.jsx";
+import MastersSetup from "./pages/adminPages/Configuration/MastersSetup.jsx";
+import KycVerification from "./pages/adminPages/Configuration/KycVerification.jsx";
+import CreditAsignment from "./pages/adminPages/Configuration/CreditAsignment.jsx";
+import VehicleMasters from "./pages/adminPages/Configuration/VehicleMasters.jsx";
+import ConsumerDurable from "./pages/adminPages/Configuration/ConsumerDurable.jsx";
 
 
 function App() {
@@ -136,6 +145,15 @@ function App() {
         //Configuration
         <Route path="Configuration/Partner" element={<PartnerAdd />} />
         <Route path="Configuration/Employee" element={<EmployeeAdd />} />
+        <Route path="Configuration/BranchManagement" element={<Branch />} />
+        <Route path="configuration/loan-swap" element={<LoanSwap />} />
+        <Route path="configuration/loan-product" element={<LoanProduct />} />
+        <Route path="configuration/location" element={<Location />} />
+        <Route path="configuration/masters-setup" element={<MastersSetup />} />
+        <Route path="configuration/kyc-verification" element={<KycVerification />} />
+        <Route path="configuration/credit-asignment" element={<CreditAsignment />} />
+        <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
+        <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />
 
         
       </Route>
