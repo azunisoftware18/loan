@@ -65,7 +65,6 @@ export default function SidebarNav() {
             { name: "Schedule", path: "/admin/schedule"},
             { name: "Loan Closer", path: "/admin/loan-closer"},
             { name: "DUE List", path: "/admin/due-list"},
-            { name: "Collection Executive", path: "/admin/collection-executive"},
             { name: "Task", path: "/admin/task" },
             // { name: "Legal", path: "/admin/legal" },
             { name: "Waiver", path: "/admin/waiver" },
@@ -94,6 +93,14 @@ export default function SidebarNav() {
           subItems: [
             { name: "Employee Add", path: "/admin/configuration/employee", icon: <UserPlus size={16} /> },
             { name: "Partner Add", path: "/admin/configuration/partner", icon: <Handshake size={16} /> },
+            { name: "Branch Management", path: "/admin/configuration/BranchManagement", icon: <Handshake size={16} /> },
+            { name: "Loan Swap", path: "/admin/configuration/loan-swap", icon: <Handshake size={16} /> },
+            { name: "Loan Product", path: "/admin/configuration/loan-product", icon: <Handshake size={16} /> },
+            { name: "Location", path: "/admin/configuration/location", icon: <Handshake size={16} /> },
+            { name: "masters setup", path: "/admin/configuration/masters-setup", icon: <Handshake size={16} /> },
+            { name: "Kyc Verification", path: "/admin/configuration/kyc-verification", icon: <Handshake size={16} /> },
+            { name: "Vehicle Masters", path: "/admin/configuration/vehicle-masters", icon: <Handshake size={16} /> },
+            { name: "Consumer Durable", path: "/admin/configuration/consumer-durable", icon: <Handshake size={16} /> },
           ]
         },
         { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
