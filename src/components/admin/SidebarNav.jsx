@@ -78,19 +78,33 @@ export default function SidebarNav() {
     {
       category: "Finance",
       items: [
-        { name: "Accounting", icon: <Calculator size={20} />, path: "/admin/accounting" },
+        {
+          name: "Accounting",
+          icon: <Calculator size={20} />,
+          subItems: [
+            { name: "Account Group Masters", path: "/admin/accounting/account-group-masters" },
+            { name: "Transaction Books", path: "/admin/accounting/transaction-books" },
+            { name: "Profit And Loss Balances", path: "/admin/accounting/profit-loss-balances" },
+            { name: "Vouchers", path: "/admin/accounting/vouchers" },
+            { name: "GST Detail", path: "/admin/accounting/gst" },
+            { name: "Schedule Transaction", path: "/admin/accounting/schedule-transaction" },
+            { name: "Topup Refund", path: "/admin/accounting/topup-refund" },
+            { name: "Balance Report", path: "/admin/accounting/balance-report" },
+            { name: "Reconcile Bank Balance", path: "/admin/accounting/reconcile" },
+          ] 
+        },
         
         // --- REPORTS SECTION (Updated with List) ---
         { 
           name: "Reports", 
           icon: <FileText size={20} />, 
           subItems: [
-            { name: "DUE List", path: "/admin/reports/due-list", icon: <List size={16} /> },
+            { name: "DUE List", path: "/admin/reports/due-list" },
             
             // --- BUSINESS REPORTS (Dropdown) ---
             { 
-              name: "Business Reports", 
-              icon: <Plus size={16} />,
+              name: "Business Reports"
+              ,
               subItems: [
                 { name: "Disburs & Collection", path: "/admin/reports/business/disburs-collection" },
                 { name: "Booking List", path: "/admin/reports/business/booking-list" },
@@ -100,14 +114,14 @@ export default function SidebarNav() {
               ]
             },
             
-            { name: "Collection Reports", path: "/admin/reports/collection", icon: <Plus size={16} /> },
-            { name: "Port Folio Detail", path: "/admin/reports/portfolio", icon: <Plus size={16} /> },
-            { name: "NPA Reports", path: "/admin/reports/npa", icon: <Plus size={16} /> },
-            { name: "Charges Balance", path: "/admin/reports/charges", icon: <Plus size={16} /> },
-            { name: "CRC Report", path: "/admin/reports/crc", icon: <Plus size={16} /> },
-            { name: "Assets Detail", path: "/admin/reports/assets", icon: <ArrowRight size={16} /> },
-            { name: "Accrued Interest", path: "/admin/reports/accrued-interest", icon: <ArrowRight size={16} /> },
-            { name: "Attendance Report", path: "/admin/reports/attendance", icon: <ArrowRight size={16} /> },
+            { name: "Collection Reports", path: "/admin/reports/collection" },
+            { name: "Port Folio Detail", path: "/admin/reports/portfolio" },
+            { name: "NPA Reports", path: "/admin/reports/npa" },
+            { name: "Charges Balance", path: "/admin/reports/charges" },
+            { name: "CRC Report", path: "/admin/reports/crc" },
+            { name: "Assets Detail", path: "/admin/reports/assets" },
+            { name: "Accrued Interest", path: "/admin/reports/accrued-interest" },
+            { name: "Attendance Report", path: "/admin/reports/attendance" },
           ]
         },
       ]
