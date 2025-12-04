@@ -74,6 +74,7 @@ import KycVerification from "./pages/adminPages/Configuration/KycVerification.js
 import CreditAsignment from "./pages/adminPages/Configuration/CreditAsignment.jsx";
 import VehicleMasters from "./pages/adminPages/Configuration/VehicleMasters.jsx";
 import ConsumerDurable from "./pages/adminPages/Configuration/ConsumerDurable.jsx";
+import AttendanceReport from "./pages/adminPages/reports/AttendanceReport.jsx";
 
 
 function App() {
@@ -155,6 +156,9 @@ function App() {
         <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
         <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />
 
+
+        //reports
+        <Route path="reports/attendance-report" element={<AttendanceReport />} />
         
       </Route>
 

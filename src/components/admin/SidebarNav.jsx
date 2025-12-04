@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import {
   Users, FileText, Settings, ShieldCheck, Banknote, PieChart,
   ChevronLeft, ChevronRight, Menu, X, Briefcase,
-  Calculator, Sliders, FilePlus2, ChevronDown, UserPlus, Handshake
+  Calculator, Sliders, FilePlus2, ChevronDown, UserPlus, Handshake,
+  Plus, ArrowRight, List
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -10,7 +11,7 @@ export default function SidebarNav() {
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   
-  // State for Level 1 Menu (like LMS, Configuration)
+  // State for Level 1 Menu (like LMS, Configuration, Reports)
   const [openMenu, setOpenMenu] = useState(null); 
   
   // State for Level 2 Menu (like Repayment inside LMS)
@@ -18,7 +19,7 @@ export default function SidebarNav() {
 
   const location = useLocation();
 
-  // Handle Level 1 Click (LMS, Configuration etc.)
+  // Handle Level 1 Click (LMS, Configuration, Reports etc.)
   const handleMenuClick = (name) => {
     if (!expanded) setExpanded(true);
     setOpenMenu(openMenu === name ? null : name);
@@ -48,7 +49,6 @@ export default function SidebarNav() {
           name: "LMS", 
           icon: <Briefcase size={20} />, 
           subItems: [
-            
             { name: "Loan Entry", path: "/admin/loanEntry"},
             
             // --- REPAYMENT (Dropdown) ---
@@ -66,7 +66,6 @@ export default function SidebarNav() {
             { name: "Loan Closer", path: "/admin/loan-closer"},
             { name: "DUE List", path: "/admin/due-list"},
             { name: "Task", path: "/admin/task" },
-            // { name: "Legal", path: "/admin/legal" },
             { name: "Waiver", path: "/admin/waiver" },
             { name: "Repossess", path: "/admin/repossess" },
           ]
@@ -80,13 +79,43 @@ export default function SidebarNav() {
       category: "Finance",
       items: [
         { name: "Accounting", icon: <Calculator size={20} />, path: "/admin/accounting" },
-        { name: "Reports", icon: <FileText size={20} />, path: "/admin/reports" },
+        
+        // --- REPORTS SECTION (Updated with List) ---
+        { 
+          name: "Reports", 
+          icon: <FileText size={20} />, 
+          subItems: [
+            { name: "DUE List", path: "/admin/reports/due-list", icon: <List size={16} /> },
+            
+            // --- BUSINESS REPORTS (Dropdown) ---
+            { 
+              name: "Business Reports", 
+              icon: <Plus size={16} />,
+              subItems: [
+                { name: "Disburs & Collection", path: "/admin/reports/business/disburs-collection" },
+                { name: "Booking List", path: "/admin/reports/business/booking-list" },
+                { name: "Business Report", path: "/admin/reports/business/general-report" },
+                { name: "Sales Target/Achievement", path: "/admin/reports/business/sales-target" },
+                { name: "Loan Customer List", path: "/admin/reports/business/loan-customer-list" },
+              ]
+            },
+            
+            { name: "Collection Reports", path: "/admin/reports/collection", icon: <Plus size={16} /> },
+            { name: "Port Folio Detail", path: "/admin/reports/portfolio", icon: <Plus size={16} /> },
+            { name: "NPA Reports", path: "/admin/reports/npa", icon: <Plus size={16} /> },
+            { name: "Charges Balance", path: "/admin/reports/charges", icon: <Plus size={16} /> },
+            { name: "CRC Report", path: "/admin/reports/crc", icon: <Plus size={16} /> },
+            { name: "Assets Detail", path: "/admin/reports/assets", icon: <ArrowRight size={16} /> },
+            { name: "Accrued Interest", path: "/admin/reports/accrued-interest", icon: <ArrowRight size={16} /> },
+            { name: "Attendance Report", path: "/admin/reports/attendance", icon: <ArrowRight size={16} /> },
+          ]
+        },
       ]
     },
     {
       category: "Admin Control",
       items: [
-        // --- CONFIGURATION (Updated with Sub-items) ---
+        // --- CONFIGURATION ---
         { 
           name: "Configuration", 
           icon: <Sliders size={20} />, 
@@ -172,7 +201,7 @@ export default function SidebarNav() {
               <div className="space-y-1 px-3">
                 {section.items.map((item) => {
                   
-                  // Level 1 Logic (LMS, Configuration, etc)
+                  // Level 1 Logic
                   const hasSubMenu = item.subItems && item.subItems.length > 0;
                   const isMenuOpen = openMenu === item.name;
                   const isActive = !hasSubMenu && location.pathname === item.path;
@@ -217,12 +246,12 @@ export default function SidebarNav() {
                         </Link>
                       )}
 
-                      {/* LEVEL 2 LIST (Inside LMS / Configuration) */}
+                      {/* LEVEL 2 LIST (Inside Reports, LMS, Configuration) */}
                       {hasSubMenu && isMenuOpen && expanded && (
                         <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
                           {item.subItems.map((subItem) => {
                              
-                             // Check for Level 2 nesting (REPAYMENT logic)
+                             // Check for Level 2 nesting
                              const hasDeepMenu = subItem.subItems && subItem.subItems.length > 0;
                              const isDeepOpen = openSubMenu === subItem.name;
                              const isSubActive = !hasDeepMenu && location.pathname === subItem.path;
@@ -230,7 +259,7 @@ export default function SidebarNav() {
                              return (
                                <div key={subItem.name}>
                                  {hasDeepMenu ? (
-                                    // REPAYMENT BUTTON (Dropdown Trigger)
+                                    // BUTTON (Dropdown Trigger)
                                     <button
                                       onClick={(e) => handleSubMenuClick(subItem.name, e)}
                                       className={`
@@ -238,27 +267,32 @@ export default function SidebarNav() {
                                         ${isDeepOpen ? "text-white bg-gray-800" : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"}
                                       `}
                                     >
-                                       <span>{subItem.name}</span>
+                                       <div className="flex items-center gap-2">
+                                         {subItem.icon && <span className="text-current opacity-70">{subItem.icon}</span>}
+                                         <span>{subItem.name}</span>
+                                       </div>
                                        <ChevronDown 
                                           size={14} 
                                           className={`transition-transform duration-200 ${isDeepOpen ? "rotate-180" : ""}`} 
                                        />
                                     </button>
                                  ) : (
-                                    // NORMAL SUB-ITEMS (Employee Add, Partner Add, etc)
+                                    // NORMAL LINK (With Optional Icon Support)
                                     <Link
                                       to={subItem.path}
                                       onClick={() => setMobileOpen(false)}
                                       className={`
-                                        block px-4 py-2 text-sm rounded-lg transition-colors
+                                        flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors
                                         ${isSubActive ? "text-white bg-blue-600/20" : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"}
                                       `}
                                     >
+                                      {/* Render Icon if present (e.g. for Reports/Configuration) */}
+                                      {subItem.icon && <span className="text-current opacity-70">{subItem.icon}</span>}
                                       {subItem.name}
                                     </Link>
                                  )}
 
-                                 {/* LEVEL 3 LIST (Inside Repayment) */}
+                                 {/* LEVEL 3 LIST */}
                                  {hasDeepMenu && isDeepOpen && (
                                     <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
                                        {subItem.subItems.map((deepItem) => (
