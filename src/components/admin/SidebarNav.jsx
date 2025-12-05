@@ -64,7 +64,6 @@ export default function SidebarNav() {
             { name: "Disbursement", path: "/admin/disbursement"},
             { name: "Schedule", path: "/admin/schedule"},
             { name: "Loan Closer", path: "/admin/loan-closer"},
-            { name: "DUE List", path: "/admin/due-list"},
             { name: "Task", path: "/admin/task" },
             { name: "Waiver", path: "/admin/waiver" },
             { name: "Repossess", path: "/admin/repossess" },
@@ -91,6 +90,9 @@ export default function SidebarNav() {
             { name: "Topup Refund", path: "/admin/accounting/topup-refund" },
             { name: "Balance Report", path: "/admin/accounting/balance-report" },
             { name: "Reconcile Bank Balance", path: "/admin/accounting/reconcile" },
+            { name: "IMD Authorization", path: "/admin/accounting/imd-authorization" },
+            { name: "Reciept Entry", path: "/admin/accounting/reciept-entry" },
+            { name: "Trial Balance", path: "/admin/accounting/trial-balance" },
           ] 
         },
         
@@ -99,26 +101,22 @@ export default function SidebarNav() {
           name: "Reports", 
           icon: <FileText size={20} />, 
           subItems: [
-            { name: "DUE List", path: "/admin/reports/due-list" },
+           { name: "DUE List", path: "/admin/due-list"},
             
             // --- BUSINESS REPORTS (Dropdown) ---
             { 
               name: "Business Reports"
               ,
               subItems: [
-                { name: "Disburs & Collection", path: "/admin/reports/business/disburs-collection" },
-                { name: "Booking List", path: "/admin/reports/business/booking-list" },
-                { name: "Business Report", path: "/admin/reports/business/general-report" },
-                { name: "Sales Target/Achievement", path: "/admin/reports/business/sales-target" },
-                { name: "Loan Customer List", path: "/admin/reports/business/loan-customer-list" },
+                { name: "Disburs & Collection", path: "/admin/reports/disburs-collection" },
+                { name: "Customer And Booking List", path: "/admin/reports/customer-and-booking-list" },
+                { name: "Sales Target/Achievement", path: "/admin/reports/sales-target-and-achievement" },
               ]
             },
             
             { name: "Collection Reports", path: "/admin/reports/collection" },
-            { name: "Port Folio Detail", path: "/admin/reports/portfolio" },
-            { name: "NPA Reports", path: "/admin/reports/npa" },
-            { name: "Charges Balance", path: "/admin/reports/charges" },
-            { name: "CRC Report", path: "/admin/reports/crc" },
+            { name: "NPA Reports", path: "/admin/reports/npa-reports" },
+            { name: "CRC Report", path: "/admin/reports/crc-report" },
             { name: "Assets Detail", path: "/admin/reports/assets" },
             { name: "Accrued Interest", path: "/admin/reports/accrued-interest" },
             { name: "Attendance Report", path: "/admin/reports/attendance" },

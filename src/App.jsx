@@ -60,7 +60,7 @@ import Customer from "./pages/adminPages/Lms/Customer.jsx";
 import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
 import Schedule from "./pages/adminPages/Lms/Schedule.jsx";
 import LoanCloser from "./pages/adminPages/Lms/LoanCloser.jsx";
-import DueList from "./pages/adminPages/Lms/DueList.jsx";
+import DueList from "./pages/adminPages/reports/DueList.jsx";
 import Task from "./pages/adminPages/Lms/Task.jsx";
 import Waiver from "./pages/adminPages/Lms/Waiver.jsx";
 import Repossess from "./pages/adminPages/Lms/Repossess.jsx";
@@ -83,6 +83,15 @@ import ScheduleTransaction from "./pages/adminPages/Accounts/ScheduleTransaction
 import TopupRefund from "./pages/adminPages/Accounts/TopupRefund.jsx";
 import BalanceReport from "./pages/adminPages/Accounts/BalanceReport.jsx";
 import Reconcile from "./pages/adminPages/Accounts/Reconcile.jsx";
+import ImdAuthorization from "./pages/adminPages/Accounts/ImdAuthorization.jsx";
+import RecieptEntry from "./pages/adminPages/Accounts/RecieptEntry.jsx";
+import TrialBalance from "./pages/adminPages/Accounts/TrialBalance.jsx";
+import DisbursCollection from "./pages/adminPages/reports/DisbursCollection.jsx";
+import CustomerAndBookingList from "./pages/adminPages/reports/CustomerAndBookingList.jsx";
+import SalesTargetAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
+import SalesTargetAndAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
+import NpaReports from "./pages/adminPages/reports/NpaReports.jsx";
+import CrcReport from "./pages/adminPages/reports/CrcReport.jsx";
 
 
 function App() {
@@ -144,7 +153,6 @@ function App() {
         <Route path="Disbursement" element={<Disbursement />} />
         <Route path="Schedule" element={<Schedule />} />
         <Route path="loan-closer" element={<LoanCloser />} />
-        <Route path="due-list" element={<DueList />} />
         <Route path="task" element={<Task />} />
         <Route path="waiver" element={<Waiver />} />
         <Route path="repossess" element={<Repossess />} />
@@ -173,11 +181,19 @@ function App() {
         <Route path="accounting/topup-refund" element={<TopupRefund />} />
         <Route path="accounting/balance-report" element={<BalanceReport />} />
         <Route path="accounting/reconcile" element={<Reconcile />} />
+        <Route path="accounting/imd-authorization" element={<ImdAuthorization />} />
+        <Route path="accounting/reciept-entry" element={<RecieptEntry />} />
+        <Route path="accounting/trial-balance" element={<TrialBalance />} />
 
 
         //reports
         <Route path="reports/attendance-report" element={<AttendanceReport />} />
-        
+        <Route path="due-list" element={<DueList />} />
+        <Route path="reports/disburs-collection" element={<DisbursCollection />} />
+        <Route path="reports/customer-and-booking-list" element={<CustomerAndBookingList />} />
+        <Route path="reports/sales-target-and-achievement" element={<SalesTargetAndAchievement />} />
+        <Route path="reports/npa-reports" element={<NpaReports />} />
+        <Route path="reports/crc-report" element={<CrcReport />} />
       </Route>
 
     </Routes>
