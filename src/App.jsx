@@ -47,7 +47,6 @@ import Dashboard from "./pages/adminPages/Dashboard.jsx";
 import Los from "./pages/adminPages/Los.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
-import Accounting from "./pages/adminPages/Accounting.jsx";
 import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
@@ -75,6 +74,15 @@ import CreditAsignment from "./pages/adminPages/Configuration/CreditAsignment.js
 import VehicleMasters from "./pages/adminPages/Configuration/VehicleMasters.jsx";
 import ConsumerDurable from "./pages/adminPages/Configuration/ConsumerDurable.jsx";
 import AttendanceReport from "./pages/adminPages/reports/AttendanceReport.jsx";
+import AccountGroupMasters from "./pages/adminPages/Accounts/AccountGroupMasters.jsx";
+import TransactionBooks from "./pages/adminPages/Accounts/TransactionBooks.jsx";
+import ProfitLossBalances from "./pages/adminPages/Accounts/ProfitLossBalances.jsx";
+import Vouchers from "./pages/adminPages/Accounts/Vouchers.jsx";
+import Gst from "./pages/adminPages/Accounts/Gst.jsx";
+import ScheduleTransaction from "./pages/adminPages/Accounts/ScheduleTransaction.jsx";
+import TopupRefund from "./pages/adminPages/Accounts/TopupRefund.jsx";
+import BalanceReport from "./pages/adminPages/Accounts/BalanceReport.jsx";
+import Reconcile from "./pages/adminPages/Accounts/Reconcile.jsx";
 
 
 function App() {
@@ -123,7 +131,6 @@ function App() {
         <Route path="los" element={<Los />} />
         <Route path="loan-requests" element={<LoanRequests />} />
         <Route path="borrowers" element={<Borrowers  />} />
-        <Route path="accounting" element={<Accounting />} />
         <Route path="reports" element={<Reports />} />
         <Route path="configuration" element={<Configuration />} />
         <Route path="admin-roles" element={<AdminRoles />} />
@@ -155,6 +162,17 @@ function App() {
         <Route path="configuration/credit-asignment" element={<CreditAsignment />} />
         <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
         <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />
+
+        //Accounting
+        <Route path="accounting/account-group-masters" element={<AccountGroupMasters />} />
+        <Route path="accounting/transaction-books" element={<TransactionBooks />} />
+        <Route path="accounting/profit-loss-balances" element={<ProfitLossBalances />} />
+        <Route path="accounting/vouchers" element={<Vouchers />} />
+        <Route path="accounting/gst" element={<Gst />} />
+        <Route path="accounting/schedule-transaction" element={<ScheduleTransaction />} />
+        <Route path="accounting/topup-refund" element={<TopupRefund />} />
+        <Route path="accounting/balance-report" element={<BalanceReport />} />
+        <Route path="accounting/reconcile" element={<Reconcile />} />
 
 
         //reports
