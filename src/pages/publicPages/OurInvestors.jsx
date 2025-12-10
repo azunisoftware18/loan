@@ -1,6 +1,6 @@
 import React from "react";
 import { DollarSign, Shield, Zap } from "lucide-react";
-import FinovaLogo from "../assets/finova_logo.avif"; 
+import FinovaLogo from "../../assets/finova_logo.avif"; 
 
 export default function Investors() {
   const PRIMARY_COLOR = "text-blue-600";

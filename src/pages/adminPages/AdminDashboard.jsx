@@ -12,7 +12,7 @@ import {
   PieChart
 } from 'lucide-react';
 
-const Dashboard = () => {
+const AdminDashboard = () => {
 
   // --- EMI CALCULATOR STATE ---
   const [loanAmount, setLoanAmount] = useState(500000);
@@ -268,4 +268,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default  AdminDashboard;
