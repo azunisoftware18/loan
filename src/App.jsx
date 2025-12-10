@@ -7,43 +7,42 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 /* -------------------------------
    PUBLIC WEBSITE PAGES
 -------------------------------- */
-import Home from "./pages/Home.jsx";
-import Products from "./pages/Products.jsx";
-import ContactUs from "./pages/ContactUs.jsx";
-import OurMethod from "./pages/OurMethod.jsx";
-import AboutUs from "./pages/AboutUs.jsx";
-import Opportunity from "./pages/Opportunity.jsx";
-import VisionAndMission from "./pages/VisionAndMission.jsx";
-import Policies from "./pages/Policies.jsx";
-import BoardOfDirectors from "./pages/BoardOfDirectors.jsx";
-import KeyManagerialPersonnel from "./pages/KeyManagerialPersonnel.jsx";
-import OurInvestors from "./pages/OurInvestors.jsx";
-import FinancialInformation from "./pages/FinancialInformation.jsx";
-import AnnualReport from "./pages/AnnualReport.jsx";
-import Committees from "./pages/Committees.jsx";
-import CorporateGovernance from "./pages/CorporateGovernance.jsx";
-import Shareholderinformation from "./pages/Shareholderinformation.jsx";
-import CSR from "./pages/CSR.jsx";
-import NewsAndMedia from "./pages/NewsAndMedia.jsx";
-import FinovaHR from "./pages/FinovaHR.jsx";
-import WelcometoFinova from "./pages/WelcometoFinova.jsx";
-import EmployeesBenefit from "./pages/EmployeesBenefit.jsx";
-import JointheFinovaFaimily from "./pages/JointheFinovaFaimily.jsx";
-import ApplyNow from "./pages/ApplyNow.jsx";
-import PoliciesAndCodes from "./pages/PoliciesAndCodes.jsx";
-import SARFAESI from "./pages/SARFAESI.jsx";
-import CreditRating from "./pages/CreditRating.jsx";
-import NoticeOfBallot from "./pages/NoticeOfBallot.jsx";
-import UnderRegulation from "./pages/UnderRegulation.jsx";
-import PublicDisclosureUnderLiquidityRisk from "./pages/PublicDisclosureUnderLiquidityRisk.jsx";
-import OtherDisclosures from "./pages/OtherDisclosures.jsx";
-import SarfaesiAuctionNotices from "./pages/SarfaesiAuctionNotices.jsx";
+import Home from "./pages/publicPages/Home.jsx";
+import Products from "./pages/publicPages/Products.jsx";
+import ContactUs from "./pages/publicPages/ContactUs.jsx";
+import OurMethod from "./pages/publicPages/OurMethod.jsx";
+import AboutUs from "./pages/publicPages/AboutUs.jsx";
+import Opportunity from "./pages/publicPages/Opportunity.jsx";
+import VisionAndMission from "./pages/publicPages/VisionAndMission.jsx";
+import Policies from "./pages/publicPages/Policies.jsx";
+import BoardOfDirectors from "./pages/publicPages/BoardOfDirectors.jsx";
+import KeyManagerialPersonnel from "./pages/publicPages/KeyManagerialPersonnel.jsx";
+import OurInvestors from "./pages/publicPages/OurInvestors.jsx";
+import FinancialInformation from "./pages/publicPages/FinancialInformation.jsx";
+import AnnualReport from "./pages/publicPages/AnnualReport.jsx";
+import Committees from "./pages/publicPages/Committees.jsx";
+import CorporateGovernance from "./pages/publicPages/CorporateGovernance.jsx";
+import Shareholderinformation from "./pages/publicPages/Shareholderinformation.jsx";
+import CSR from "./pages/publicPages/CSR.jsx";
+import NewsAndMedia from "./pages/publicPages/NewsAndMedia.jsx";
+import FinovaHR from "./pages/publicPages/FinovaHR.jsx";
+import WelcometoFinova from "./pages/publicPages/WelcometoFinova.jsx";
+import EmployeesBenefit from "./pages/publicPages/EmployeesBenefit.jsx";
+import JointheFinovaFaimily from "./pages/publicPages/JointheFinovaFaimily.jsx";
+import ApplyNow from "./pages/publicPages/ApplyNow.jsx";
+import PoliciesAndCodes from "./pages/publicPages/PoliciesAndCodes.jsx";
+import SARFAESI from "./pages/publicPages/SARFAESI.jsx";
+import CreditRating from "./pages/publicPages/CreditRating.jsx";
+import NoticeOfBallot from "./pages/publicPages/NoticeOfBallot.jsx";
+import UnderRegulation from "./pages/publicPages/UnderRegulation.jsx";
+import PublicDisclosureUnderLiquidityRisk from "./pages/publicPages/PublicDisclosureUnderLiquidityRisk.jsx";
+import OtherDisclosures from "./pages/publicPages/OtherDisclosures.jsx";
+import SarfaesiAuctionNotices from "./pages/publicPages/SarfaesiAuctionNotices.jsx";
 
 /* -------------------------------
    ADMIN PAGES  
 -------------------------------- */
 
-import Dashboard from "./pages/adminPages/Dashboard.jsx";
 import Los from "./pages/adminPages/Los.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
@@ -95,6 +94,7 @@ import CompanyDetails from "./pages/adminPages/SystemSettings/CompanyDetails.jsx
 import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfiguration.jsx";
 import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
+import Dashboard from "./pages/mainPages/dashboard.jsx";
 
 
 function App() {
@@ -139,7 +139,7 @@ function App() {
 
       {/* ADMIN ROUTES */}
       <Route path="/admin" element={<AdminLayout />}>
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route index element={<Dashboard />} />
         <Route path="los" element={<Los />} />
         <Route path="loan-requests" element={<LoanRequests />} />
         <Route path="borrowers" element={<Borrowers  />} />

@@ -1,7 +1,6 @@
-import React from "react";
 import { DollarSign, Shield, Zap, TrendingUp } from "lucide-react";
-import FinovaImage1 from "../assets/finova_1.avif";
-import FinovaImage2 from "../assets/finova_2.avif";
+import FinovaImage1 from "../../assets/finova_1.avif";
+import FinovaImage2 from "../../assets/finova_2.avif";
 import Products from "./Products";
 import AboutUs from "./AboutUs";
 
