@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-export default function SidebarNav() {
+export default function EmployeeSidebar() {
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   
