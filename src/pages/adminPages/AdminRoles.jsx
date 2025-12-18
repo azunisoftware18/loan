@@ -146,7 +146,7 @@ const AdminRoles = () => {
     e.preventDefault();
     
     const activePermissions = Object.entries(formData.permissions)
-      .filter(([_, isActive]) => isActive)
+      .filter(([ isActive]) => isActive)
       .map(([moduleId]) => moduleId);
     
     const newRole = {
