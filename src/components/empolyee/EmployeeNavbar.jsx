@@ -44,12 +44,14 @@ const EmployeeNavbar = ({ toggleSidebar }) => {
         {/* User Profile Dropdown Area */}
         <div className="flex items-center gap-3 cursor-pointer group relative">
           <div className="hidden md:block text-right">
-            <p className="text-sm font-semibold text-gray-700">Rahul Kumar</p>
-            <p className="text-xs text-gray-500">Super Admin</p>
+            <p className="text-sm font-semibold text-gray-700">Sohail
+              
+            </p>
+            <p className="text-xs text-gray-500">Employee</p>
           </div>
           
           <img 
-            src="https://i.pravatar.cc/150?img=11" 
+            src="https://media-del2-2.cdn.whatsapp.net/v/t61.24694-24/537553419_3146051388910556_1101542131903776876_n.jpg?ccb=11-4&oh=01_Q5Aa3QFnF_tR3L9pRhjNu9WXrYUxAKiDfn6HE5YrF5ogqh_Msg&oe=694917E6&_nc_sid=5e03e0&_nc_cat=101" 
             alt="User" 
             className="w-9 h-9 rounded-full border border-gray-200 shadow-sm"
           />

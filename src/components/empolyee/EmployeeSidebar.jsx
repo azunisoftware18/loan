@@ -139,7 +139,7 @@ export default function EmployeeSidebar() {
             { name: "Consumer Durable", path: "/admin/configuration/consumer-durable" },
           ]
         },
-        { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
+        //{ name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
 
         {
           name: "System Settings",

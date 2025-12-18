@@ -95,6 +95,7 @@ import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfigurati
 import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
 import Dashboard from "./pages/mainPages/dashboard.jsx";
+import EmployeeLayout from "./layouts/EmployeeLayout.jsx";
 
 
 function App() {
@@ -204,6 +205,12 @@ function App() {
         <Route path="system-setting/payment-settings" element={<PaymentSettings />} />
 
       </Route>
+
+
+
+       {/* Employee ROUTES */}
+       <Route path="/employee" element={<EmployeeLayout />}>
+       </Route>
 
     </Routes>
   );

@@ -1,2 +1,3 @@
-export const role = "EMPLOYEE";
+// export const role = "PARTNER";
+export const role = "ADMIN";
 
