@@ -14,7 +14,7 @@ import {
   Check,
   X,
   RefreshCw,
-  DollarSign,
+  IndianRupee,
   CreditCard,
   Receipt,
   Banknote,
@@ -56,71 +56,6 @@ const Vouchers = () => {
       narration: 'Payment to XYZ Suppliers',
       status: 'approved',
       createdBy: 'Admin User',
-      approvedBy: 'Manager'
-    },
-    {
-      id: 'VCH-002',
-      date: '15 Mar 2024',
-      type: 'receipt',
-      typeLabel: 'Receipt Voucher',
-      amount: 25000,
-      debitAccount: 'Cash',
-      creditAccount: 'Sales',
-      narration: 'Received from Customer ABC',
-      status: 'approved',
-      createdBy: 'Admin User',
-      approvedBy: 'Manager'
-    },
-    {
-      id: 'VCH-003',
-      date: '14 Mar 2024',
-      type: 'journal',
-      typeLabel: 'Journal Voucher',
-      amount: 5000,
-      debitAccount: 'Expenses',
-      creditAccount: 'Prepaid Expenses',
-      narration: 'Monthly Expense Adjustment',
-      status: 'pending',
-      createdBy: 'Accountant',
-      approvedBy: ''
-    },
-    {
-      id: 'VCH-004',
-      date: '14 Mar 2024',
-      type: 'contra',
-      typeLabel: 'Contra Voucher',
-      amount: 10000,
-      debitAccount: 'Bank Account',
-      creditAccount: 'Cash',
-      narration: 'Cash deposited to bank',
-      status: 'approved',
-      createdBy: 'Cashier',
-      approvedBy: 'Manager'
-    },
-    {
-      id: 'VCH-005',
-      date: '13 Mar 2024',
-      type: 'payment',
-      typeLabel: 'Payment Voucher',
-      amount: 8000,
-      debitAccount: 'Salaries',
-      creditAccount: 'Bank',
-      narration: 'Salary payment for Feb',
-      status: 'approved',
-      createdBy: 'HR Admin',
-      approvedBy: 'Director'
-    },
-    {
-      id: 'VCH-006',
-      date: '13 Mar 2024',
-      type: 'receipt',
-      typeLabel: 'Receipt Voucher',
-      amount: 35000,
-      debitAccount: 'Bank',
-      creditAccount: 'Loan',
-      narration: 'Loan received from bank',
-      status: 'rejected',
-      createdBy: 'Admin',
       approvedBy: 'Manager'
     }
   ];
@@ -642,7 +577,7 @@ const Vouchers = () => {
                 <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(98000)}</p>
               </div>
               <div className="p-2 bg-green-50 rounded-lg">
-                <DollarSign className="h-6 w-6 text-green-600" />
+                <IndianRupee className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -687,10 +622,7 @@ const Vouchers = () => {
           </div>
           
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </button>
+            
             <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
               <Plus className="h-4 w-4" />
               New Voucher
@@ -698,16 +630,7 @@ const Vouchers = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="flex items-center gap-4 mb-6">
-          {voucherTypes.map((type) => (
-            <div key={type.id} className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-gray-200">
-              <type.icon className={`h-4 w-4 text-${type.color}-600`} />
-              <span className="text-sm font-medium text-gray-700">{type.label}</span>
-              <span className="text-xs text-gray-500">(12)</span>
-            </div>
-          ))}
-        </div>
+     
       </div>
 
       {/* Tabs */}
@@ -750,48 +673,7 @@ const Vouchers = () => {
       {/* Main Content */}
       {activeTab === 'entry' ? renderVoucherForm() : renderVoucherTrail()}
 
-      {/* Quick Actions (Bottom) */}
-      <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-red-50 rounded-lg mb-2">
-              <TrendingDown className="h-5 w-5 text-red-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Quick Payment</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-green-50 rounded-lg mb-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Quick Receipt</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-purple-50 rounded-lg mb-2">
-              <FileText className="h-5 w-5 text-purple-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Journal Entry</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-blue-50 rounded-lg mb-2">
-              <ArrowUpDown className="h-5 w-5 text-blue-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Bank Transfer</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-orange-50 rounded-lg mb-2">
-              <Receipt className="h-5 w-5 text-orange-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Bulk Print</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <div className="p-2 bg-cyan-50 rounded-lg mb-2">
-              <Download className="h-5 w-5 text-cyan-600" />
-            </div>
-            <span className="text-xs font-medium text-gray-700">Export All</span>
-          </button>
-        </div>
-      </div>
+     
     </div>
   );
 };

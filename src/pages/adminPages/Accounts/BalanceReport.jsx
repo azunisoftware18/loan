@@ -4,27 +4,26 @@ import {
   Briefcase,
   Users,
   Handshake,
-  TrendingUp,
-  TrendingDown,
   Download,
   Filter,
   Search,
-  DollarSign,
-  CreditCard,
-  User,
-  Building,
+  IndianRupee,
   PieChart,
-  BarChart3,
   Eye,
   MoreVertical,
-  ChevronDown,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  Edit,
+  Trash2,
+  Printer,
+  Share2,
+  Copy,
+  CheckCircle,
 } from 'lucide-react';
 
 function BalanceReport() {
   const [activeSection, setActiveSection] = useState('cases-balance-loan');
-  const [timeRange, setTimeRange] = useState('monthly');
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
   // Sample data for Cases Balance Loan
   const casesBalanceLoanData = [
@@ -59,15 +58,7 @@ function BalanceReport() {
   ];
 
   // Summary Statistics
-  const summaryStats = {
-    totalLoanBalance: 950000,
-    totalCasesBalance: 915000,
-    totalStaffBalance: 106000,
-    totalPartnerBalance: 5500000,
-    activeCases: 12,
-    activeStaff: 24,
-    activePartners: 8
-  };
+ 
 
   const getStatusBadge = (status) => {
     const colors = {
@@ -93,6 +84,109 @@ function BalanceReport() {
     }).format(amount);
   };
 
+  // Action Menu Component
+  const ActionMenu = ({ item, section }) => (
+    <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+      <div className="py-1">
+        <button 
+          onClick={() => {
+            console.log(`View ${section} details:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50"
+        >
+          <Eye className="w-4 h-4" />
+          View Details
+        </button>
+        <button 
+          onClick={() => {
+            console.log(`Edit ${section}:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50"
+        >
+          <Edit className="w-4 h-4" />
+          Edit
+        </button>
+        <button 
+          onClick={() => {
+            console.log(`Download ${section} report:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50"
+        >
+          <Download className="w-4 h-4" />
+          Download Report
+        </button>
+        
+        {section === 'cases-balance-loan' && (
+          <button 
+            onClick={() => {
+              console.log('Print statement:', item.id);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-orange-700 hover:bg-orange-50"
+          >
+            <Printer className="w-4 h-4" />
+            Print Statement
+          </button>
+        )}
+        
+        <button 
+          onClick={() => {
+            console.log(`Share ${section} report:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-cyan-700 hover:bg-cyan-50"
+        >
+          <Share2 className="w-4 h-4" />
+          Share
+        </button>
+        
+        {section === 'cases-balance-loan' && item.status !== 'Closed' && (
+          <button 
+            onClick={() => {
+              console.log('Update loan status:', item.id);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-indigo-700 hover:bg-indigo-50"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Mark as Closed
+          </button>
+        )}
+        
+        <div className="border-t border-gray-200 my-1"></div>
+        
+        <button 
+          onClick={() => {
+            console.log(`Duplicate ${section}:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+        >
+          <Copy className="w-4 h-4" />
+          Duplicate
+        </button>
+        
+        <div className="border-t border-gray-200 my-1"></div>
+        
+        <button 
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete this ${section} record?`)) {
+              console.log(`Delete ${section}:`, item.id);
+              setActionMenuOpen(null);
+            }
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -109,24 +203,6 @@ function BalanceReport() {
                   <p className="text-gray-600 mt-1">Comprehensive view of all financial balances</p>
                 </div>
               </div>
-              
-              {/* Time Range Selector */}
-              <div className="flex items-center gap-2 mt-4">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <div className="flex bg-white border border-gray-300 rounded-lg p-1">
-                  {['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].map((range) => (
-                    <button
-                      key={range}
-                      onClick={() => setTimeRange(range)}
-                      className={`px-3 py-1 text-sm font-medium rounded-md capitalize ${timeRange === range 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-gray-600 hover:bg-gray-100'}`}
-                    >
-                      {range}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -134,98 +210,7 @@ function BalanceReport() {
                 <Download className="w-5 h-5" />
                 Export Full Report
               </button>
-              <button className="flex items-center gap-2 bg-white text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition border border-gray-300 shadow-sm">
-                <RefreshCw className="w-5 h-5" />
-                Refresh
-              </button>
-            </div>
-          </div>
-
-          {/* Summary Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div 
-              onClick={() => setActiveSection('cases-balance-loan')}
-              className={`bg-white rounded-xl p-5 shadow-lg border-2 cursor-pointer transition-all hover:shadow-xl ${activeSection === 'cases-balance-loan' ? 'border-blue-500' : 'border-transparent hover:border-blue-200'}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Briefcase className="w-4 h-4" />
-                    Cases Balance Loan
-                  </p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{formatCurrency(summaryStats.totalLoanBalance)}</p>
-                </div>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <CreditCard className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-sm">
-                <span className="text-gray-500">{summaryStats.activeCases} Active Cases</span>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setActiveSection('cases-balance')}
-              className={`bg-white rounded-xl p-5 shadow-lg border-2 cursor-pointer transition-all hover:shadow-xl ${activeSection === 'cases-balance' ? 'border-blue-500' : 'border-transparent hover:border-blue-200'}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Cases Balance
-                  </p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{formatCurrency(summaryStats.totalCasesBalance)}</p>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg">
-                  <BarChart3 className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-sm">
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span className="text-green-600">+8.5%</span>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setActiveSection('staff-balance')}
-              className={`bg-white rounded-xl p-5 shadow-lg border-2 cursor-pointer transition-all hover:shadow-xl ${activeSection === 'staff-balance' ? 'border-blue-500' : 'border-transparent hover:border-blue-200'}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Staff Balance
-                  </p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{formatCurrency(summaryStats.totalStaffBalance)}</p>
-                </div>
-                <div className="p-3 bg-purple-50 rounded-lg">
-                  <User className="w-8 h-8 text-purple-600" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-sm">
-                <span className="text-gray-500">{summaryStats.activeStaff} Staff Members</span>
-              </div>
-            </div>
-
-            <div 
-              onClick={() => setActiveSection('partner-balance')}
-              className={`bg-white rounded-xl p-5 shadow-lg border-2 cursor-pointer transition-all hover:shadow-xl ${activeSection === 'partner-balance' ? 'border-blue-500' : 'border-transparent hover:border-blue-200'}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <Handshake className="w-4 h-4" />
-                    Partner Balance
-                  </p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{formatCurrency(summaryStats.totalPartnerBalance)}</p>
-                </div>
-                <div className="p-3 bg-orange-50 rounded-lg">
-                  <Building className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-3 text-sm">
-                <span className="text-gray-500">{summaryStats.activePartners} Partners</span>
-              </div>
+              
             </div>
           </div>
         </div>
@@ -236,17 +221,22 @@ function BalanceReport() {
           <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
             <div className="flex flex-wrap">
               <button
-                onClick={() => setActiveSection('cases-balance-loan')}
+                onClick={() => {
+                  setActiveSection('cases-balance-loan');
+                  setActionMenuOpen(null);
+                }}
                 className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${activeSection === 'cases-balance-loan' 
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-white' 
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
               >
                 <Briefcase className="w-5 h-5" />
                 Cases Balance Loan
-                <ChevronDown className="w-4 h-4 ml-1" />
               </button>
               <button
-                onClick={() => setActiveSection('cases-balance')}
+                onClick={() => {
+                  setActiveSection('cases-balance');
+                  setActionMenuOpen(null);
+                }}
                 className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${activeSection === 'cases-balance' 
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-white' 
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
@@ -255,7 +245,10 @@ function BalanceReport() {
                 Cases Balance
               </button>
               <button
-                onClick={() => setActiveSection('staff-balance')}
+                onClick={() => {
+                  setActiveSection('staff-balance');
+                  setActionMenuOpen(null);
+                }}
                 className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${activeSection === 'staff-balance' 
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-white' 
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
@@ -264,7 +257,10 @@ function BalanceReport() {
                 Staff Balance
               </button>
               <button
-                onClick={() => setActiveSection('partner-balance')}
+                onClick={() => {
+                  setActiveSection('partner-balance');
+                  setActionMenuOpen(null);
+                }}
                 className={`flex items-center gap-2 px-6 py-4 font-medium transition-all ${activeSection === 'partner-balance' 
                   ? 'text-blue-600 border-b-2 border-blue-600 bg-white' 
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
@@ -356,18 +352,17 @@ function BalanceReport() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getStatusBadge(item.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 text-green-600 hover:bg-green-100 rounded-lg">
-                                <Download className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} section="cases-balance-loan" />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -428,10 +423,17 @@ function BalanceReport() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-bold text-lg text-gray-800">{formatCurrency(item.closingBalance)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg">
-                              <Eye className="w-4 h-4" />
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
                             </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} section="cases-balance" />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -482,10 +484,17 @@ function BalanceReport() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-bold text-lg text-green-600">{formatCurrency(item.balance)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg">
-                              <Eye className="w-4 h-4" />
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
                             </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} section="staff-balance" />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -534,15 +543,17 @@ function BalanceReport() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-bold text-lg text-green-600">{formatCurrency(item.balance)}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              <button className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg">
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 text-green-600 hover:bg-green-100 rounded-lg">
-                                <Download className="w-4 h-4" />
-                              </button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} section="partner-balance" />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -585,7 +596,7 @@ function BalanceReport() {
         {/* Footer Notes */}
         <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
           <div className="flex items-start gap-3">
-            <DollarSign className="w-5 h-5 text-blue-600 mt-0.5" />
+            <IndianRupee className="w-5 h-5 text-blue-600 mt-0.5" />
             <div>
               <p className="text-sm text-gray-700">
                 <span className="font-medium">Note:</span> All amounts are in INR. Reports are updated in real-time. 

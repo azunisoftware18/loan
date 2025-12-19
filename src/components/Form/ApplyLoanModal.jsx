@@ -79,7 +79,7 @@ export default function ApplyLoanModal({ onClose }) {
             Apply For Loan
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            Fill in your details to get started with your loan application
+            Fill in your details to get started with your loan 
           </p>
         </div>
 
@@ -246,39 +246,7 @@ export default function ApplyLoanModal({ onClose }) {
             />
           </div>
 
-          {/* Aadhar */}
-          <div className="xs:col-span-2 lg:col-span-1">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Aadhar No.
-            </label>
-            <input
-              type="text"
-              name="aadhar"
-              value={formData.aadhar}
-              onChange={handleChange}
-              placeholder="12-digit Aadhar number"
-              pattern="[0-9]{12}"
-              maxLength="12"
-              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-            />
-          </div>
-
-          {/* PAN */}
-          <div className="xs:col-span-2 lg:col-span-1">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              PAN No.
-            </label>
-            <input
-              type="text"
-              name="pan"
-              value={formData.pan}
-              onChange={handleChange}
-              placeholder="ABCDE1234F"
-              pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
-              maxLength="10"
-              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent uppercase transition-all"
-            />
-          </div>
+     
 
           {/* Loan Type */}
           <div className="xs:col-span-2 lg:col-span-1">
@@ -302,63 +270,11 @@ export default function ApplyLoanModal({ onClose }) {
             </select>
           </div>
 
-          {/* Loan Amount */}
-          <div className="xs:col-span-2 lg:col-span-1">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Loan Requirement <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs sm:text-sm">₹</span>
-              <input
-                type="number"
-                name="loanAmount"
-                value={formData.loanAmount}
-                onChange={handleChange}
-                placeholder="Enter loan amount"
-                required
-                min="0"
-                className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg pl-8 pr-3 sm:pl-10 sm:pr-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-              />
-            </div>
-          </div>
+      
 
-          {/* Customer Profile */}
-          <div className="xs:col-span-2 lg:col-span-1">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Customer Profile <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="customerProfile"
-              value={formData.customerProfile}
-              onChange={handleChange}
-              required
-              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-            >
-              <option value="">Select Profile</option>
-              <option value="Salaried">Salaried</option>
-              <option value="Self-Employed">Self-Employed</option>
-              <option value="Business Owner">Business Owner</option>
-              <option value="Professional">Professional</option>
-            </select>
-          </div>
+       
 
-          {/* Existing Customer */}
-          <div className="xs:col-span-2 lg:col-span-1">
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Existing Customer <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="existingCustomer"
-              value={formData.existingCustomer}
-              onChange={handleChange}
-              required
-              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-            >
-              <option value="">Select Option</option>
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-            </select>
-          </div>
+        
 
           {/* Submit Button */}
           <div className="xs:col-span-2 lg:col-span-2 mt-2 sm:mt-4 lg:mt-6">
@@ -366,7 +282,7 @@ export default function ApplyLoanModal({ onClose }) {
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm sm:text-base py-3 sm:py-3.5 rounded-md sm:rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg"
             >
-              SUBMIT APPLICATION
+              SUBMIT
             </button>
           </div>
         </form>

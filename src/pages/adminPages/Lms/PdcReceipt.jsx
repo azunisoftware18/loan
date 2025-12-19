@@ -1,89 +1,50 @@
 import React, { useState } from "react";
 import {
   FileText,
-  ClipboardCheck,
   BookOpen,
   Upload,
   Users,
   Search,
-  ListChecks,
   ChevronRight,
   Clock,
-  DollarSign,
   XCircle,
   Download,
   Filter,
   MoreVertical,
   CheckCircle,
-  AlertTriangle,
   RefreshCw,
   Grid,
-  ClipboardList,
   Plus,
   Eye,
   Edit,
   Trash2,
   Printer,
   Share2,
-  BarChart3,
   Calendar,
-  User,
-  Building,
-  Shield,
-  ArrowUpDown,
-  Settings,
   Bell,
   HelpCircle,
-  ExternalLink,
   CreditCard,
-  Repeat,
-  Layers,
-  FileSpreadsheet,
-  Package,
-  ShieldCheck,
   TrendingUp,
-  PieChart,
-  Calculator,
-  Smartphone,
-  Mail,
-  MapPin,
   Phone,
-  AlertCircle,
-  Lock,
-  Unlock,
-  CalendarDays,
-  ChevronLeft,
-  ChevronDown,
-  Star,
-  Award,
-  Target,
-  Zap,
-  Wind,
-  Cloud,
-  Moon,
-  Sun,
-  Watch
+  AlertCircle
 } from "lucide-react";
 
 export default function PdcReceipt() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("pdc");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [showAddPDC, setShowAddPDC] = useState(false);
   const [selectedCheque, setSelectedCheque] = useState(null);
-  const [receiptBookFilter, setReceiptBookFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
   // Navigation Tabs
   const mainTabs = [
-    { id: "dashboard", label: "Dashboard", icon: Grid },
     { id: "pdc", label: "PDC Management", icon: CreditCard },
     { id: "receipts", label: "Receipts", icon: FileText },
     { id: "books", label: "Receipt Books", icon: BookOpen },
-    { id: "team", label: "Team Distribution", icon: Users },
-    { id: "reports", label: "Reports", icon: BarChart3 }
+    { id: "team", label: "Team Distribution", icon: Users }
   ];
 
   // PDC Status Options
@@ -216,7 +177,7 @@ export default function PdcReceipt() {
   const teams = [
     {
       id: "team-north",
-      name: "North Sales Team",
+      name: "Mumbai",
       manager: "Rajesh Mehta",
       memberCount: 8,
       activeBooks: 25,
@@ -225,8 +186,8 @@ export default function PdcReceipt() {
       performance: 92
     },
     {
-      id: "team-south",
-      name: "South Operations",
+      id: "team-delhi",
+      name: "Delhi",
       manager: "Anita Reddy",
       memberCount: 6,
       activeBooks: 18,
@@ -236,109 +197,13 @@ export default function PdcReceipt() {
     },
     {
       id: "team-west",
-      name: "West Collection",
+      name: "Jaipur",
       manager: "Vikram Singh",
       memberCount: 5,
       activeBooks: 12,
       totalBooks: 20,
       utilization: 60,
       performance: 85
-    }
-  ];
-
-  // Dashboard Stats
-  const dashboardStats = [
-    {
-      title: "Total PDC Value",
-      value: "₹ 5.75 L",
-      change: "+12.5%",
-      icon: CreditCard,
-      color: "blue",
-      trend: "up"
-    },
-    {
-      title: "Cheques Due (7 Days)",
-      value: "18",
-      change: "+3",
-      icon: Clock,
-      color: "yellow",
-      trend: "up"
-    },
-    {
-      title: "Bounced Cheques",
-      value: "4",
-      change: "-1",
-      icon: XCircle,
-      color: "red",
-      trend: "down"
-    },
-    {
-      title: "Receipts Generated",
-      value: "1,248",
-      change: "+18%",
-      icon: FileText,
-      color: "green",
-      trend: "up"
-    },
-    {
-      title: "Active Books",
-      value: "42",
-      change: "+5",
-      icon: BookOpen,
-      color: "purple",
-      trend: "up"
-    },
-    {
-      title: "Team Utilization",
-      value: "78%",
-      change: "+4.2%",
-      icon: TrendingUp,
-      color: "indigo",
-      trend: "up"
-    }
-  ];
-
-  // Recent Activities
-  const recentActivities = [
-    {
-      id: 1,
-      type: "pdc_deposited",
-      title: "PDC Cheque Deposited",
-      description: "PDC-2024-012 deposited for ₹25,000",
-      time: "2 hours ago",
-      icon: CreditCard,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      id: 2,
-      type: "receipt_issued",
-      title: "Receipt Issued",
-      description: "Receipt #10234 issued to Rahul Sharma",
-      time: "4 hours ago",
-      icon: FileText,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      id: 3,
-      type: "cheque_bounced",
-      title: "Cheque Bounced",
-      description: "PDC-2024-008 bounced - ₹18,500",
-      time: "1 day ago",
-      icon: AlertCircle,
-      color: "text-red-600",
-      bgColor: "bg-red-50"
-    },
-    {
-      id: 4,
-      type: "book_assigned",
-      title: "Book Assigned",
-      description: "RB-2024-025 assigned to Priya Sharma",
-      time: "2 days ago",
-      icon: BookOpen,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
     }
   ];
 
@@ -372,89 +237,47 @@ export default function PdcReceipt() {
     });
   };
 
+  // Action Menu Component
+  const ActionMenu = ({ chequeId }) => {
+    return (
+      <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="py-1">
+          <button 
+            onClick={() => {
+              const cheque = pdcCheques.find(c => c.id === chequeId);
+              setSelectedCheque(cheque);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Eye className="w-4 h-4" />
+            View Details
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+            <Printer className="w-4 h-4" />
+            Print Receipt
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+            <Share2 className="w-4 h-4" />
+            Share
+          </button>
+          <div className="border-t border-gray-200 my-1"></div>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // Tab Content Renderer
   const renderTabContent = () => {
     switch (activeTab) {
-      case "dashboard":
-        return (
-          <div className="space-y-6">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              {dashboardStats.map((stat, index) => (
-                <div key={index} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`p-2 rounded-lg ${stat.color === 'blue' ? 'bg-blue-50 text-blue-600' : 
-                        stat.color === 'green' ? 'bg-green-50 text-green-600' :
-                        stat.color === 'red' ? 'bg-red-50 text-red-600' :
-                        stat.color === 'yellow' ? 'bg-yellow-50 text-yellow-600' :
-                        stat.color === 'purple' ? 'bg-purple-50 text-purple-600' : 'bg-indigo-50 text-indigo-600'}`}>
-                      <stat.icon className="w-5 h-5" />
-                    </div>
-                    <span className={`text-xs font-medium ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.change}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Recent PDC Activities</h3>
-                    <button className="text-sm text-blue-600 font-medium hover:text-blue-700 flex items-center gap-1">
-                      View All <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {recentActivities.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                        <div className={`p-2 rounded-lg ${activity.bgColor}`}>
-                          <activity.icon className={`w-5 h-5 ${activity.color}`} />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{activity.title}</h4>
-                          <p className="text-sm text-gray-600">{activity.description}</p>
-                        </div>
-                        <span className="text-xs text-gray-500">{activity.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => setActiveTab("pdc")}
-                    className="w-full flex items-center gap-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    <CreditCard className="w-5 h-5" />
-                    <span className="font-medium">Add New PDC</span>
-                  </button>
-                  <button className="w-full flex items-center gap-3 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
-                    <FileText className="w-5 h-5" />
-                    <span className="font-medium">Generate Receipt</span>
-                  </button>
-                  <button className="w-full flex items-center gap-3 p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
-                    <BookOpen className="w-5 h-5" />
-                    <span className="font-medium">Issue Book</span>
-                  </button>
-                  <button className="w-full flex items-center gap-3 p-3 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors">
-                    <Download className="w-5 h-5" />
-                    <span className="font-medium">Export Reports</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
       case "pdc":
         return (
           <div className="space-y-6">
@@ -568,23 +391,17 @@ export default function PdcReceipt() {
                           {getStatusBadge(cheque.status)}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            <button 
-                              onClick={() => setSelectedCheque(cheque)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="View Details"
+                          <div className="relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === cheque.id ? null : cheque.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
                             >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Edit">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
                               <MoreVertical className="w-4 h-4" />
                             </button>
+                            {actionMenuOpen === cheque.id && (
+                              <ActionMenu chequeId={cheque.id} />
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -638,13 +455,35 @@ export default function PdcReceipt() {
                             <div className="font-bold text-gray-900">₹25,000</div>
                             <div className="text-xs text-gray-500">Apr 12, 2024</div>
                           </div>
-                          <div className="flex gap-2">
-                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                              <Printer className="w-4 h-4" />
+                          <div className="relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === `receipt-${i}` ? null : `receipt-${i}`)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                            >
+                              <MoreVertical className="w-4 h-4" />
                             </button>
-                            <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg">
-                              <Share2 className="w-4 h-4" />
-                            </button>
+                            {actionMenuOpen === `receipt-${i}` && (
+                              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                                <div className="py-1">
+                                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                                    <Eye className="w-4 h-4" />
+                                    View
+                                  </button>
+                                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                                    <Printer className="w-4 h-4" />
+                                    Print
+                                  </button>
+                                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                                    <Share2 className="w-4 h-4" />
+                                    Share
+                                  </button>
+                                  <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -711,8 +550,36 @@ export default function PdcReceipt() {
                         </span>
                       </div>
                     </div>
-                    <div className="p-2 bg-purple-50 rounded-lg">
-                      <BookOpen className="w-5 h-5 text-purple-600" />
+                    <div className="relative">
+                      <button
+                        onClick={() => setActionMenuOpen(actionMenuOpen === book.id ? null : book.id)}
+                        className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                      {actionMenuOpen === book.id && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                          <div className="py-1">
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                              <Eye className="w-4 h-4" />
+                              View Details
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                              <Edit className="w-4 h-4" />
+                              Edit Book
+                            </button>
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                              <Users className="w-4 h-4" />
+                              Reassign
+                            </button>
+                            <div className="border-t border-gray-200 my-1"></div>
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                              <Trash2 className="w-4 h-4" />
+                              Delete Book
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -767,12 +634,16 @@ export default function PdcReceipt() {
                 <select
                   value={teamFilter}
                   onChange={(e) => setTeamFilter(e.target.value)}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-700 font-medium appearance-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all cursor-pointer hover:border-gray-400"
                 >
-                  <option value="all">All Teams</option>
-                  <option value="north">North Team</option>
-                  <option value="south">South Team</option>
-                  <option value="west">West Team</option>
+                  <option value="all">All Locations</option>
+                  <option value="mumbai">Mumbai Office</option>
+                  <option value="delhi">Delhi / NCR</option>
+                  <option value="bangalore">Bangalore Hub</option>
+                  <option value="pune">Pune Branch</option>
+                  <option value="hyderabad">Hyderabad</option>
+                  <option value="chennai">Chennai</option>
+                  <option value="kolkata">Kolkata</option>
                 </select>
               </div>
             </div>
@@ -841,7 +712,6 @@ export default function PdcReceipt() {
         return (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              
               <h3 className="text-lg font-medium text-gray-900 mb-2">Coming Soon</h3>
               <p className="text-gray-600">This section is under development</p>
             </div>
@@ -883,7 +753,10 @@ export default function PdcReceipt() {
               {mainTabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setActionMenuOpen(null);
+                  }}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-lg'
@@ -906,59 +779,70 @@ export default function PdcReceipt() {
 
       {/* Add PDC Modal */}
       {showAddPDC && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Add New PDC</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 animate-in fade-in zoom-in duration-200">
+            <div className="p-8">
+              {/* Header Section */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 rounded-xl">
+                    <Plus className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Add New PDC</h2>
+                    <p className="text-sm text-gray-500">Post Dated Cheque entry for loan recovery</p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowAddPDC(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <XCircle className="w-5 h-5" />
+                  <XCircle className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Loan ID</label>
-                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter Loan ID" />
+              {/* Form Grid */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Loan ID</label>
+                    <input type="text" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" placeholder="LID-10293" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter customer name" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Customer Name</label>
+                    <input type="text" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" placeholder="Enter customer name" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                    <input type="number" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="0.00" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Amount</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">₹</span>
+                      <input type="number" className="w-full pl-8 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" placeholder="0.00" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Cheque Number</label>
-                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter cheque number" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Cheque Number</label>
+                    <input type="text" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" placeholder="6-digit number" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
-                    <input type="text" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Enter bank name" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Bank Name</label>
+                    <input type="text" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" placeholder="e.g. HDFC Bank" />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                    <input type="date" className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700 ml-1">Due Date</label>
+                    <input type="date" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all bg-gray-50/50" />
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <button className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Save PDC
+                {/* Action Buttons */}
+                <div className="flex gap-4 pt-6">
+                  <button className="flex-1 px-6 py-3.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-[0.98]">
+                    Save PDC Record
                   </button>
                   <button
                     onClick={() => setShowAddPDC(false)}
-                    className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="flex-1 px-6 py-3.5 border border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 transition-all"
                   >
-                    Cancel
+                    Discard
                   </button>
                 </div>
               </div>
@@ -969,7 +853,7 @@ export default function PdcReceipt() {
 
       {/* Cheque Detail Modal */}
       {selectedCheque && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">

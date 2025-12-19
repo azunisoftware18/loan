@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   Eye,
   Edit,
-  Ban,
-  PlusCircle,
   Search,
   Filter,
   Download,
@@ -12,34 +10,26 @@ import {
   MapPin,
   FileText,
   User,
-  Shield,
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle,
   MoreVertical,
   ChevronDown,
   ChevronUp,
-  Upload,
-  Calendar,
-  DollarSign,
-  BarChart3,
-  MessageSquare,
-  History,
-  Printer,
-  Share2,
-  Tag,
-  Home,
   Briefcase,
   CreditCard,
   FileCheck,
-  Camera,
   UserPlus,
-  RefreshCw,
-  Trash2,
   Save,
   X,
-  Users // Add this import
+  Users,
+  Trash2,
+  Printer,
+  Share2,
+  RefreshCw,
+  Lock,
+  Unlock,
+  MessageCircle
 } from 'lucide-react';
 
 const Borrowers = () => {
@@ -49,11 +39,11 @@ const Borrowers = () => {
   const [branchFilter, setBranchFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedBorrower, setSelectedBorrower] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showKYCModal, setShowKYCModal] = useState(false);
-  const [showLoanModal, setShowLoanModal] = useState(false);
-  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [setSelectedBorrower] = useState(null);
+  const [setActiveTab] = useState('overview');
+  const [setShowKYCModal] = useState(false);
+  const [setShowLoanModal] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
   // Sample Data
   const branches = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata', 'Hyderabad'];
@@ -88,151 +78,6 @@ const Borrowers = () => {
         photo: true,
         addressProof: true,
         incomeProof: true
-      }
-    },
-    {
-      id: 2,
-      name: "Ravi Kumar",
-      phone: "9123456780",
-      email: "ravi@example.com",
-      address: "45 Connaught Place, Delhi - 110001",
-      branch: "Delhi",
-      joinedDate: "2023-03-10",
-      totalLoans: 2,
-      activeLoans: 0,
-      totalAmount: 300000,
-      pendingEMI: 0,
-      overdueAmount: 0,
-      creditScore: 680,
-      kycStatus: "pending",
-      employment: "Business Owner",
-      monthlyIncome: 120000,
-      status: "pending",
-      tags: ["New"],
-      lastPayment: null,
-      nextPayment: null,
-      documents: {
-        aadhar: true,
-        pan: false,
-        photo: true,
-        addressProof: false,
-        incomeProof: true
-      }
-    },
-    {
-      id: 3,
-      name: "Neha Sharma",
-      phone: "9992233411",
-      email: "neha@example.com",
-      address: "78 Koregaon Park, Pune, Maharashtra - 411001",
-      branch: "Bangalore",
-      joinedDate: "2022-11-20",
-      totalLoans: 5,
-      activeLoans: 2,
-      totalAmount: 1500000,
-      pendingEMI: 4,
-      overdueAmount: 30000,
-      creditScore: 780,
-      kycStatus: "verified",
-      employment: "Doctor",
-      monthlyIncome: 150000,
-      status: "overdue",
-      tags: ["High Value"],
-      lastPayment: "2024-01-10",
-      nextPayment: "2024-02-10",
-      documents: {
-        aadhar: true,
-        pan: true,
-        photo: true,
-        addressProof: true,
-        incomeProof: true
-      }
-    },
-    {
-      id: 4,
-      name: "Aman Singh",
-      phone: "8877665544",
-      email: "aman@example.com",
-      address: "12 Hazratganj, Lucknow, UP - 226001",
-      branch: "Delhi",
-      joinedDate: "2023-06-05",
-      totalLoans: 1,
-      activeLoans: 1,
-      totalAmount: 200000,
-      pendingEMI: 1,
-      overdueAmount: 5000,
-      creditScore: 650,
-      kycStatus: "verified",
-      employment: "Teacher",
-      monthlyIncome: 45000,
-      status: "blocked",
-      tags: ["Follow-up"],
-      lastPayment: "2024-01-05",
-      nextPayment: "2024-02-05",
-      documents: {
-        aadhar: true,
-        pan: true,
-        photo: true,
-        addressProof: true,
-        incomeProof: true
-      }
-    },
-    {
-      id: 5,
-      name: "Priya Verma",
-      phone: "9988776655",
-      email: "priya@example.com",
-      address: "34 Bapu Nagar, Jaipur, Rajasthan - 302015",
-      branch: "Mumbai",
-      joinedDate: "2022-08-30",
-      totalLoans: 4,
-      activeLoans: 1,
-      totalAmount: 950000,
-      pendingEMI: 3,
-      overdueAmount: 0,
-      creditScore: 800,
-      kycStatus: "verified",
-      employment: "CA",
-      monthlyIncome: 200000,
-      status: "active",
-      tags: ["Gold", "Quick Payer"],
-      lastPayment: "2024-01-20",
-      nextPayment: "2024-02-20",
-      documents: {
-        aadhar: true,
-        pan: true,
-        photo: true,
-        addressProof: true,
-        incomeProof: true
-      }
-    },
-    {
-      id: 6,
-      name: "Vikram Patel",
-      phone: "7778889990",
-      email: "vikram@example.com",
-      address: "56 Satellite Road, Ahmedabad, Gujarat - 380015",
-      branch: "Chennai",
-      joinedDate: "2023-09-12",
-      totalLoans: 0,
-      activeLoans: 0,
-      totalAmount: 0,
-      pendingEMI: 0,
-      overdueAmount: 0,
-      creditScore: 600,
-      kycStatus: "rejected",
-      employment: "Student",
-      monthlyIncome: 0,
-      status: "rejected",
-      tags: ["New"],
-      lastPayment: null,
-      nextPayment: null,
-      documents: {
-        aadhar: true,
-        pan: false,
-        photo: true,
-        addressProof: false,
-        incomeProof: false
       }
     }
   ]);
@@ -398,6 +243,101 @@ const Borrowers = () => {
         <Icon size={12} />
         {details.text}
       </span>
+    );
+  };
+
+  // Action Menu Component
+  const ActionMenu = ({ borrowerId }) => {
+    const borrower = borrowers.find(b => b.id === borrowerId);
+    
+    return (
+      <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="py-1">
+          <button 
+            onClick={() => {
+              const borrower = borrowers.find(b => b.id === borrowerId);
+              setSelectedBorrower(borrower);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Eye className="w-4 h-4" />
+            View Details
+          </button>
+          <button 
+            onClick={() => {
+              const borrower = borrowers.find(b => b.id === borrowerId);
+              setSelectedBorrower(borrower);
+              setActiveTab('edit');
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <Edit className="w-4 h-4" />
+            Edit Profile
+          </button>
+          <button 
+            onClick={() => {
+              setShowKYCModal(true);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <FileCheck className="w-4 h-4" />
+            KYC Documents
+          </button>
+          <button 
+            onClick={() => {
+              setShowLoanModal(true);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            <CreditCard className="w-4 h-4" />
+            Loan History
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+            <Printer className="w-4 h-4" />
+            Print Statement
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+            <MessageCircle className="w-4 h-4" />
+            Send Message
+          </button>
+          <div className="border-t border-gray-200 my-1"></div>
+          
+          {/* Status Change Options */}
+          <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Change Status
+          </div>
+          
+          {borrower?.status !== 'active' && (
+            <button 
+              onClick={() => handleStatusChange(borrowerId, 'active')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Mark as Active
+            </button>
+          )}
+          
+          {borrower?.status !== 'blocked' && (
+            <button 
+              onClick={() => handleStatusChange(borrowerId, 'blocked')}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+            >
+              <Lock className="w-4 h-4" />
+              Block Borrower
+            </button>
+          )}
+          
+          <div className="border-t border-gray-200 my-1"></div>
+          <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+            <Trash2 className="w-4 h-4" />
+            Delete Record
+          </button>
+        </div>
+      </div>
     );
   };
 
@@ -673,49 +613,19 @@ const Borrowers = () => {
                       </div>
                     </td>
 
-                    {/* Actions */}
+                    {/* Actions - Now only Three Dots Menu */}
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
+                      <div className="relative">
                         <button
-                          onClick={() => setSelectedBorrower(borrower)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="View Details"
+                          onClick={() => setActionMenuOpen(actionMenuOpen === borrower.id ? null : borrower.id)}
+                          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Actions"
                         >
-                          <Eye className="w-4 h-4" />
+                          <MoreVertical className="w-4 h-4" />
                         </button>
-                        
-                        <button
-                          onClick={() => {
-                            setSelectedBorrower(borrower);
-                            setActiveTab('edit');
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        
-                        <button
-                          onClick={() => setShowKYCModal(true)}
-                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                          title="KYC Documents"
-                        >
-                          <FileCheck className="w-4 h-4" />
-                        </button>
-                        
-                        <button
-                          onClick={() => setShowLoanModal(true)}
-                          className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                          title="Loan History"
-                        >
-                          <CreditCard className="w-4 h-4" />
-                        </button>
-                        
-                        <div className="relative">
-                          <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {actionMenuOpen === borrower.id && (
+                          <ActionMenu borrowerId={borrower.id} />
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -754,7 +664,7 @@ const Borrowers = () => {
 
       {/* Add Borrower Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">

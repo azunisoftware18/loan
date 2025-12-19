@@ -14,19 +14,21 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  DollarSign,
+  IndianRupee,
   User,
   Calendar,
   CreditCard,
   Shield,
   BarChart3,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  MoreVertical
 } from 'lucide-react';
 
 function TopupRefund() {
   const [activeTab, setActiveTab] = useState('topup');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
   // Sample data for Topup Transactions
   const topupData = [
@@ -151,13 +153,116 @@ function TopupRefund() {
     const icons = {
       'Credit Card': <CreditCard className="w-4 h-4" />,
       'Debit Card': <CreditCard className="w-4 h-4" />,
-      'Bank Transfer': <DollarSign className="w-4 h-4" />,
+      'Bank Transfer': <IndianRupee className="w-4 h-4" />,
       'UPI': <Shield className="w-4 h-4" />,
       'Wallet': <Wallet className="w-4 h-4" />
     };
     
-    return icons[method] || <DollarSign className="w-4 h-4" />;
+    return icons[method] || <IndianRupee className="w-4 h-4" />;
   };
+
+  // Action Menu Component
+  const ActionMenu = ({ item, isTopup }) => (
+    <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+      <div className="py-1">
+        {item.status === 'Pending' && (
+          <>
+            <button 
+              onClick={() => {
+                console.log(`Approve ${isTopup ? 'topup' : 'refund'}:`, item.id);
+                setActionMenuOpen(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-green-700 hover:bg-green-50"
+            >
+              <CheckCircle className="w-4 h-4" />
+              {isTopup ? 'Approve Topup' : 'Approve Refund'}
+            </button>
+            <button 
+              onClick={() => {
+                console.log(`Reject ${isTopup ? 'topup' : 'refund'}:`, item.id);
+                setActionMenuOpen(null);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-700 hover:bg-red-50"
+            >
+              <XCircle className="w-4 h-4" />
+              {isTopup ? 'Reject Topup' : 'Reject Refund'}
+            </button>
+            <div className="border-t border-gray-200 my-1"></div>
+          </>
+        )}
+        
+        <button 
+          onClick={() => {
+            console.log(`Edit ${isTopup ? 'topup' : 'refund'}:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-blue-700 hover:bg-blue-50"
+        >
+          <Edit className="w-4 h-4" />
+          Edit Details
+        </button>
+        <button 
+          onClick={() => {
+            console.log(`View ${isTopup ? 'topup' : 'refund'} details:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+        >
+          <Eye className="w-4 h-4" />
+          View Details
+        </button>
+        {isTopup && (
+          <button 
+            onClick={() => {
+              console.log('Process refund for topup:', item.id);
+              setActionMenuOpen(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-orange-700 hover:bg-orange-50"
+          >
+            <ArrowDownCircle className="w-4 h-4" />
+            Process Refund
+          </button>
+        )}
+        <button 
+          onClick={() => {
+            console.log(`Duplicate ${isTopup ? 'topup' : 'refund'}:`, item.id);
+            setActionMenuOpen(null);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50"
+        >
+          <Copy className="w-4 h-4" />
+          Duplicate
+        </button>
+        <div className="border-t border-gray-200 my-1"></div>
+        <button 
+          onClick={() => {
+            if (window.confirm(`Are you sure you want to delete this ${isTopup ? 'topup' : 'refund'}?`)) {
+              console.log(`Delete ${isTopup ? 'topup' : 'refund'}:`, item.id);
+              setActionMenuOpen(null);
+            }
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+        >
+          <Trash2 className="w-4 h-4" />
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+
+  // Adding missing icons
+  const Eye = ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  );
+
+  const Copy = ({ className }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -378,25 +483,17 @@ function TopupRefund() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getStatusBadge(item.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              {item.status === 'Pending' && (
-                                <>
-                                  <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg">
-                                    <CheckCircle className="w-4 h-4" />
-                                  </button>
-                                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                    <XCircle className="w-4 h-4" />
-                                  </button>
-                                </>
-                              )}
-                              <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} isTopup={true} />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -446,25 +543,17 @@ function TopupRefund() {
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getStatusBadge(item.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              {item.status === 'Pending' && (
-                                <>
-                                  <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg">
-                                    <CheckCircle className="w-4 h-4" />
-                                  </button>
-                                  <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                    <XCircle className="w-4 h-4" />
-                                  </button>
-                                </>
-                              )}
-                              <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap relative">
+                            <button
+                              onClick={() => setActionMenuOpen(actionMenuOpen === item.id ? null : item.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title="Actions"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                            {actionMenuOpen === item.id && (
+                              <ActionMenu item={item} isTopup={false} />
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -473,29 +562,6 @@ function TopupRefund() {
                 </div>
               </>
             )}
-
-            {/* Quick Actions */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-medium text-gray-800 mb-4">Quick Actions</h3>
-              <div className="flex flex-wrap gap-3">
-                <button className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                  <CheckCircle className="w-5 h-5" />
-                  Approve Selected
-                </button>
-                <button className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
-                  <XCircle className="w-5 h-5" />
-                  Reject Selected
-                </button>
-                <button className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
-                  <Download className="w-5 h-5" />
-                  Download Report
-                </button>
-                <button className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
-                  <RefreshCw className="w-5 h-5" />
-                  Refresh Data
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -60,17 +60,17 @@ export default function SidebarNav() {
               ]
             },
             
-            { name: "Customer", path: "/admin/customer"},
+            // { name: "Customer", path: "/admin/customer"},
             { name: "Disbursement", path: "/admin/disbursement"},
-            { name: "Schedule", path: "/admin/schedule"},
+            // { name: "Schedule", path: "/admin/schedule"},
             { name: "Loan Closer", path: "/admin/loan-closer"},
-            { name: "Task", path: "/admin/task" },
+            // { name: "Task", path: "/admin/task" },
             { name: "Waiver", path: "/admin/waiver" },
             { name: "Repossess", path: "/admin/repossess" },
           ]
         },
         
-        { name: "Loan Requests", icon: <Banknote size={20} />, path: "/admin/loan-requests" },
+        // { name: "Loan Requests", icon: <Banknote size={20} />, path: "/admin/loan-requests" },
         { name: "Borrowers", icon: <Users size={20} />, path: "/admin/borrowers" },
       ]
     },
@@ -81,11 +81,11 @@ export default function SidebarNav() {
           name: "Accounting",
           icon: <Calculator size={20} />,
           subItems: [
-            { name: "Account Group Masters", path: "/admin/accounting/account-group-masters" },
+            { name: "Account Masters", path: "/admin/accounting/account-group-masters" },
             { name: "Transaction Books", path: "/admin/accounting/transaction-books" },
             { name: "Profit And Loss Balances", path: "/admin/accounting/profit-loss-balances" },
             { name: "Vouchers", path: "/admin/accounting/vouchers" },
-            { name: "GST Detail", path: "/admin/accounting/gst" },
+            // { name: "GST Detail", path: "/admin/accounting/gst" },
             { name: "Schedule Transaction", path: "/admin/accounting/schedule-transaction" },
             { name: "Topup Refund", path: "/admin/accounting/topup-refund" },
             { name: "Balance Report", path: "/admin/accounting/balance-report" },

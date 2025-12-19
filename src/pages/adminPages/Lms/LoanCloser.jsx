@@ -16,7 +16,8 @@ import {
   Clipboard,
   XCircle,
   Filter,
-  Calendar
+  Calendar,
+  IndianRupee
 } from "lucide-react";
 
 export default function LoanCloser() {
@@ -285,11 +286,11 @@ export default function LoanCloser() {
   // --- TAB CONFIGURATION ---
   const tabs = [
     { id: "preCloser", label: "Pre-Closer Request", icon: FileText },
-    { id: "writeOff", label: "Write-Off Settled", icon: DollarSign },
-    { id: "undo", label: "Loan Closer Undo", icon: RotateCcw },
+    { id: "writeOff", label: "Write-Off Settled", icon: IndianRupee },
+    // { id: "undo", label: "Loan Closer Undo", icon: RotateCcw },
     { id: "autoCloser", label: "Loan Auto Closer", icon: Clock },
     { id: "noc", label: "NOC Print", icon: Printer },
-    { id: "delete", label: "Delete Requests", icon: Trash2 },
+    // { id: "delete", label: "Delete Requests", icon: Trash2 },
   ];
 
   // --- MAIN RENDER ---
