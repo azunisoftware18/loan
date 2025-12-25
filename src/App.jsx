@@ -96,6 +96,9 @@ import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
 import Dashboard from "./pages/mainPages/dashboard.jsx";
 import EmployeeLayout from "./layouts/EmployeeLayout.jsx";
+import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
+// import AdminPresentationPage from "./pages/adminPages/reports/AdminPresentationPage.jsx";
+// import CreatePresentation from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 
 
 function App() {
@@ -197,6 +200,8 @@ function App() {
         <Route path="reports/sales-target-and-achievement" element={<SalesTargetAndAchievement />} />
         <Route path="reports/npa-reports" element={<NpaReports />} />
         <Route path="reports/crc-report" element={<CrcReport />} />
+        <Route path="reports/user-details" element={<UserDetails />} />
+        {/* <Route path="reports/Presentation" element={<CreatePresentation />} /> */}
 
         //System Settings
         <Route path="system-setting/company-details" element={<CompanyDetails />} />

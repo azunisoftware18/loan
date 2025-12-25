@@ -3,7 +3,8 @@ import {
   Users, FileText, Settings, ShieldCheck, Banknote, PieChart,
   ChevronLeft, ChevronRight, Menu, X, Briefcase,
   Calculator, Sliders, FilePlus2, ChevronDown, UserPlus, Handshake,
-  Plus, ArrowRight, List
+  Plus, ArrowRight, List,
+  User
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -36,7 +37,7 @@ export default function SidebarNav() {
     {
       category: "Core",
       items: [
-        { name: "Dashboard", icon: <PieChart size={20} />, path: "/admin/dashboard" },
+        { name: "Dashboard", icon: <PieChart size={20} />, path: "/admin" },
       ]
     },
     {
@@ -72,6 +73,7 @@ export default function SidebarNav() {
         
         // { name: "Loan Requests", icon: <Banknote size={20} />, path: "/admin/loan-requests" },
         { name: "Borrowers", icon: <Users size={20} />, path: "/admin/borrowers" },
+        { name: "User Details", icon: <User size={20} />, path: "reports/user-details" },
       ]
     },
     {

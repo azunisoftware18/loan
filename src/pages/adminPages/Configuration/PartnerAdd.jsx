@@ -1,7 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
-  User, MapPin, Briefcase, FileText, Landmark, Key, Percent, ShieldCheck, 
-  Check, ChevronRight, ChevronLeft, Plus, Search, Trash2, Edit, Eye, UploadCloud, XCircle, Save, Filter, Download, X
+  User, Building, Briefcase, MapPin, Phone, Mail, Globe, Percent, CreditCard, 
+  FileText, Landmark, ShieldCheck, Check, ChevronRight, ChevronLeft, Plus, 
+  Search, Trash2, Edit, Eye, UploadCloud, X, Download, Filter, Calendar,
+  DollarSign, Users, Target, BarChart, Settings, Home, Bell, MessageSquare,
+  Handshake, Network, Star, Award, TrendingUp, FileCheck, Send, Clock4, AlertCircle,
+  MoreVertical, Presentation, CalendarDays, CheckCircle, XCircle, Clock
 } from 'lucide-react';
 
 export default function PartnerAdd() {
@@ -15,87 +19,410 @@ export default function PartnerAdd() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewData, setViewData] = useState(null);
 
+  // --- PRESENTATION/TASK MODAL STATE ---
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  
   // --- SEARCH & FILTER STATE ---
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All'); // All, Active, Inactive, Pending
+  const [filterStatus, setFilterStatus] = useState('All'); // All, Active, Inactive, Suspended
+  const [filterType, setFilterType] = useState('All'); // All types
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  
+  // --- 3-DOTS MENU STATE ---
+  const [showActionMenu, setShowActionMenu] = useState(null);
 
   // Refs for file inputs
-  const aadhaarFrontRef = useRef(null);
-  const aadhaarBackRef = useRef(null);
+  const companyLogoRef = useRef(null);
+  const agreementRef = useRef(null);
   const panRef = useRef(null);
-  const photoRef = useRef(null);
+  const gstRef = useRef(null);
+  const licenseRef = useRef(null);
   
   // --- FORM STATE ---
   const initialFormState = {
-    // 1. Basic
-    fullName: '', email: '', phone: '', altPhone: '', dob: '', gender: 'Male',
-    // 2. Address
-    address: '', city: '', state: '', pincode: '',
-    // 3. Professional
-    partnerType: 'Agent', experience: '', targetArea: '',
-    // 4. KYC
-    aadhaarNo: '', panNo: '', 
-    aadhaarFrontImg: null, aadhaarBackImg: null, panImg: null, profilePhoto: null,
-    // 5. Bank
-    accountHolder: '', bankName: '', accountNo: '', ifsc: '', upiId: '',
-    // 6. Login
-    username: '', password: '',
-    // 7. Commission
-    commissionType: 'Percentage', commissionValue: '',
+    // 1. Basic Info
+    companyName: '', 
+    partnerName: '', 
+    email: '', 
+    phone: '', 
+    altPhone: '',
+    website: '',
+    establishedYear: '',
+    partnerType: 'Individual', // Individual, Company, Institution
+    businessNature: '',
+    
+    // 2. Address & Contact
+    address: '', 
+    city: '', 
+    state: '', 
+    pincode: '',
+    country: 'India',
+    contactPerson: '',
+    contactPersonDesignation: '',
+    
+    // 3. Business Details
+    partnerId: '',
+    businessCategory: 'Finance',
+    specialization: '',
+    totalEmployees: '',
+    annualTurnover: '',
+    registrationNo: '',
+    gstNo: '',
+    panNo: '',
+    
+    // 4. Documents
+    companyLogo: null,
+    panDoc: null,
+    gstDoc: null,
+    licenseDoc: null,
+    agreementDoc: null,
+    
+    // 5. Bank Details
+    accountHolder: '', 
+    bankName: '', 
+    accountNo: '', 
+    ifsc: '', 
+    upiId: '',
+    
+    // 6. Commission & Payments
+    commissionType: 'Percentage', // Percentage, Fixed
+    commissionValue: '',
+    paymentCycle: 'Monthly', // Monthly, Quarterly, Per Transaction
+    minimumPayout: '',
+    taxDeduction: '',
+    
+    // 7. Performance & Targets
+    monthlyTarget: '',
+    quarterlyTarget: '',
+    annualTarget: '',
+    performanceRating: '3', // 1-5
+    
     // 8. Status & Permissions
     status: 'Active',
-    permissions: { addCustomer: false, viewCustomer: false, trackLoan: false }
+    partnershipDate: '',
+    renewalDate: '',
+    permissions: { 
+      viewLeads: false, 
+      addCustomers: false, 
+      viewReports: false,
+      accessPortal: false,
+      manageSubAgents: false 
+    },
+    
+    // 9. Login Credentials (if portal access)
+    username: '',
+    password: '',
+    portalAccess: false
   };
 
   const [formData, setFormData] = useState(initialFormState);
 
+  // Task Form State
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    description: '',
+    deadline: '',
+    priority: 'Medium',
+    type: 'Follow-up',
+    attachments: null
+  });
+
+  // Partner Types for filtering
+  const partnerTypes = ['All', 'Individual', 'Company', 'Institution', 'Corporate', 'Agency'];
+
+  // Performance Options
+  const performanceOptions = [
+    { value: '1', label: 'Poor', color: 'bg-red-100 text-red-800' },
+    { value: '2', label: 'Below Average', color: 'bg-orange-100 text-orange-800' },
+    { value: '3', label: 'Average', color: 'bg-yellow-100 text-yellow-800' },
+    { value: '4', label: 'Good', color: 'bg-green-100 text-green-800' },
+    { value: '5', label: 'Excellent', color: 'bg-blue-100 text-blue-800' }
+  ];
+
   // --- MOCK DATA ---
   const [partners, setPartners] = useState([
     { 
-      id: 101, fullName: "Rajesh Kumar", email: "rajesh@example.com", phone: "9876543210", altPhone: "9876500000", dob: "1990-01-01", gender: "Male",
-      address: "123, Main Street", city: "Jaipur", state: "Rajasthan", pincode: "302001",
-      type: "Agent", experience: "5 Years", area: "Jaipur", targetArea: "Jaipur City",
-      aadhaarNo: "123456789012", panNo: "ABCDE1234F",
-      accountHolder: "Rajesh Kumar", bankName: "HDFC Bank", accountNo: "5010000000", ifsc: "HDFC000123", upiId: "rajesh@hdfc",
-      username: "rajesh123", password: "password",
-      status: "Active", commission: "2%",
-      permissions: { addCustomer: true, viewCustomer: true, trackLoan: true }
+      id: 'PTR001', 
+      companyName: "Sharma Financial Services", 
+      partnerName: "Rajesh Sharma", 
+      email: "rajesh@sharmafinance.com", 
+      phone: "9876543210", 
+      altPhone: "9876500000", 
+      website: "www.sharmafinance.com",
+      establishedYear: "2015",
+      partnerType: "Company",
+      businessNature: "Loan Advisory & Financial Services",
+      address: "123, Business Park", 
+      city: "Delhi", 
+      state: "Delhi", 
+      pincode: "110016",
+      contactPerson: "Rajesh Sharma",
+      contactPersonDesignation: "Owner",
+      partnerId: "PTR001",
+      businessCategory: "Finance",
+      specialization: "Home Loans, Personal Loans",
+      totalEmployees: "15",
+      annualTurnover: "₹2.5 Cr",
+      registrationNo: "REG123456",
+      gstNo: "07AABCS1429B1Z",
+      panNo: "ABCDE1234F",
+      accountHolder: "Rajesh Sharma", 
+      bankName: "HDFC Bank", 
+      accountNo: "501000123456",
+      ifsc: "HDFC000123", 
+      upiId: "rajesh.sharma@hdfc",
+      commissionType: "Percentage",
+      commissionValue: "2.5%",
+      paymentCycle: "Monthly",
+      minimumPayout: "₹10,000",
+      monthlyTarget: "₹50,00,000",
+      quarterlyTarget: "₹1.5 Cr",
+      annualTarget: "₹6 Cr",
+      performanceRating: "4",
+      status: "Active",
+      partnershipDate: "2020-06-01",
+      renewalDate: "2024-06-01",
+      portalAccess: true,
+      username: "rajesh_sharma",
+      permissions: { 
+        viewLeads: true, 
+        addCustomers: true, 
+        viewReports: true,
+        accessPortal: true,
+        manageSubAgents: false 
+      }
     },
     { 
-      id: 102, fullName: "Alpha Solutions", email: "alpha@example.com", phone: "9988776655", altPhone: "", dob: "", gender: "Other",
-      address: "45, Tech Park", city: "Delhi", state: "Delhi", pincode: "110001",
-      type: "Company Partner", experience: "10 Years", area: "Delhi", targetArea: "North India",
-      aadhaarNo: "987654321098", panNo: "XYZAB1234C",
-      accountHolder: "Alpha Sol", bankName: "SBI", accountNo: "3000000000", ifsc: "SBIN000123", upiId: "",
-      username: "alpha_co", password: "securepass",
-      status: "Active", commission: "Fixed ₹5000",
-      permissions: { addCustomer: true, viewCustomer: false, trackLoan: true }
+      id: 'PTR002', 
+      companyName: "Patel Consultancy", 
+      partnerName: "Priya Patel", 
+      email: "priya@patelconsultancy.com", 
+      phone: "9988776655", 
+      altPhone: "", 
+      website: "www.patelconsultancy.com",
+      establishedYear: "2018",
+      partnerType: "Individual",
+      businessNature: "Business Loan Specialist",
+      address: "45, Corporate Tower", 
+      city: "Mumbai", 
+      state: "Maharashtra", 
+      pincode: "400001",
+      contactPerson: "Priya Patel",
+      contactPersonDesignation: "Proprietor",
+      partnerId: "PTR002",
+      businessCategory: "Finance",
+      specialization: "Business Loans, Working Capital",
+      totalEmployees: "8",
+      annualTurnover: "₹1.2 Cr",
+      registrationNo: "REG789012",
+      gstNo: "27BBHCS1429C1Z",
+      panNo: "XYZAB1234C",
+      accountHolder: "Priya Patel", 
+      bankName: "SBI", 
+      accountNo: "300000567890",
+      ifsc: "SBIN000123", 
+      upiId: "priya.patel@sbi",
+      commissionType: "Percentage",
+      commissionValue: "3%",
+      paymentCycle: "Monthly",
+      minimumPayout: "₹15,000",
+      monthlyTarget: "₹30,00,000",
+      quarterlyTarget: "₹90 Lakhs",
+      annualTarget: "₹3.6 Cr",
+      performanceRating: "5",
+      status: "Active",
+      partnershipDate: "2021-03-15",
+      renewalDate: "2025-03-15",
+      portalAccess: true,
+      username: "priya_patel",
+      permissions: { 
+        viewLeads: true, 
+        addCustomers: true, 
+        viewReports: true,
+        accessPortal: true,
+        manageSubAgents: true 
+      }
+    },
+    { 
+      id: 'PTR003', 
+      companyName: "Verma & Associates", 
+      partnerName: "Rahul Verma", 
+      email: "rahul@vermaassociates.com", 
+      phone: "8899776655", 
+      altPhone: "8899776600", 
+      website: "www.vermaassociates.com",
+      establishedYear: "2010",
+      partnerType: "Corporate",
+      businessNature: "Multi-Service Financial Advisory",
+      address: "78, Financial District", 
+      city: "Bangalore", 
+      state: "Karnataka", 
+      pincode: "560001",
+      contactPerson: "Rahul Verma",
+      contactPersonDesignation: "Managing Partner",
+      partnerId: "PTR003",
+      businessCategory: "Finance",
+      specialization: "All Types of Loans",
+      totalEmployees: "25",
+      annualTurnover: "₹5 Cr",
+      registrationNo: "REG345678",
+      gstNo: "29CCDCS1429D1Z",
+      panNo: "PQRST1234U",
+      accountHolder: "Verma & Associates", 
+      bankName: "ICICI Bank", 
+      accountNo: "501000789012",
+      ifsc: "ICIC000123", 
+      upiId: "verma.associates@icici",
+      commissionType: "Percentage",
+      commissionValue: "2%",
+      paymentCycle: "Quarterly",
+      minimumPayout: "₹50,000",
+      monthlyTarget: "₹75,00,000",
+      quarterlyTarget: "₹2.25 Cr",
+      annualTarget: "₹9 Cr",
+      performanceRating: "3",
+      status: "Active",
+      partnershipDate: "2019-01-10",
+      renewalDate: "2024-01-10",
+      portalAccess: true,
+      username: "verma_associates",
+      permissions: { 
+        viewLeads: true, 
+        addCustomers: true, 
+        viewReports: true,
+        accessPortal: true,
+        manageSubAgents: true 
+      }
+    },
+    { 
+      id: 'PTR004', 
+      companyName: "Reddy Finance Solutions", 
+      partnerName: "Sneha Reddy", 
+      email: "sneha@reddyfinance.com", 
+      phone: "7766554433", 
+      altPhone: "", 
+      website: "www.reddyfinance.com",
+      establishedYear: "2020",
+      partnerType: "Agency",
+      businessNature: "Loan Processing Agency",
+      address: "22, Hitech City", 
+      city: "Hyderabad", 
+      state: "Telangana", 
+      pincode: "500081",
+      contactPerson: "Sneha Reddy",
+      contactPersonDesignation: "Director",
+      partnerId: "PTR004",
+      businessCategory: "Finance",
+      specialization: "Personal Loans, Credit Cards",
+      totalEmployees: "12",
+      annualTurnover: "₹80 Lakhs",
+      registrationNo: "REG901234",
+      gstNo: "36DDECS1429E1Z",
+      panNo: "LMNOP1234Q",
+      accountHolder: "Sneha Reddy", 
+      bankName: "Axis Bank", 
+      accountNo: "501000345678",
+      ifsc: "UTIB000123", 
+      upiId: "sneha.reddy@axis",
+      commissionType: "Fixed",
+      commissionValue: "₹500 per case",
+      paymentCycle: "Per Transaction",
+      minimumPayout: "₹5,000",
+      monthlyTarget: "₹20,00,000",
+      quarterlyTarget: "₹60 Lakhs",
+      annualTarget: "₹2.4 Cr",
+      performanceRating: "4",
+      status: "Inactive",
+      partnershipDate: "2022-07-20",
+      renewalDate: "2023-07-20",
+      portalAccess: false,
+      username: "",
+      permissions: { 
+        viewLeads: false, 
+        addCustomers: false, 
+        viewReports: false,
+        accessPortal: false,
+        manageSubAgents: false 
+      }
     },
   ]);
+
+  // Mock tasks data
+  useEffect(() => {
+    const mockTasks = [
+      {
+        id: 1,
+        partnerId: 'PTR001',
+        title: 'Monthly Performance Review Meeting',
+        description: 'Discuss last month performance and set targets for next month',
+        deadline: '2024-04-15',
+        priority: 'High',
+        type: 'Meeting',
+        status: 'Pending',
+        assignedDate: '2024-03-20',
+        assignedBy: 'Admin',
+        attachments: 1
+      },
+      {
+        id: 2,
+        partnerId: 'PTR002',
+        title: 'Documentation Update',
+        description: 'Submit updated KYC documents for renewal',
+        deadline: '2024-04-10',
+        priority: 'Medium',
+        type: 'Documentation',
+        status: 'In Progress',
+        assignedDate: '2024-03-15',
+        assignedBy: 'Manager',
+        attachments: 3
+      },
+      {
+        id: 3,
+        partnerId: 'PTR003',
+        title: 'New Product Training',
+        description: 'Training on new loan products launched this quarter',
+        deadline: '2024-04-05',
+        priority: 'High',
+        type: 'Training',
+        status: 'Completed',
+        assignedDate: '2024-03-10',
+        assignedBy: 'Product Team',
+        attachments: 2
+      }
+    ];
+    setTasks(mockTasks);
+  }, []);
 
   // --- FILTERED DATA LOGIC ---
   const filteredPartners = partners.filter(partner => {
       const matchesSearch = 
-          partner.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          partner.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          partner.partnerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           partner.phone.includes(searchQuery) ||
-          (partner.area && partner.area.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (partner.type && partner.type.toLowerCase().includes(searchQuery.toLowerCase()));
+          partner.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          partner.partnerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          partner.city.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesFilter = filterStatus === 'All' || partner.status === filterStatus;
+      const matchesStatus = filterStatus === 'All' || partner.status === filterStatus;
+      const matchesType = filterType === 'All' || partner.partnerType === filterType;
 
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Get tasks for selected partner
+  const getPartnerTasks = (partnerId) => {
+    return tasks.filter(p => p.partnerId === partnerId);
+  };
 
   // --- EXPORT HANDLER (CSV for Excel) ---
   const handleExport = () => {
-      // CSV Headers
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "ID,Name,Email,Phone,Type,Area,Commission,Status\n"; // Header row
-
-      // Rows
-      filteredPartners.forEach(p => {
-          const row = `${p.id},"${p.fullName}","${p.email}","${p.phone}","${p.type}","${p.area}","${p.commission}","${p.status}"`;
+      csvContent += "Partner ID,Company Name,Contact Person,Email,Phone,Type,Status,Commission,Monthly Target,Performance Rating\n";
+      
+      filteredPartners.forEach(partner => {
+          const row = `${partner.partnerId},"${partner.companyName}","${partner.contactPerson}","${partner.email}","${partner.phone}","${partner.partnerType}","${partner.status}","${partner.commissionValue}","${partner.monthlyTarget}","${partner.performanceRating}/5"`;
           csvContent += row + "\n";
       });
 
@@ -114,34 +441,108 @@ export default function PartnerAdd() {
       setShowViewModal(true);
   };
 
-  // --- DOWNLOAD SINGLE PROFILE (CSV for Excel) ---
+  // --- TASK HANDLERS ---
+  const handleTaskClick = (partner) => {
+    setSelectedPartner(partner);
+    setShowTaskModal(true);
+    setShowActionMenu(null);
+  };
+
+  const handleCloseTaskModal = () => {
+    setShowTaskModal(false);
+    setSelectedPartner(null);
+    setTaskForm({
+      title: '',
+      description: '',
+      deadline: '',
+      priority: 'Medium',
+      type: 'Follow-up',
+      attachments: null
+    });
+  };
+
+  const handleTaskFormChange = (e) => {
+    const { name, value } = e.target;
+    setTaskForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAssignTask = (e) => {
+    e.preventDefault();
+    
+    if (!taskForm.title || !taskForm.description || !taskForm.deadline) {
+      alert('Please fill all required fields');
+      return;
+    }
+
+    const newTask = {
+      id: tasks.length + 1,
+      partnerId: selectedPartner.partnerId,
+      partnerName: selectedPartner.companyName,
+      title: taskForm.title,
+      description: taskForm.description,
+      deadline: taskForm.deadline,
+      priority: taskForm.priority,
+      type: taskForm.type,
+      status: 'Pending',
+      assignedDate: new Date().toISOString().split('T')[0],
+      assignedBy: 'Admin',
+      attachments: taskForm.attachments ? 1 : 0
+    };
+
+    setTasks(prev => [...prev, newTask]);
+    
+    alert(`Task assigned to ${selectedPartner.companyName} successfully!`);
+    handleCloseTaskModal();
+  };
+
+  const handleTaskStatusChange = (taskId, newStatus) => {
+    setTasks(prev => prev.map(p => 
+      p.id === taskId ? { ...p, status: newStatus } : p
+    ));
+  };
+
+  const handleDeleteTask = (taskId) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      setTasks(prev => prev.filter(p => p.id !== taskId));
+    }
+  };
+
+  // --- DOWNLOAD SINGLE PROFILE ---
   const handleDownloadProfile = () => {
       if (!viewData) return;
       
-      // Creating a key-value CSV structure for a single profile
       const rows = [
           ["Field", "Value"],
-          ["ID", viewData.id],
-          ["Full Name", viewData.fullName],
+          ["Partner ID", viewData.partnerId],
+          ["Company Name", viewData.companyName],
+          ["Contact Person", viewData.contactPerson],
           ["Email", viewData.email],
           ["Phone", viewData.phone],
           ["Alt Phone", viewData.altPhone || 'N/A'],
-          ["Type", viewData.type],
+          ["Website", viewData.website || 'N/A'],
+          ["Partner Type", viewData.partnerType],
+          ["Business Nature", viewData.businessNature],
           ["Status", viewData.status],
-          ["DOB", viewData.dob || 'N/A'],
-          ["Gender", viewData.gender],
-          ["Address", `"${viewData.address}, ${viewData.city}, ${viewData.state} - ${viewData.pincode}"`], // Escape commas
-          ["Experience", viewData.experience],
-          ["Target Area", viewData.targetArea || viewData.area],
-          ["Aadhaar No", `'${viewData.aadhaarNo}`], // Adding ' to force Excel to treat as text
+          ["Address", `"${viewData.address}, ${viewData.city}, ${viewData.state} - ${viewData.pincode}"`],
+          ["Partnership Date", viewData.partnershipDate],
+          ["Renewal Date", viewData.renewalDate],
+          ["Total Employees", viewData.totalEmployees],
+          ["Annual Turnover", viewData.annualTurnover],
+          ["Registration No", viewData.registrationNo || 'N/A'],
+          ["GST No", viewData.gstNo || 'N/A'],
           ["PAN No", viewData.panNo],
           ["Bank Name", viewData.bankName],
-          ["Account No", `'${viewData.accountNo}`],
+          ["Account No", `'${viewData.accountNo || viewData.accountNo}`],
           ["IFSC Code", viewData.ifsc],
           ["UPI ID", viewData.upiId || 'N/A'],
-          ["Commission", viewData.commission],
-          ["Username", viewData.username],
-          ["Password", viewData.password]
+          ["Commission Type", viewData.commissionType],
+          ["Commission Value", viewData.commissionValue],
+          ["Payment Cycle", viewData.paymentCycle],
+          ["Minimum Payout", viewData.minimumPayout],
+          ["Monthly Target", viewData.monthlyTarget],
+          ["Performance Rating", `${viewData.performanceRating}/5`],
+          ["Portal Access", viewData.portalAccess ? 'Yes' : 'No'],
+          ["Username", viewData.username || 'N/A']
       ];
 
       let csvContent = "data:text/csv;charset=utf-8,";
@@ -153,7 +554,7 @@ export default function PartnerAdd() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement('a');
       link.href = encodedUri;
-      link.download = `${viewData.fullName}_Profile.csv`;
+      link.download = `${viewData.companyName}_Partner_Profile.csv`;
       link.click();
   };
 
@@ -171,47 +572,61 @@ export default function PartnerAdd() {
   const handleAddNew = () => {
       resetForm();
       setView('add');
+      const newId = `PTR${String(partners.length + 101).padStart(3, '0')}`;
+      setFormData(prev => ({ ...prev, partnerId: newId }));
   };
 
   const handleEdit = (partner) => {
-      let commType = 'Percentage';
-      let commVal = '';
-      if (partner.commission && partner.commission.includes('%')) {
-          commType = 'Percentage';
-          commVal = partner.commission.replace('%', '');
-      } else if (partner.commission) {
-          commType = 'Fixed';
-          commVal = partner.commission.replace(/[^0-9]/g, '');
-      }
-
       setFormData({
           ...initialFormState,
-          fullName: partner.fullName,
+          companyName: partner.companyName,
+          partnerName: partner.partnerName,
           email: partner.email || '',
           phone: partner.phone,
           altPhone: partner.altPhone,
-          dob: partner.dob,
-          gender: partner.gender,
+          website: partner.website,
+          establishedYear: partner.establishedYear,
+          partnerType: partner.partnerType,
+          businessNature: partner.businessNature,
           address: partner.address,
           city: partner.city,
           state: partner.state,
           pincode: partner.pincode,
-          partnerType: partner.type,
-          experience: partner.experience,
-          targetArea: partner.targetArea || partner.area,
-          aadhaarNo: partner.aadhaarNo,
+          contactPerson: partner.contactPerson,
+          contactPersonDesignation: partner.contactPersonDesignation,
+          partnerId: partner.partnerId,
+          businessCategory: partner.businessCategory || 'Finance',
+          specialization: partner.specialization,
+          totalEmployees: partner.totalEmployees,
+          annualTurnover: partner.annualTurnover ? partner.annualTurnover.replace('₹', '').replace(' Cr', '').replace(' Lakhs', '') : '',
+          registrationNo: partner.registrationNo,
+          gstNo: partner.gstNo,
           panNo: partner.panNo,
           accountHolder: partner.accountHolder,
           bankName: partner.bankName,
           accountNo: partner.accountNo,
           ifsc: partner.ifsc,
           upiId: partner.upiId,
-          username: partner.username,
-          password: partner.password,
+          commissionType: partner.commissionType,
+          commissionValue: partner.commissionValue ? partner.commissionValue.replace('%', '').replace('₹', '') : '',
+          paymentCycle: partner.paymentCycle,
+          minimumPayout: partner.minimumPayout ? partner.minimumPayout.replace('₹', '').replace(',', '') : '',
+          monthlyTarget: partner.monthlyTarget ? partner.monthlyTarget.replace('₹', '').replace(',', '') : '',
+          quarterlyTarget: partner.quarterlyTarget ? partner.quarterlyTarget.replace('₹', '').replace(',', '').replace(' Cr', '0000000').replace(' Lakhs', '00000') : '',
+          annualTarget: partner.annualTarget ? partner.annualTarget.replace('₹', '').replace(',', '').replace(' Cr', '0000000').replace(' Lakhs', '00000') : '',
+          performanceRating: partner.performanceRating,
           status: partner.status,
-          commissionType: commType,
-          commissionValue: commVal,
-          permissions: partner.permissions || { addCustomer: false, viewCustomer: false, trackLoan: false }
+          partnershipDate: partner.partnershipDate,
+          renewalDate: partner.renewalDate,
+          portalAccess: partner.portalAccess || false,
+          username: partner.username,
+          permissions: partner.permissions || { 
+            viewLeads: false, 
+            addCustomers: false, 
+            viewReports: false,
+            accessPortal: false,
+            manageSubAgents: false 
+          }
       });
       
       setEditId(partner.id);
@@ -222,13 +637,13 @@ export default function PartnerAdd() {
 
   const handleDelete = (id) => {
       if (window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) {
-          setPartners(partners.filter(p => p.id !== id));
+          setPartners(partners.filter(partner => partner.id !== id));
       }
   };
 
   const generateCredentials = () => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const generatedUser = formData.fullName ? `${formData.fullName.split(' ')[0].toLowerCase()}${randomNum}` : `partner${randomNum}`;
+    const generatedUser = formData.companyName ? `${formData.companyName.split(' ')[0].toLowerCase()}${randomNum}` : `partner${randomNum}`;
     const generatedPass = Math.random().toString(36).slice(-8).toUpperCase();
     
     setFormData(prev => ({ ...prev, username: generatedUser, password: generatedPass }));
@@ -241,11 +656,16 @@ export default function PartnerAdd() {
 
     if (name === 'phone' || name === 'altPhone') newValue = value.replace(/[^0-9]/g, '').slice(0, 10);
     if (name === 'pincode') newValue = value.replace(/[^0-9]/g, '').slice(0, 6);
-    if (name === 'aadhaarNo') newValue = value.replace(/[^0-9]/g, '').slice(0, 12);
+    if (name === 'gstNo') newValue = value.toUpperCase().slice(0, 15);
     if (name === 'panNo') newValue = value.toUpperCase().slice(0, 10);
+    if (name === 'annualTurnover' || name === 'monthlyTarget' || name === 'quarterlyTarget' || name === 'annualTarget' || name === 'minimumPayout' || name === 'commissionValue') {
+        newValue = value.replace(/[^0-9.]/g, '');
+    }
 
     if (type === 'checkbox') {
-        if (name.startsWith('perm_')) {
+        if (name === 'portalAccess') {
+            setFormData(prev => ({ ...prev, portalAccess: checked }));
+        } else if (name.startsWith('perm_')) {
             const key = name.replace('perm_', '');
             setFormData(prev => ({
                 ...prev,
@@ -271,12 +691,14 @@ export default function PartnerAdd() {
   const validateStep = (step) => {
       let newErrors = {};
       if (step === 1) {
-          if (!formData.fullName) newErrors.fullName = "Full Name is required";
+          if (!formData.companyName) newErrors.companyName = "Company Name is required";
+          if (!formData.partnerName) newErrors.partnerName = "Contact Person is required";
           if (!formData.email) newErrors.email = "Email is required";
           if (!formData.phone || formData.phone.length < 10) newErrors.phone = "Valid Phone is required";
+          if (!formData.partnerId) newErrors.partnerId = "Partner ID is required";
       }
-      if (step === 4) {
-          if (!formData.commissionValue) newErrors.commissionValue = "Commission value is required";
+      if (step === 3) {
+          if (!formData.commissionValue) newErrors.commissionValue = "Commission Value is required";
       }
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
@@ -293,15 +715,20 @@ export default function PartnerAdd() {
     if (!validateStep(4)) return;
 
     const partnerPayload = {
-        id: isEditing ? editId : Date.now(),
+        id: isEditing ? editId : `PTR${String(partners.length + 101).padStart(3, '0')}`,
         ...formData,
-        type: formData.partnerType,
-        area: formData.city || formData.targetArea,
-        commission: formData.commissionType === 'Percentage' ? `${formData.commissionValue}%` : `Fixed ₹${formData.commissionValue}`
+        annualTurnover: formData.annualTurnover ? `₹${parseFloat(formData.annualTurnover).toLocaleString('en-IN')}` : '',
+        monthlyTarget: formData.monthlyTarget ? `₹${parseFloat(formData.monthlyTarget).toLocaleString('en-IN')}` : '',
+        quarterlyTarget: formData.quarterlyTarget ? `₹${(parseFloat(formData.quarterlyTarget) / 1000000).toFixed(1)} Cr` : '',
+        annualTarget: formData.annualTarget ? `₹${(parseFloat(formData.annualTarget) / 1000000).toFixed(1)} Cr` : '',
+        minimumPayout: formData.minimumPayout ? `₹${parseFloat(formData.minimumPayout).toLocaleString('en-IN')}` : '',
+        commissionValue: formData.commissionType === 'Percentage' ? 
+            `${formData.commissionValue}%` : 
+            `₹${parseFloat(formData.commissionValue).toLocaleString('en-IN')}`
     };
 
     if (isEditing) {
-        setPartners(partners.map(p => (p.id === editId ? partnerPayload : p)));
+        setPartners(partners.map(partner => (partner.id === editId ? partnerPayload : partner)));
         alert("Partner Updated Successfully!");
     } else {
         setPartners([...partners, partnerPayload]);
@@ -311,11 +738,38 @@ export default function PartnerAdd() {
   };
 
   const steps = [
-    { id: 1, title: "Identity & Login", icon: <User size={18} /> },
-    { id: 2, title: "Address & Work", icon: <Briefcase size={18} /> },
-    { id: 3, title: "KYC & Banking", icon: <Landmark size={18} /> },
-    { id: 4, title: "Setup & Controls", icon: <ShieldCheck size={18} /> }
+    { id: 1, title: "Basic Info", icon: <Building size={18} /> },
+    { id: 2, title: "Business Details", icon: <Briefcase size={18} /> },
+    { id: 3, title: "Financials", icon: <DollarSign size={18} /> },
+    { id: 4, title: "Documents & Status", icon: <ShieldCheck size={18} /> }
   ];
+
+  // Get status color
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'Completed': return 'bg-green-100 text-green-800';
+      case 'In Progress': return 'bg-blue-100 text-blue-800';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800';
+      case 'Overdue': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Get priority color
+  const getPriorityColor = (priority) => {
+    switch(priority) {
+      case 'High': return 'bg-red-100 text-red-800';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800';
+      case 'Low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Get performance rating color
+  const getPerformanceColor = (rating) => {
+    const option = performanceOptions.find(opt => opt.value === rating);
+    return option ? option.color : 'bg-gray-100 text-gray-800';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 lg:p-10 relative">
@@ -323,17 +777,17 @@ export default function PartnerAdd() {
       {/* VIEW MODAL OVERLAY */}
       {showViewModal && viewData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                 
                 {/* Modal Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
-                            {viewData.fullName.charAt(0)}
+                            {viewData.companyName.charAt(0)}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-800">{viewData.fullName}</h2>
-                            <p className="text-sm text-gray-500">{viewData.type} • ID: #{viewData.id}</p>
+                            <h2 className="text-xl font-bold text-gray-800">{viewData.companyName}</h2>
+                            <p className="text-sm text-gray-500">{viewData.partnerType} • ID: {viewData.partnerId} • {viewData.status}</p>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -348,52 +802,116 @@ export default function PartnerAdd() {
 
                 {/* Modal Content - Scrollable */}
                 <div className="p-6 overflow-y-auto custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         
                         {/* Section 1: Basic Info */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Personal Details</h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><span className="text-gray-500 block">Email</span> <span className="font-medium text-gray-800">{viewData.email}</span></div>
-                                <div><span className="text-gray-500 block">Phone</span> <span className="font-medium text-gray-800">{viewData.phone}</span></div>
-                                <div><span className="text-gray-500 block">Alt Phone</span> <span className="font-medium text-gray-800">{viewData.altPhone || '-'}</span></div>
-                                <div><span className="text-gray-500 block">Gender</span> <span className="font-medium text-gray-800">{viewData.gender}</span></div>
-                                <div><span className="text-gray-500 block">DOB</span> <span className="font-medium text-gray-800">{viewData.dob || '-'}</span></div>
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Company Details</h3>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div><span className="text-gray-500 block">Contact Person</span> <span className="font-medium text-gray-800">{viewData.contactPerson}</span></div>
+                                    <div><span className="text-gray-500 block">Designation</span> <span className="font-medium text-gray-800">{viewData.contactPersonDesignation}</span></div>
+                                    <div><span className="text-gray-500 block">Email</span> <span className="font-medium text-gray-800">{viewData.email}</span></div>
+                                    <div><span className="text-gray-500 block">Phone</span> <span className="font-medium text-gray-800">{viewData.phone}</span></div>
+                                    <div><span className="text-gray-500 block">Website</span> <span className="font-medium text-blue-600">{viewData.website || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">Established</span> <span className="font-medium text-gray-800">{viewData.establishedYear || '-'}</span></div>
+                                    <div className="col-span-2"><span className="text-gray-500 block">Business Nature</span> <span className="font-medium text-gray-800">{viewData.businessNature || '-'}</span></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Address</h3>
+                                <div className="text-sm">
+                                    <p className="font-medium text-gray-800">{viewData.address}</p>
+                                    <p className="text-gray-600">{viewData.city}, {viewData.state} - {viewData.pincode}</p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Section 2: Work & Address */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Work & Location</h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><span className="text-gray-500 block">Type</span> <span className="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block">{viewData.type}</span></div>
-                                <div><span className="text-gray-500 block">Experience</span> <span className="font-medium text-gray-800">{viewData.experience || '-'}</span></div>
-                                <div className="col-span-2"><span className="text-gray-500 block">Address</span> <span className="font-medium text-gray-800">{viewData.address}, {viewData.city}</span></div>
-                                <div><span className="text-gray-500 block">State</span> <span className="font-medium text-gray-800">{viewData.state}</span></div>
-                                <div><span className="text-gray-500 block">Pincode</span> <span className="font-medium text-gray-800">{viewData.pincode}</span></div>
+                        {/* Section 2: Business Details */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Business Information</h3>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div><span className="text-gray-500 block">Partner ID</span> <span className="font-bold text-blue-600">{viewData.partnerId}</span></div>
+                                    <div><span className="text-gray-500 block">Partner Type</span> <span className="font-medium text-gray-800">{viewData.partnerType}</span></div>
+                                    <div><span className="text-gray-500 block">Category</span> <span className="font-medium text-gray-800">{viewData.businessCategory}</span></div>
+                                    <div><span className="text-gray-500 block">Specialization</span> <span className="font-medium text-gray-800">{viewData.specialization || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">Total Employees</span> <span className="font-medium text-gray-800">{viewData.totalEmployees || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">Annual Turnover</span> <span className="font-medium text-gray-800">{viewData.annualTurnover || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">Registration No</span> <span className="font-mono text-gray-800">{viewData.registrationNo || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">GST No</span> <span className="font-mono text-gray-800">{viewData.gstNo || '-'}</span></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Partnership Dates</h3>
+                                <div className="flex gap-4 text-sm">
+                                    <div><span className="text-gray-500 block">Start Date</span> <span className="font-medium text-gray-800">{viewData.partnershipDate || '-'}</span></div>
+                                    <div><span className="text-gray-500 block">Renewal Date</span> <span className="font-medium text-gray-800">{viewData.renewalDate || '-'}</span></div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Section 3: Banking */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2">Banking Details</h3>
-                            <div className="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
-                                <div className="flex justify-between"><span>Bank Name:</span> <span className="font-bold text-gray-800">{viewData.bankName}</span></div>
-                                <div className="flex justify-between"><span>Account No:</span> <span className="font-mono text-gray-800">{viewData.accountNo}</span></div>
-                                <div className="flex justify-between"><span>IFSC Code:</span> <span className="font-mono text-gray-800">{viewData.ifsc}</span></div>
-                                <div className="flex justify-between"><span>Holder:</span> <span className="font-medium text-gray-800">{viewData.accountHolder}</span></div>
+                        {/* Section 3: Financial Details */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Commission & Payments</h3>
+                                <div className="bg-blue-50 p-4 rounded-xl space-y-3 text-sm">
+                                    <div className="flex justify-between"><span>Commission Type:</span> <span className="font-bold text-gray-800">{viewData.commissionType}</span></div>
+                                    <div className="flex justify-between"><span>Commission Value:</span> <span className="font-bold text-green-600">{viewData.commissionValue}</span></div>
+                                    <div className="flex justify-between"><span>Payment Cycle:</span> <span className="font-medium text-gray-800">{viewData.paymentCycle}</span></div>
+                                    <div className="flex justify-between"><span>Minimum Payout:</span> <span className="font-medium text-gray-800">{viewData.minimumPayout}</span></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Targets</h3>
+                                <div className="bg-green-50 p-4 rounded-xl border border-green-100 space-y-3 text-sm">
+                                    <div className="flex justify-between"><span>Monthly Target:</span> <span className="font-bold text-gray-800">{viewData.monthlyTarget}</span></div>
+                                    <div className="flex justify-between"><span>Quarterly Target:</span> <span className="font-medium text-gray-800">{viewData.quarterlyTarget}</span></div>
+                                    <div className="flex justify-between"><span>Annual Target:</span> <span className="font-medium text-gray-800">{viewData.annualTarget}</span></div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Section 4: KYC & Config */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2">KYC & Account</h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><span className="text-gray-500 block">Aadhaar</span> <span className="font-mono text-gray-800">{viewData.aadhaarNo}</span></div>
-                                <div><span className="text-gray-500 block">PAN</span> <span className="font-mono text-gray-800">{viewData.panNo}</span></div>
-                                <div><span className="text-gray-500 block">Username</span> <span className="font-medium text-gray-800">{viewData.username}</span></div>
-                                <div><span className="text-gray-500 block">Commission</span> <span className="font-bold text-green-600">{viewData.commission}</span></div>
-                                <div><span className="text-gray-500 block">Status</span> <span className={`px-2 py-0.5 rounded text-xs font-bold ${viewData.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{viewData.status}</span></div>
+                        {/* Section 4: Banking & Performance */}
+                        <div className="space-y-6">
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Banking Details</h3>
+                                <div className="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
+                                    <div className="flex justify-between"><span>Bank Name:</span> <span className="font-bold text-gray-800">{viewData.bankName}</span></div>
+                                    <div className="flex justify-between"><span>Account No:</span> <span className="font-mono text-gray-800">{viewData.accountNo || viewData.bankAccountNo}</span></div>
+                                    <div className="flex justify-between"><span>IFSC Code:</span> <span className="font-mono text-gray-800">{viewData.ifsc}</span></div>
+                                    <div className="flex justify-between"><span>Account Holder:</span> <span className="font-medium text-gray-800">{viewData.accountHolder}</span></div>
+                                    {viewData.upiId && (
+                                        <div className="flex justify-between"><span>UPI ID:</span> <span className="font-medium text-blue-600">{viewData.upiId}</span></div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Performance & Access</h3>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-gray-500 block">Performance Rating</span>
+                                        <div className={`px-3 py-1 rounded-full text-xs font-bold mt-1 inline-block ${getPerformanceColor(viewData.performanceRating)}`}>
+                                            {viewData.performanceRating}/5
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-500 block">Portal Access</span>
+                                        <div className={`px-3 py-1 rounded-full text-xs font-bold mt-1 ${viewData.portalAccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {viewData.portalAccess ? 'Enabled' : 'Disabled'}
+                                        </div>
+                                    </div>
+                                    {viewData.username && (
+                                        <div className="col-span-2">
+                                            <span className="text-gray-500 block">Login Credentials</span>
+                                            <div className="font-mono text-gray-800">User: {viewData.username}</div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -403,11 +921,218 @@ export default function PartnerAdd() {
         </div>
       )}
 
+      {/* TASK MODAL */}
+      {showTaskModal && selectedPartner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                  <FileCheck size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Manage Partner Tasks</h2>
+                  <p className="text-sm text-gray-500">Managing: {selectedPartner.companyName} ({selectedPartner.partnerId})</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleCloseTaskModal}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto">
+              
+              {/* Existing Tasks */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <FileCheck size={18} /> Existing Tasks
+                </h3>
+                {getPartnerTasks(selectedPartner.partnerId).length > 0 ? (
+                  <div className="space-y-3">
+                    {getPartnerTasks(selectedPartner.partnerId).map(task => (
+                      <div key={task.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-800">{task.title}</h4>
+                              <span className={`px-2 py-0.5 rounded text-xs ${getPriorityColor(task.priority)}`}>
+                                {task.priority}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-800">
+                                {task.type}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                <CalendarDays size={12} className="inline mr-1" />
+                                Due: {task.deadline}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <select 
+                              value={task.status}
+                              onChange={(e) => handleTaskStatusChange(task.id, e.target.value)}
+                              className="text-xs px-2 py-1 rounded border border-gray-300"
+                            >
+                              <option value="Pending">Pending</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Completed">Completed</option>
+                              <option value="Overdue">Overdue</option>
+                            </select>
+                            <button 
+                              onClick={() => handleDeleteTask(task.id)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <span className={`px-2 py-1 rounded text-xs ${getStatusColor(task.status)}`}>
+                            {task.status}
+                          </span>
+                          <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">
+                            <Clock4 size={12} className="inline mr-1" />
+                            Assigned: {task.assignedDate}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <FileCheck size={32} className="mx-auto text-gray-400 mb-2" />
+                    <p className="text-gray-500">No tasks assigned yet</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Assign New Task Form */}
+              <div className="bg-green-50 rounded-xl p-6 border border-green-100">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Send size={18} /> Assign New Task
+                </h4>
+                <form onSubmit={handleAssignTask}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Task Title *</label>
+                      <input
+                        type="text"
+                        name="title"
+                        value={taskForm.title}
+                        onChange={handleTaskFormChange}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., Follow-up Meeting"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Task Type *</label>
+                      <select
+                        name="type"
+                        value={taskForm.type}
+                        onChange={handleTaskFormChange}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Meeting">Meeting</option>
+                        <option value="Documentation">Documentation</option>
+                        <option value="Training">Training</option>
+                        <option value="Payment">Payment Related</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Priority *</label>
+                      <select
+                        name="priority"
+                        value={taskForm.priority}
+                        onChange={handleTaskFormChange}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="Low">Low Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="High">High Priority</option>
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Deadline *</label>
+                      <input
+                        type="date"
+                        name="deadline"
+                        value={taskForm.deadline}
+                        onChange={handleTaskFormChange}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Description *</label>
+                      <textarea
+                        name="description"
+                        value={taskForm.description}
+                        onChange={handleTaskFormChange}
+                        rows="3"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Detailed description of the task..."
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Attachments (Optional)</label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer transition-colors">
+                        <UploadCloud size={24} className="mx-auto text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-600">Click to upload files</p>
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={(e) => setTaskForm(prev => ({ ...prev, attachments: e.target.files[0] }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCloseTaskModal}
+                      className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-lg shadow-green-200 flex items-center gap-2 transition-all"
+                    >
+                      <Send size={18} /> Assign Task
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Partner Management</h1>
-          <p className="text-gray-500 mt-1">Onboard new partners and manage existing network.</p>
+          <p className="text-gray-500 mt-1">Manage partners, commissions, targets, and agreements.</p>
         </div>
         
         {view === 'list' ? (
@@ -450,85 +1175,542 @@ export default function PartnerAdd() {
             <form onSubmit={handleSubmit} className="p-8">
                 {currentStep === 1 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2"><h3 className="font-bold text-gray-800 flex items-center gap-2"><User size={18} className="text-blue-500"/> Personal Identity</h3></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Full Name <span className="text-red-500">*</span></label><input name="fullName" value={formData.fullName} onChange={handleChange} className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.fullName ? 'border-red-500' : 'border-gray-200'}`} placeholder="e.g. Rahul Sharma" />{errors.fullName && <p className="text-xs text-red-500">{errors.fullName}</p>}</div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Email Address <span className="text-red-500">*</span></label><input name="email" type="email" value={formData.email} onChange={handleChange} className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-200'}`} placeholder="rahul@example.com" />{errors.email && <p className="text-xs text-red-500">{errors.email}</p>}</div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Phone Number <span className="text-red-500">*</span></label><input name="phone" type="tel" value={formData.phone} onChange={handleChange} maxLength="10" className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-gray-200'}`} placeholder="9876543210" />{errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}</div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Alt Phone</label><input name="altPhone" type="tel" maxLength="10" value={formData.altPhone} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Date of Birth</label><input name="dob" type="date" value={formData.dob} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Gender</label><select name="gender" value={formData.gender} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"><option>Male</option><option>Female</option><option>Other</option></select></div>
-                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2 mt-4"><h3 className="font-bold text-gray-800 flex items-center gap-2"><Key size={18} className="text-blue-500"/> Login Credentials</h3></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Username</label><input name="username" value={formData.username} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" placeholder="Create username" /></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Password</label><input name="password" value={formData.password} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" placeholder="••••••••" /></div>
-                        <div className="space-y-1 flex items-end"><button type="button" onClick={generateCredentials} className="w-full p-3 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition text-sm font-semibold flex items-center justify-center gap-2"><Key size={16} /> Auto Generate</button></div>
+                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Building size={18} className="text-blue-500"/> Basic Information
+                            </h3>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">
+                                Partner ID <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                name="partnerId" 
+                                value={formData.partnerId} 
+                                onChange={handleChange}
+                                className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.partnerId ? 'border-red-500' : 'border-gray-200'}`} 
+                                placeholder="e.g. PTR001" 
+                            />
+                            {errors.partnerId && <p className="text-xs text-red-500">{errors.partnerId}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">
+                                Company Name <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                name="companyName" 
+                                value={formData.companyName} 
+                                onChange={handleChange}
+                                className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.companyName ? 'border-red-500' : 'border-gray-200'}`} 
+                                placeholder="e.g. Sharma Financial Services" 
+                            />
+                            {errors.companyName && <p className="text-xs text-red-500">{errors.companyName}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">
+                                Contact Person <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                name="partnerName" 
+                                value={formData.partnerName} 
+                                onChange={handleChange}
+                                className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.partnerName ? 'border-red-500' : 'border-gray-200'}`} 
+                                placeholder="e.g. Rajesh Sharma" 
+                            />
+                            {errors.partnerName && <p className="text-xs text-red-500">{errors.partnerName}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">
+                                Email Address <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                name="email" 
+                                type="email" 
+                                value={formData.email} 
+                                onChange={handleChange}
+                                className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-200'}`} 
+                                placeholder="contact@company.com" 
+                            />
+                            {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">
+                                Phone Number <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                name="phone" 
+                                type="tel" 
+                                value={formData.phone} 
+                                onChange={handleChange}
+                                maxLength="10"
+                                className={`w-full p-3 bg-gray-50 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-gray-200'}`} 
+                                placeholder="9876543210" 
+                            />
+                            {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Alt Phone</label>
+                            <input 
+                                name="altPhone" 
+                                type="tel" 
+                                maxLength="10" 
+                                value={formData.altPhone} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Website</label>
+                            <input 
+                                name="website" 
+                                type="url" 
+                                value={formData.website} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="www.example.com"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Established Year</label>
+                            <input 
+                                name="establishedYear" 
+                                type="number" 
+                                value={formData.establishedYear} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="e.g. 2015"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Partner Type</label>
+                            <select 
+                                name="partnerType" 
+                                value={formData.partnerType} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                            >
+                                <option>Individual</option>
+                                <option>Company</option>
+                                <option>Institution</option>
+                                <option>Corporate</option>
+                                <option>Agency</option>
+                            </select>
+                        </div>
+                        
+                        <div className="md:col-span-3 space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Business Nature</label>
+                            <textarea 
+                                name="businessNature" 
+                                rows="2" 
+                                value={formData.businessNature} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="Describe the nature of business..."
+                            ></textarea>
+                        </div>
                     </div>
                 )}
                 
-                {/* Abbreviated step 2 & 3 */}
                 {currentStep === 2 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2"><h3 className="font-bold text-gray-800 flex items-center gap-2"><MapPin size={18} className="text-blue-500"/> Address Details</h3></div>
-                        <div className="md:col-span-3 space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Full Address</label><textarea name="address" rows="2" value={formData.address} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" placeholder="Address..."></textarea></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">City</label><input name="city" value={formData.city} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">State</label><select name="state" value={formData.state} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"><option value="">Select State</option><option>Delhi</option><option>Maharashtra</option><option>Rajasthan</option></select></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Pin Code</label><input name="pincode" value={formData.pincode} onChange={handleChange} maxLength="6" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
-                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2 mt-4"><h3 className="font-bold text-gray-800 flex items-center gap-2"><Briefcase size={18} className="text-blue-500"/> Professional Details</h3></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Partner Type</label><select name="partnerType" value={formData.partnerType} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"><option>Agent</option><option>Freelancer</option><option>Individual Partner</option><option>Company Partner</option></select></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Experience (Years)</label><input name="experience" value={formData.experience} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
-                        <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Target Area</label><input name="targetArea" value={formData.targetArea} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" /></div>
+                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <MapPin size={18} className="text-blue-500"/> Address & Contact
+                            </h3>
+                        </div>
+                        
+                        <div className="md:col-span-3 space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Full Address</label>
+                            <textarea 
+                                name="address" 
+                                rows="2" 
+                                value={formData.address} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="Complete business address..."
+                            ></textarea>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">City</label>
+                            <input 
+                                name="city" 
+                                value={formData.city} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">State</label>
+                            <select 
+                                name="state" 
+                                value={formData.state} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                            >
+                                <option value="">Select State</option>
+                                <option>Delhi</option>
+                                <option>Maharashtra</option>
+                                <option>Karnataka</option>
+                                <option>Tamil Nadu</option>
+                                <option>Uttar Pradesh</option>
+                                <option>Gujarat</option>
+                                <option>Rajasthan</option>
+                                <option>West Bengal</option>
+                            </select>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Pin Code</label>
+                            <input 
+                                name="pincode" 
+                                value={formData.pincode} 
+                                onChange={handleChange}
+                                maxLength="6"
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                            />
+                        </div>
+                        
+                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2 mt-4">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <User size={18} className="text-blue-500"/> Contact Details
+                            </h3>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Contact Person</label>
+                            <input 
+                                name="contactPerson" 
+                                value={formData.contactPerson} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="Name of contact person"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Designation</label>
+                            <input 
+                                name="contactPersonDesignation" 
+                                value={formData.contactPersonDesignation} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="e.g. Owner, Director"
+                            />
+                        </div>
+                        
+                        <div className="md:col-span-3 pb-2 border-b border-gray-100 mb-2 mt-4">
+                            <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                <Briefcase size={18} className="text-blue-500"/> Business Details
+                            </h3>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Business Category</label>
+                            <select 
+                                name="businessCategory" 
+                                value={formData.businessCategory} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                            >
+                                <option>Finance</option>
+                                <option>Real Estate</option>
+                                <option>Insurance</option>
+                                <option>Legal</option>
+                                <option>Consulting</option>
+                                <option>Technology</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Specialization</label>
+                            <input 
+                                name="specialization" 
+                                value={formData.specialization} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="e.g. Home Loans, Business Loans"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Total Employees</label>
+                            <input 
+                                name="totalEmployees" 
+                                type="number" 
+                                value={formData.totalEmployees} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="e.g. 15"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Annual Turnover (₹)</label>
+                            <input 
+                                name="annualTurnover" 
+                                value={formData.annualTurnover} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="e.g. 25000000"
+                            />
+                        </div>
+                        
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-gray-500 uppercase">Registration No</label>
+                            <input 
+                                name="registrationNo" 
+                                value={formData.registrationNo} 
+                                onChange={handleChange}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                placeholder="Business registration number"
+                            />
+                        </div>
                     </div>
                 )}
 
                 {currentStep === 3 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-right-4 duration-300">
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><FileText size={18} className="text-blue-500"/> KYC Documents</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase block mb-1">Aadhaar Card</label>
-                                    <input name="aadhaarNo" value={formData.aadhaarNo} onChange={handleChange} maxLength="12" className="w-full p-2 border border-gray-300 rounded mb-2" placeholder="12 Digit Number" />
-                                    {/* Updated Aadhaar Images Logic with Preview */}
-                                    <div className="flex gap-2">
-                                        <div onClick={() => aadhaarFrontRef.current.click()} className={`flex-1 border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition relative overflow-hidden ${formData.aadhaarFrontImg ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}>
-                                            <input type="file" ref={aadhaarFrontRef} onChange={(e) => handleFileChange(e, 'aadhaarFrontImg')} className="hidden" accept="image/*" />
-                                            {formData.aadhaarFrontImg ? (
-                                                <img src={URL.createObjectURL(formData.aadhaarFrontImg)} alt="Front" className="w-full h-full object-cover rounded-lg" />
-                                            ) : (
-                                                <><UploadCloud size={20} className="text-gray-400" /><span className="text-[10px] text-gray-500">Front Img</span></>
-                                            )}
-                                        </div>
-                                        <div onClick={() => aadhaarBackRef.current.click()} className={`flex-1 border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition relative overflow-hidden ${formData.aadhaarBackImg ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}>
-                                            <input type="file" ref={aadhaarBackRef} onChange={(e) => handleFileChange(e, 'aadhaarBackImg')} className="hidden" accept="image/*" />
-                                            {formData.aadhaarBackImg ? (
-                                                <img src={URL.createObjectURL(formData.aadhaarBackImg)} alt="Back" className="w-full h-full object-cover rounded-lg" />
-                                            ) : (
-                                                <><UploadCloud size={20} className="text-gray-400" /><span className="text-[10px] text-gray-500">Back Img</span></>
-                                            )}
-                                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-right-4 duration-300">
+                        <div>
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <DollarSign size={18} className="text-blue-500"/> Financial Details
+                            </h3>
+                            <div className="bg-green-50 p-6 rounded-xl border border-green-100">
+                                <div className="mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Commission Type</label>
+                                    <select 
+                                        name="commissionType" 
+                                        value={formData.commissionType} 
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-white border border-green-200 rounded-lg"
+                                    >
+                                        <option value="Percentage">Percentage</option>
+                                        <option value="Fixed">Fixed Amount</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        Commission Value <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        name="commissionValue" 
+                                        value={formData.commissionValue} 
+                                        onChange={handleChange}
+                                        className={`w-full p-3 bg-white border rounded-lg text-lg ${errors.commissionValue ? 'border-red-500' : 'border-green-200'}`} 
+                                        placeholder={formData.commissionType === 'Percentage' ? "e.g. 2.5" : "e.g. 500"} 
+                                    />
+                                    {errors.commissionValue && <p className="text-xs text-red-500 mt-1">{errors.commissionValue}</p>}
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {formData.commissionType === 'Percentage' ? 'Percentage per transaction' : 'Fixed amount per transaction'}
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-500 uppercase block mb-1">PAN Card</label>
-                                    <input name="panNo" value={formData.panNo} onChange={handleChange} maxLength="10" className="w-full p-2 border border-gray-300 rounded mb-2" placeholder="ABCDE1234F" />
-                                    {/* Updated PAN Image Logic with Preview */}
-                                    <div onClick={() => panRef.current.click()} className={`w-full border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition relative overflow-hidden ${formData.panImg ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}>
-                                        <input type="file" ref={panRef} onChange={(e) => handleFileChange(e, 'panImg')} className="hidden" accept="image/*" />
-                                        {formData.panImg ? (
-                                            <img src={URL.createObjectURL(formData.panImg)} alt="PAN" className="w-full h-full object-cover rounded-lg" />
-                                        ) : (
-                                            <><UploadCloud size={20} className="text-gray-400" /><span className="text-[10px] text-gray-500">Upload PAN</span></>
-                                        )}
+                                
+                                <div className="mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Cycle</label>
+                                    <select 
+                                        name="paymentCycle" 
+                                        value={formData.paymentCycle} 
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-white border border-green-200 rounded-lg"
+                                    >
+                                        <option value="Monthly">Monthly</option>
+                                        <option value="Quarterly">Quarterly</option>
+                                        <option value="Per Transaction">Per Transaction</option>
+                                        <option value="Weekly">Weekly</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Minimum Payout (₹)</label>
+                                    <input 
+                                        name="minimumPayout" 
+                                        value={formData.minimumPayout} 
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-white border border-green-200 rounded-lg" 
+                                        placeholder="e.g. 10000" 
+                                    />
+                                </div>
+                                
+                                <div className="mb-4">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tax Deduction (%)</label>
+                                    <input 
+                                        name="taxDeduction" 
+                                        value={formData.taxDeduction} 
+                                        onChange={handleChange}
+                                        className="w-full p-3 bg-white border border-green-200 rounded-lg" 
+                                        placeholder="e.g. 10" 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6">
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Target size={18} className="text-blue-500"/> Targets
+                                </h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Monthly Target (₹)</label>
+                                        <input 
+                                            name="monthlyTarget" 
+                                            value={formData.monthlyTarget} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                            placeholder="e.g. 5000000" 
+                                        />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Quarterly Target (₹)</label>
+                                            <input 
+                                                name="quarterlyTarget" 
+                                                value={formData.quarterlyTarget} 
+                                                onChange={handleChange}
+                                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                                placeholder="e.g. 15000000" 
+                                            />
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Annual Target (₹)</label>
+                                            <input 
+                                                name="annualTarget" 
+                                                value={formData.annualTarget} 
+                                                onChange={handleChange}
+                                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                                placeholder="e.g. 60000000" 
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Performance Rating</label>
+                                        <div className="flex gap-2">
+                                            {performanceOptions.map(option => (
+                                                <label key={option.value} className="flex-1 text-center cursor-pointer">
+                                                    <input
+                                                        type="radio"
+                                                        name="performanceRating"
+                                                        value={option.value}
+                                                        checked={formData.performanceRating === option.value}
+                                                        onChange={handleChange}
+                                                        className="hidden"
+                                                    />
+                                                    <div className={`p-2 rounded-lg border ${formData.performanceRating === option.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200'} hover:bg-gray-50 transition-colors`}>
+                                                        <div className={`px-2 py-1 rounded text-xs font-medium ${option.color}`}>
+                                                            {option.label}
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Landmark size={18} className="text-blue-500"/> Banking Details</h3>
-                            <div className="space-y-3">
-                                <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Account Holder Name</label><input name="accountHolder" value={formData.accountHolder} onChange={handleChange} className="w-full p-3 bg-white border border-gray-300 rounded-lg" /></div>
-                                <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Bank Name</label><input name="bankName" value={formData.bankName} onChange={handleChange} className="w-full p-3 bg-white border border-gray-300 rounded-lg" /></div>
-                                <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">Account Number</label><input name="accountNo" value={formData.accountNo} onChange={handleChange} className="w-full p-3 bg-white border border-gray-300 rounded-lg" /></div>
-                                <div className="space-y-1"><label className="text-xs font-semibold text-gray-500 uppercase">IFSC Code</label><input name="ifsc" value={formData.ifsc} onChange={handleChange} className="w-full p-3 bg-white border border-gray-300 rounded-lg" /></div>
+                        
+                        <div>
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <Landmark size={18} className="text-blue-500"/> Banking Details
+                            </h3>
+                            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 mb-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Account Holder Name</label>
+                                        <input 
+                                            name="accountHolder" 
+                                            value={formData.accountHolder} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Bank Name</label>
+                                        <input 
+                                            name="bankName" 
+                                            value={formData.bankName} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">Account Number</label>
+                                        <input 
+                                            name="accountNo" 
+                                            value={formData.accountNo} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">IFSC Code</label>
+                                        <input 
+                                            name="ifsc" 
+                                            value={formData.ifsc} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                        />
+                                    </div>
+                                    
+                                    <div className="space-y-1">
+                                        <label className="text-sm font-semibold text-gray-700">UPI ID (Optional)</label>
+                                        <input 
+                                            name="upiId" 
+                                            value={formData.upiId} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                            placeholder="username@bank"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <FileText size={18} className="text-blue-500"/> KYC Details
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-sm font-semibold text-gray-700 block mb-2">GST No</label>
+                                            <input 
+                                                name="gstNo" 
+                                                value={formData.gstNo} 
+                                                onChange={handleChange}
+                                                maxLength="15"
+                                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                                placeholder="15 character GSTIN"
+                                            />
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="text-sm font-semibold text-gray-700 block mb-2">PAN No</label>
+                                            <input 
+                                                name="panNo" 
+                                                value={formData.panNo} 
+                                                onChange={handleChange}
+                                                maxLength="10"
+                                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                                placeholder="ABCDE1234F"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -537,22 +1719,223 @@ export default function PartnerAdd() {
                 {currentStep === 4 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in slide-in-from-right-4 duration-300">
                         <div>
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Percent size={18} className="text-blue-500"/> Commission Setup</h3>
-                            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                                <div className="mb-4"><label className="block text-sm font-semibold text-gray-700 mb-2">Commission Type</label><div className="flex gap-4"><label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="commissionType" value="Percentage" checked={formData.commissionType === 'Percentage'} onChange={handleChange} className="accent-blue-600" /><span>Percentage (%)</span></label><label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="commissionType" value="Fixed" checked={formData.commissionType === 'Fixed'} onChange={handleChange} className="accent-blue-600" /><span>Fixed Amount (₹)</span></label></div></div>
-                                <div><label className="block text-sm font-semibold text-gray-700 mb-2">{formData.commissionType === 'Percentage' ? 'Commission Percentage (%)' : 'Fixed Amount (₹)'} <span className="text-red-500">*</span></label><input name="commissionValue" value={formData.commissionValue} onChange={handleChange} className="w-full p-3 bg-white border rounded-lg text-lg font-bold text-blue-800" placeholder={formData.commissionType === 'Percentage' ? "e.g. 2.5" : "e.g. 5000"} /></div>
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <FileText size={18} className="text-blue-500"/> Documents
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-3">Company Logo</label>
+                                    <div 
+                                        onClick={() => companyLogoRef.current.click()} 
+                                        className={`w-32 h-32 mx-auto border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition relative overflow-hidden ${formData.companyLogo ? 'border-blue-400 bg-blue-50' : 'border-gray-300'}`}
+                                    >
+                                        <input type="file" ref={companyLogoRef} onChange={(e) => handleFileChange(e, 'companyLogo')} className="hidden" accept="image/*" />
+                                        {formData.companyLogo ? (
+                                            <img src={URL.createObjectURL(formData.companyLogo)} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                                        ) : (
+                                            <><Building size={32} className="text-gray-400" /><span className="text-[10px] text-gray-500 mt-1">Upload Logo</span></>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-3">Legal Documents</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div 
+                                            onClick={() => panRef.current.click()} 
+                                            className={`border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition ${formData.panDoc ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}
+                                        >
+                                            <input type="file" ref={panRef} onChange={(e) => handleFileChange(e, 'panDoc')} className="hidden" accept="image/*,.pdf" />
+                                            <FileText size={20} className={`${formData.panDoc ? 'text-green-500' : 'text-gray-400'}`} />
+                                            <span className="text-[10px] text-gray-500 mt-1">PAN Card</span>
+                                        </div>
+                                        
+                                        <div 
+                                            onClick={() => gstRef.current.click()} 
+                                            className={`border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition ${formData.gstDoc ? 'border-green-400 bg-green-50' : 'border-gray-300'}`}
+                                        >
+                                            <input type="file" ref={gstRef} onChange={(e) => handleFileChange(e, 'gstDoc')} className="hidden" accept="image/*,.pdf" />
+                                            <FileText size={20} className={`${formData.gstDoc ? 'text-green-500' : 'text-gray-400'}`} />
+                                            <span className="text-[10px] text-gray-500 mt-1">GST Certificate</span>
+                                        </div>
+                                        
+                                        <div 
+                                            onClick={() => licenseRef.current.click()} 
+                                            className={`border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition ${formData.licenseDoc ? 'border-blue-400 bg-blue-50' : 'border-gray-300'}`}
+                                        >
+                                            <input type="file" ref={licenseRef} onChange={(e) => handleFileChange(e, 'licenseDoc')} className="hidden" accept="image/*,.pdf" />
+                                            <FileText size={20} className={`${formData.licenseDoc ? 'text-blue-500' : 'text-gray-400'}`} />
+                                            <span className="text-[10px] text-gray-500 mt-1">Business License</span>
+                                        </div>
+                                        
+                                        <div 
+                                            onClick={() => agreementRef.current.click()} 
+                                            className={`border-2 border-dashed rounded-lg h-24 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 transition ${formData.agreementDoc ? 'border-purple-400 bg-purple-50' : 'border-gray-300'}`}
+                                        >
+                                            <input type="file" ref={agreementRef} onChange={(e) => handleFileChange(e, 'agreementDoc')} className="hidden" accept=".pdf,.doc,.docx" />
+                                            <FileText size={20} className={`${formData.agreementDoc ? 'text-purple-500' : 'text-gray-400'}`} />
+                                            <span className="text-[10px] text-gray-500 mt-1">Agreement</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        
                         <div>
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><ShieldCheck size={18} className="text-blue-500"/> Status & Permissions</h3>
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <ShieldCheck size={18} className="text-blue-500"/> Status & Access
+                            </h3>
                             <div className="space-y-4">
-                                <div><label className="text-sm font-semibold text-gray-700 block mb-2">Account Status</label><select name="status" value={formData.status} onChange={handleChange} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"><option value="Active">Active</option><option value="Inactive">Inactive</option><option value="Pending">Pending Approval</option></select></div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-700 block mb-2">Status</label>
+                                        <select 
+                                            name="status" 
+                                            value={formData.status} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg"
+                                        >
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
+                                            <option value="Suspended">Suspended</option>
+                                            <option value="Under Review">Under Review</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-700 block mb-2">Portal Access</label>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <input 
+                                                type="checkbox" 
+                                                name="portalAccess" 
+                                                checked={formData.portalAccess} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Enable portal access</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-700 block mb-2">Partnership Date</label>
+                                        <input 
+                                            name="partnershipDate" 
+                                            type="date" 
+                                            value={formData.partnershipDate} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="text-sm font-semibold text-gray-700 block mb-2">Renewal Date</label>
+                                        <input 
+                                            name="renewalDate" 
+                                            type="date" 
+                                            value={formData.renewalDate} 
+                                            onChange={handleChange}
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg" 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                {formData.portalAccess && (
+                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                        <label className="text-xs font-bold text-gray-500 uppercase block mb-3">Login Credentials</label>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-sm font-semibold text-gray-700 block mb-2">Username</label>
+                                                <input 
+                                                    name="username" 
+                                                    value={formData.username} 
+                                                    onChange={handleChange}
+                                                    className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                                    placeholder="Create username" 
+                                                />
+                                            </div>
+                                            
+                                            <div>
+                                                <label className="text-sm font-semibold text-gray-700 block mb-2">Password</label>
+                                                <input 
+                                                    name="password" 
+                                                    type="password"
+                                                    value={formData.password} 
+                                                    onChange={handleChange}
+                                                    className="w-full p-3 bg-white border border-blue-200 rounded-lg" 
+                                                    placeholder="••••••••" 
+                                                />
+                                            </div>
+                                            
+                                            <button 
+                                                type="button" 
+                                                onClick={generateCredentials}
+                                                className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-semibold flex items-center justify-center gap-2"
+                                            >
+                                                <Key size={16} /> Auto Generate Credentials
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-3">System Permissions</label>
+                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-3">Portal Permissions</label>
                                     <div className="space-y-2">
-                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition"><input type="checkbox" name="perm_addCustomer" checked={formData.permissions.addCustomer} onChange={handleChange} className="w-5 h-5 accent-blue-600 rounded" /><span className="text-gray-700">Can Add Customer</span></label>
-                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition"><input type="checkbox" name="perm_viewCustomer" checked={formData.permissions.viewCustomer} onChange={handleChange} className="w-5 h-5 accent-blue-600 rounded" /><span className="text-gray-700">Can View All Customers</span></label>
-                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition"><input type="checkbox" name="perm_trackLoan" checked={formData.permissions.trackLoan} onChange={handleChange} className="w-5 h-5 accent-blue-600 rounded" /><span className="text-gray-700">Can Track Loan Status</span></label>
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                name="perm_viewLeads" 
+                                                checked={formData.permissions.viewLeads} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Can View Leads</span>
+                                        </label>
+                                        
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                name="perm_addCustomers" 
+                                                checked={formData.permissions.addCustomers} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Can Add Customers</span>
+                                        </label>
+                                        
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                name="perm_viewReports" 
+                                                checked={formData.permissions.viewReports} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Can View Reports</span>
+                                        </label>
+                                        
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                name="perm_accessPortal" 
+                                                checked={formData.permissions.accessPortal} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Access Partner Portal</span>
+                                        </label>
+                                        
+                                        <label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded transition">
+                                            <input 
+                                                type="checkbox" 
+                                                name="perm_manageSubAgents" 
+                                                checked={formData.permissions.manageSubAgents} 
+                                                onChange={handleChange}
+                                                className="w-5 h-5 accent-blue-600 rounded" 
+                                            />
+                                            <span className="text-gray-700">Can Manage Sub-Agents</span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -561,11 +1944,30 @@ export default function PartnerAdd() {
                 )}
 
                 <div className="mt-8 flex justify-between pt-6 border-t border-gray-100">
-                    <button type="button" onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))} disabled={currentStep === 1} className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all ${currentStep === 1 ? 'opacity-0 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}><ChevronLeft size={18} /> Back</button>
+                    <button 
+                        type="button" 
+                        onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))} 
+                        disabled={currentStep === 1}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all ${currentStep === 1 ? 'opacity-0 cursor-default' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                    >
+                        <ChevronLeft size={18} /> Back
+                    </button>
+                    
                     {currentStep < 4 ? (
-                        <button type="button" onClick={handleNext} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 font-medium transition-all">Next Step <ChevronRight size={18} /></button>
+                        <button 
+                            type="button" 
+                            onClick={handleNext}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 font-medium transition-all"
+                        >
+                            Next Step <ChevronRight size={18} />
+                        </button>
                     ) : (
-                        <button type="submit" className="flex items-center gap-2 px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-lg shadow-green-200 font-medium transition-all">{isEditing ? <Save size={18} /> : <Check size={18} />} {isEditing ? "Update Partner" : "Submit Partner"}</button>
+                        <button 
+                            type="submit"
+                            className="flex items-center gap-2 px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-lg shadow-green-200 font-medium transition-all"
+                        >
+                            {isEditing ? <Check size={18} /> : <Check size={18} />} {isEditing ? "Update Partner" : "Submit Partner"}
+                        </button>
                     )}
                 </div>
             </form>
@@ -579,29 +1981,42 @@ export default function PartnerAdd() {
             <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
                 <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    {/* SEARCH INPUT */}
                     <input 
                         type="text" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by name, phone, or type..." 
+                        placeholder="Search by company, contact, or ID..." 
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
                     />
                 </div>
+                
                 <div className="flex gap-2 relative">
-                    {/* FILTER BUTTON & DROPDOWN */}
+                    {/* PARTNER TYPE FILTER */}
+                    <div className="relative">
+                        <select 
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium bg-white text-gray-600 hover:bg-gray-50"
+                        >
+                            {partnerTypes.map(type => (
+                                <option key={type} value={type}>{type} Partner</option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    {/* STATUS FILTER */}
                     <div className="relative">
                         <button 
                             onClick={() => setShowFilterMenu(!showFilterMenu)}
                             className={`px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 ${filterStatus !== 'All' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-gray-600'}`}
                         >
                             <Filter size={16} /> 
-                            {filterStatus === 'All' ? 'Filter' : filterStatus}
+                            {filterStatus === 'All' ? 'Filter Status' : filterStatus}
                         </button>
                         
                         {showFilterMenu && (
                             <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-10 p-1">
-                                {['All', 'Active', 'Inactive', 'Pending'].map((status) => (
+                                {['All', 'Active', 'Inactive', 'Suspended', 'Under Review'].map((status) => (
                                     <button
                                         key={status}
                                         onClick={() => { setFilterStatus(status); setShowFilterMenu(false); }}
@@ -628,52 +2043,123 @@ export default function PartnerAdd() {
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50 text-gray-500 text-xs uppercase font-semibold">
                         <tr>
-                            <th className="px-6 py-4">ID</th>
-                            <th className="px-6 py-4">Partner Name</th>
+                            <th className="px-6 py-4">Partner ID</th>
+                            <th className="px-6 py-4">Company Name</th>
+                            <th className="px-6 py-4">Contact Person</th>
                             <th className="px-6 py-4">Type</th>
-                            <th className="px-6 py-4">Phone</th>
-                            <th className="px-6 py-4">Area</th>
+                            <th className="px-6 py-4">Contact</th>
                             <th className="px-6 py-4">Commission</th>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4 text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {filteredPartners.map((partner) => (
+                        {filteredPartners.map((partner) => {
+                            const partnerTasks = getPartnerTasks(partner.partnerId);
+                            const pendingTasks = partnerTasks.filter(p => p.status === 'Pending' || p.status === 'In Progress').length;
+                            
+                            return (
                             <tr key={partner.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 text-gray-400 text-sm">#{partner.id}</td>
+                                <td className="px-6 py-4 text-blue-600 text-sm font-medium">#{partner.partnerId}</td>
                                 <td className="px-6 py-4 font-medium text-gray-800 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
-                                        {partner.fullName.charAt(0)}
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">
+                                        {partner.companyName.charAt(0)}
                                     </div>
-                                    {partner.fullName}
+                                    <div>
+                                        <div>{partner.companyName}</div>
+                                        <div className="text-xs text-gray-500">{partner.email}</div>
+                                        {pendingTasks > 0 && (
+                                            <div className="flex items-center gap-1 text-xs text-orange-600 mt-1">
+                                                <AlertCircle size={10} />
+                                                <span>{pendingTasks} pending task(s)</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </td>
-                                <td className="px-6 py-4 text-gray-600 text-sm">{partner.type}</td>
-                                <td className="px-6 py-4 text-gray-600 text-sm">{partner.phone}</td>
-                                <td className="px-6 py-4 text-gray-600 text-sm">{partner.area}</td>
-                                <td className="px-6 py-4 text-blue-600 font-medium text-sm">{partner.commission}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border 
-                                        ${partner.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
-                                          partner.status === 'Inactive' ? 'bg-red-50 text-red-700 border-red-100' : 
-                                          'bg-orange-50 text-orange-700 border-orange-100'}`}>
-                                        {partner.status}
+                                <td className="px-6 py-4 text-gray-600 text-sm">
+                                    <div>{partner.contactPerson}</div>
+                                    <div className="text-xs text-gray-500">{partner.contactPersonDesignation}</div>
+                                </td>
+                                <td className="px-6 py-4 text-gray-600 text-sm">
+                                    <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded text-xs font-medium">
+                                        {partner.partnerType}
                                     </span>
                                 </td>
+                                <td className="px-6 py-4 text-gray-600 text-sm">
+                                    <div>{partner.phone}</div>
+                                    <div className="text-xs text-gray-500">{partner.city}</div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="font-bold text-green-600 text-sm">{partner.commissionValue}</div>
+                                    <div className="text-xs text-gray-500">{partner.paymentCycle}</div>
+                                </td>
+                                <td className="px-6 py-4">  
+                                    <div className="flex flex-col gap-1">
+                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border 
+                                            ${partner.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' : 
+                                              partner.status === 'Inactive' ? 'bg-red-50 text-red-700 border-red-100' : 
+                                              partner.status === 'Suspended' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
+                                              'bg-gray-50 text-gray-700 border-gray-100'}`}>
+                                            {partner.status}
+                                        </span>
+                                        <div className={`px-2 py-0.5 rounded text-xs ${getPerformanceColor(partner.performanceRating)}`}>
+                                            {partner.performanceRating}/5 Rating
+                                        </div>
+                                    </div>
+                                </td>
                                 <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => handleView(partner)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><Eye size={16} /></button>
-                                        <button onClick={() => handleEdit(partner)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Edit"><Edit size={16} /></button>
-                                        <button onClick={() => handleDelete(partner.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete"><Trash2 size={16} /></button>
+                                    <div className="flex justify-end gap-2 relative">
+                                        
+                                        {/* 3-Dots Menu Button */}
+                                        <div className="relative">
+                                            <button 
+                                                onClick={() => setShowActionMenu(showActionMenu === partner.id ? null : partner.id)}
+                                                className="p-1.5 text-gray-600 hover:bg-gray-50 rounded relative"
+                                                title="More Actions"
+                                            >
+                                                <MoreVertical size={16} />
+                                            </button>
+                                            
+                                            {/* Action Menu Dropdown */}
+                                            {showActionMenu === partner.id && (
+                                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-10 p-1 animate-in slide-in-from-top-2 duration-200">
+                                                    <button
+                                                        onClick={() => handleTaskClick(partner)}
+                                                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-purple-50 text-purple-600 flex items-center gap-2 transition-colors"
+                                                    >
+                                                        <FileCheck size={14} />
+                                                        Assign Task
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDelete(partner.id)}
+                                                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-red-50 text-red-600 flex items-center gap-2 transition-colors"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                        Delete Partner
+                                                    </button>
+
+                                                    <button onClick={() => handleView(partner)} className="text-blue-600 hover:bg-blue-50 rounded  w-full text-left px-3 py-2 rounded-lg text-sm  flex items-center gap-2 transition-colors" title="View">
+                                                        <Eye size={16} />
+                                                        View Partner
+                                                    </button>
+
+                                                    <button onClick={() => handleEdit(partner)} className="  text-green-600 hover:bg-green-50 rounded  w-full text-left px-3 py-2 rounded-lg text-sm  flex items-center gap-2 transition-colors rounded" title="Edit">
+                                                        <Edit size={16} />
+                                                        Edit Partner
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
-                        ))}
+                        )})}
                     </tbody>
                 </table>
                 {filteredPartners.length === 0 && (
                     <div className="text-center py-10 text-gray-500">
-                        {searchQuery || filterStatus !== 'All' ? "No matching partners found." : "No partners found. Click \"Add New Partner\" to start."}
+                        {searchQuery || filterStatus !== 'All' || filterType !== 'All' ? "No matching partners found." : "No partners found. Click \"Add New Partner\" to start."}
                     </div>
                 )}
             </div>

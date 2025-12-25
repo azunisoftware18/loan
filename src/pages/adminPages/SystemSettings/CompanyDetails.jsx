@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Building2, Save, RefreshCw, Upload } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Building2, Save, RefreshCw, Upload, Globe, Phone, Mail, MapPin, User, Calendar, Shield, FileText, CheckCircle, AlertCircle, Image as ImageIcon } from 'lucide-react';
 
 const CompanyDetails = () => {
   const [companyDetails, setCompanyDetails] = useState({
@@ -18,10 +18,18 @@ const CompanyDetails = () => {
     industry: 'Financial Services',
     contactPerson: 'Rajesh Sharma',
     contactPersonPhone: '+91 9876543211',
-    contactPersonEmail: 'rajesh@quickloan.com'
+    contactPersonEmail: 'rajesh@quickloan.com',
+    timezone: 'IST (UTC+5:30)',
+    currency: 'INR (₹)',
+    description: 'A leading NBFC providing quick loan solutions to individuals and small businesses across India.'
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [faviconPreview, setFaviconPreview] = useState(null);
+  const logoRef = useRef(null);
+  const faviconRef = useRef(null);
 
   const handleInputChange = (field, value) => {
     setCompanyDetails(prev => ({ ...prev, [field]: value }));
@@ -32,6 +40,8 @@ const CompanyDetails = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         handleInputChange(field, reader.result);
+        if (field === 'logo') setLogoPreview(reader.result);
+        if (field === 'favicon') setFaviconPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -39,9 +49,10 @@ const CompanyDetails = () => {
 
   const saveSettings = async () => {
     setIsSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsSaving(false);
-    alert('Company details saved successfully!');
+    showNotification('Company details saved successfully!', 'success');
   };
 
   const resetForm = () => {
@@ -61,290 +72,744 @@ const CompanyDetails = () => {
       industry: 'Financial Services',
       contactPerson: 'Rajesh Sharma',
       contactPersonPhone: '+91 9876543211',
-      contactPersonEmail: 'rajesh@quickloan.com'
+      contactPersonEmail: 'rajesh@quickloan.com',
+      timezone: 'IST (UTC+5:30)',
+      currency: 'INR (₹)',
+      description: 'A leading NBFC providing quick loan solutions to individuals and small businesses across India.'
     });
+    setLogoPreview(null);
+    setFaviconPreview(null);
+    showNotification('Form reset to default values', 'info');
   };
 
+  const showNotification = (message, type) => {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium transform transition-all duration-300 ${
+      type === 'success' ? 'bg-green-500' : 
+      type === 'error' ? 'bg-red-500' : 
+      'bg-blue-500'
+    }`;
+    notification.textContent = message;
+    
+    // Add icon based on type
+    const icon = document.createElement('span');
+    icon.className = 'inline-flex mr-2';
+    icon.innerHTML = type === 'success' ? 
+      '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' :
+      '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    
+    notification.prepend(icon);
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  };
+
+  const tabs = [
+    { id: 'basic', label: 'Basic Info', icon: Building2 },
+    { id: 'contact', label: 'Contact', icon: Phone },
+    { id: 'legal', label: 'Legal', icon: Shield },
+    { id: 'branding', label: 'Branding', icon: ImageIcon }
+  ];
+
+  const businessTypes = [
+    'NBFC', 'Bank', 'FinTech', 'Cooperative Society', 'Microfinance', 'Insurance', 'Other'
+  ];
+
+  const industries = [
+    'Financial Services', 'Banking', 'Insurance', 'Investment', 'Wealth Management',
+    'Peer-to-Peer Lending', 'Digital Payments', 'Other'
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header with Stats */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-xl shadow-sm border border-gray-200">
                 <Building2 className="w-8 h-8 text-blue-600" />
-                Company Details
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Manage your company information and branding
-              </p>
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Company Details
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Manage your company information, branding, and legal details
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-4 bg-white px-4 py-3 rounded-xl shadow-sm border border-gray-200">
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Last Updated</p>
+                  <p className="font-medium">2 days ago</p>
+                </div>
+                <div className="h-8 w-px bg-gray-300"></div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="font-medium text-green-600 flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" /> Active
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Company Age</p>
+                  <p className="text-2xl font-bold text-gray-900">9 Years</p>
+                </div>
+                <Calendar className="w-8 h-8 text-blue-100 bg-blue-500 p-1.5 rounded-lg" />
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Business Type</p>
+                  <p className="text-2xl font-bold text-gray-900">{companyDetails.businessType}</p>
+                </div>
+                <FileText className="w-8 h-8 text-green-100 bg-green-500 p-1.5 rounded-lg" />
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Documents</p>
+                  <p className="text-2xl font-bold text-gray-900">3/3</p>
+                </div>
+                <Shield className="w-8 h-8 text-purple-100 bg-purple-500 p-1.5 rounded-lg" />
+              </div>
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Verification</p>
+                  <p className="text-2xl font-bold text-gray-900">Verified</p>
+                </div>
+                <CheckCircle className="w-8 h-8 text-green-100 bg-green-500 p-1.5 rounded-lg" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {/* Section Header */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Company Information</h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Update your company details and branding assets
-            </p>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <div className="flex overflow-x-auto">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-6 py-4 font-medium whitespace-nowrap transition-colors ${
+                      activeTab === tab.id
+                        ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="p-6">
-            {/* Brand Assets Section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Brand Assets</h3>
-              <div className="flex flex-wrap gap-8">
-                {/* Logo Upload */}
-                <div className="flex flex-col items-center">
-                  <div className="w-40 h-40 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-3 overflow-hidden bg-gray-50">
-                    {companyDetails.logo ? (
-                      <img src={companyDetails.logo} alt="Company Logo" className="w-full h-full object-contain p-4" />
-                    ) : (
-                      <Building2 className="w-16 h-16 text-gray-400" />
-                    )}
+            {/* Basic Info Tab */}
+            {activeTab === 'basic' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+                    <p className="text-gray-600">Company name, description, and basic details</p>
                   </div>
-                  <label className="cursor-pointer">
-                    <span className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-                      <Upload className="w-4 h-4" />
-                      Upload Logo
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload('logo', e.target.files[0])}
-                    />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">PNG, JPG • Max 2MB • 300x300px</p>
-                </div>
-                
-                {/* Favicon Upload */}
-                <div className="flex flex-col items-center">
-                  <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center mb-3 overflow-hidden bg-gray-50">
-                    {companyDetails.favicon ? (
-                      <img src={companyDetails.favicon} alt="Favicon" className="w-full h-full object-contain p-2" />
-                    ) : (
-                      <Building2 className="w-10 h-10 text-gray-400" />
-                    )}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    Required fields are marked with *
                   </div>
-                  <label className="cursor-pointer">
-                    <span className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
-                      <Upload className="w-4 h-4" />
-                      Upload Favicon
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileUpload('favicon', e.target.files[0])}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Company Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={companyDetails.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="Enter company name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Business Type <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {businessTypes.map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => handleInputChange('businessType', type)}
+                            className={`px-4 py-3 rounded-xl border transition-colors ${
+                              companyDetails.businessType === type
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-300 hover:border-gray-400'
+                            }`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Industry <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={companyDetails.industry}
+                        onChange={(e) => handleInputChange('industry', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      >
+                        {industries.map(industry => (
+                          <option key={industry} value={industry}>{industry}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Registration Date
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={companyDetails.registrationDate}
+                          onChange={(e) => handleInputChange('registrationDate', e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        />
+                        <Calendar className="absolute right-3 top-3 w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company Description
+                    </label>
+                    <textarea
+                      value={companyDetails.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      rows="10"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"
+                      placeholder="Describe your company's mission, vision, and services..."
                     />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">ICO, PNG • 32x32px</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {companyDetails.description.length}/500 characters
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Company Information Form */}
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Company Information</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Basic Info */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
-                  <input
-                    type="text"
-                    value={companyDetails.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
+            {/* Contact Tab */}
+            {activeTab === 'contact' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900">Contact Information</h3>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
-                  <select
-                    value={companyDetails.businessType}
-                    onChange={(e) => handleInputChange('businessType', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  >
-                    <option value="NBFC">NBFC</option>
-                    <option value="Bank">Bank</option>
-                    <option value="FinTech">FinTech</option>
-                    <option value="Cooperative">Cooperative Society</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Industry *</label>
-                  <input
-                    type="text"
-                    value={companyDetails.industry}
-                    onChange={(e) => handleInputChange('industry', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Registration Date</label>
-                  <input
-                    type="date"
-                    value={companyDetails.registrationDate}
-                    onChange={(e) => handleInputChange('registrationDate', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl">
+                      <Mail className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Primary Email</p>
+                        <p className="font-medium">{companyDetails.email}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={companyDetails.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="company@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Website
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={companyDetails.website}
+                          onChange={(e) => handleInputChange('website', e.target.value)}
+                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                          placeholder="www.example.com"
+                        />
+                        <Globe className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Timezone
+                      </label>
+                      <select
+                        value={companyDetails.timezone}
+                        onChange={(e) => handleInputChange('timezone', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      >
+                        <option>IST (UTC+5:30)</option>
+                        <option>PST (UTC-8)</option>
+                        <option>EST (UTC-5)</option>
+                        <option>GMT (UTC+0)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl">
+                      <Phone className="w-5 h-5 text-green-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Primary Phone</p>
+                        <p className="font-medium">{companyDetails.phone}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={companyDetails.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="+91 1234567890"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Currency
+                      </label>
+                      <select
+                        value={companyDetails.currency}
+                        onChange={(e) => handleInputChange('currency', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      >
+                        <option>INR (₹)</option>
+                        <option>USD ($)</option>
+                        <option>EUR (€)</option>
+                        <option>GBP (£)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Company Address <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <textarea
+                          value={companyDetails.address}
+                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          rows="3"
+                          className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                          placeholder="Enter full company address"
+                        />
+                        <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Contact Info */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                  <input
-                    type="email"
-                    value={companyDetails.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                  <input
-                    type="tel"
-                    value={companyDetails.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
-                  <input
-                    type="url"
-                    value={companyDetails.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-
-                {/* Contact Person */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person Name</label>
-                  <input
-                    type="text"
-                    value={companyDetails.contactPerson}
-                    onChange={(e) => handleInputChange('contactPerson', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person Phone</label>
-                  <input
-                    type="tel"
-                    value={companyDetails.contactPersonPhone}
-                    onChange={(e) => handleInputChange('contactPersonPhone', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person Email</label>
-                  <input
-                    type="email"
-                    value={companyDetails.contactPersonEmail}
-                    onChange={(e) => handleInputChange('contactPersonEmail', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-
-                {/* Legal Info */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">PAN Number</label>
-                  <input
-                    type="text"
-                    value={companyDetails.panNumber}
-                    onChange={(e) => handleInputChange('panNumber', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
-                  <input
-                    type="text"
-                    value={companyDetails.gstNumber}
-                    onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">CIN Number</label>
-                  <input
-                    type="text"
-                    value={companyDetails.cinNumber}
-                    onChange={(e) => handleInputChange('cinNumber', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  />
+                {/* Contact Person Section */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5" /> Contact Person
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Name
+                      </label>
+                      <input
+                        type="text"
+                        value={companyDetails.contactPerson}
+                        onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={companyDetails.contactPersonPhone}
+                        onChange={(e) => handleInputChange('contactPersonPhone', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={companyDetails.contactPersonEmail}
+                        onChange={(e) => handleInputChange('contactPersonEmail', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Address */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Company Address *</label>
-                <textarea
-                  value={companyDetails.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  rows="3"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                />
+            {/* Legal Tab */}
+            {activeTab === 'legal' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900">Legal & Compliance</h3>
+                <p className="text-gray-600">Update your company's legal documents and registration details</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
+                    <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">PAN Card</p>
+                          <p className="text-sm text-gray-600">Permanent Account Number</p>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={companyDetails.panNumber}
+                        onChange={(e) => handleInputChange('panNumber', e.target.value)}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono"
+                        placeholder="ABCDE1234F"
+                      />
+                    </div>
+
+                    <div className="p-5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Shield className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">CIN Number</p>
+                          <p className="text-sm text-gray-600">Corporate Identity Number</p>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={companyDetails.cinNumber}
+                        onChange={(e) => handleInputChange('cinNumber', e.target.value)}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono"
+                        placeholder="U67190MH2010PLC199123"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="p-5 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <FileText className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">GST Number</p>
+                          <p className="text-sm text-gray-600">Goods and Services Tax</p>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={companyDetails.gstNumber}
+                        onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono"
+                        placeholder="22ABCDE1234F1Z5"
+                      />
+                    </div>
+
+                    <div className="p-5 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-orange-100 rounded-lg">
+                          <Calendar className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">Registration Date</p>
+                          <p className="text-sm text-gray-600">Date of Incorporation</p>
+                        </div>
+                      </div>
+                      <input
+                        type="date"
+                        value={companyDetails.registrationDate}
+                        onChange={(e) => handleInputChange('registrationDate', e.target.value)}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Document Upload Section */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Document Upload</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {['PAN Card', 'GST Certificate', 'Certificate of Incorporation'].map((doc) => (
+                      <div key={doc} className="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-blue-400 transition-colors cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-gray-400" />
+                          <div>
+                            <p className="font-medium text-gray-900">{doc}</p>
+                            <p className="text-sm text-gray-600">Click to upload</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Branding Tab */}
+            {activeTab === 'branding' && (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold text-gray-900">Brand Identity</h3>
+                <p className="text-gray-600">Upload your company logo, favicon, and branding assets</p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Logo Upload */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Company Logo</h4>
+                        <p className="text-sm text-gray-600">Primary logo displayed across the platform</p>
+                      </div>
+                      <label className="cursor-pointer">
+                        <span className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                          <Upload className="w-4 h-4" />
+                          Change Logo
+                        </span>
+                        <input
+                          ref={logoRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload('logo', e.target.files[0])}
+                        />
+                      </label>
+                    </div>
+                    <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-48 h-48 border border-gray-300 rounded-lg bg-white p-4 mb-4 flex items-center justify-center overflow-hidden">
+                          {companyDetails.logo || logoPreview ? (
+                            <img 
+                              src={logoPreview || companyDetails.logo} 
+                              alt="Logo Preview" 
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                              <p className="text-gray-500 text-sm">No logo uploaded</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 text-center">
+                          Recommended: 300x300px • PNG, SVG, JPG • Max 2MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Favicon Upload */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Favicon</h4>
+                        <p className="text-sm text-gray-600">Browser tab icon (16x16px to 32x32px)</p>
+                      </div>
+                      <label className="cursor-pointer">
+                        <span className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium">
+                          <Upload className="w-4 h-4" />
+                          Change Favicon
+                        </span>
+                        <input
+                          ref={faviconRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileUpload('favicon', e.target.files[0])}
+                        />
+                      </label>
+                    </div>
+                    <div className="p-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-32 h-32 border border-gray-300 rounded-lg bg-white p-4 mb-4 flex items-center justify-center overflow-hidden">
+                          {companyDetails.favicon || faviconPreview ? (
+                            <img 
+                              src={faviconPreview || companyDetails.favicon} 
+                              alt="Favicon Preview" 
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                              <p className="text-gray-500 text-sm">No favicon uploaded</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 mb-4">
+                          {[16, 32, 64].map(size => (
+                            <div key={size} className="text-center">
+                              <div className={`w-${size/4} h-${size/4} border border-gray-300 rounded bg-white flex items-center justify-center mb-1 mx-auto`}>
+                                <span className="text-xs text-gray-400">{size}x{size}</span>
+                              </div>
+                              <p className="text-xs text-gray-500">{size}px</p>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 text-center">
+                          Recommended: 32x32px • ICO, PNG • Max 256KB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Brand Colors Preview */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Brand Colors</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { name: 'Primary', color: 'bg-blue-600', value: '#2563eb' },
+                      { name: 'Secondary', color: 'bg-purple-600', value: '#7c3aed' },
+                      { name: 'Accent', color: 'bg-green-600', value: '#16a34a' },
+                      { name: 'Dark', color: 'bg-gray-900', value: '#111827' }
+                    ].map((color) => (
+                      <div key={color.name} className="p-4 border border-gray-200 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 ${color.color} rounded-lg`}></div>
+                          <div>
+                            <p className="font-medium text-gray-900">{color.name}</p>
+                            <p className="text-sm text-gray-600">{color.value}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Action Buttons */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center justify-between">
+          {/* Footer Actions */}
+          <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <p className="font-medium text-gray-900">Unsaved Changes</p>
-                <p className="text-sm text-gray-600">Click save to update company details</p>
+                <p className="font-medium text-gray-900">Ready to update company details?</p>
+                <p className="text-sm text-gray-600">
+                  Review all information before saving. Changes will be reflected across the platform.
+                </p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={resetForm}
-                  className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex items-center gap-2 px-5 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all font-medium"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Reset
+                  Reset All
                 </button>
                 <button
                   onClick={saveSettings}
                   disabled={isSaving}
-                  className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-colors ${
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all transform hover:scale-[1.02] ${
                     isSaving
-                      ? 'bg-blue-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      ? 'bg-gradient-to-r from-blue-400 to-blue-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
                   } text-white`}
                 >
                   {isSaving ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      Saving...
+                      Saving Changes...
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Save Changes
+                      Save All Changes
                     </>
                   )}
                 </button>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Quick Links */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <a href="#" className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-400 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                <Shield className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">Privacy Settings</p>
+                <p className="text-sm text-gray-600">Manage data privacy</p>
+              </div>
+            </div>
+          </a>
+          <a href="#" className="p-4 bg-white rounded-xl border border-gray-200 hover:border-green-400 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
+                <FileText className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">Documentation</p>
+                <p className="text-sm text-gray-600">View company docs</p>
+              </div>
+            </div>
+          </a>
+          <a href="#" className="p-4 bg-white rounded-xl border border-gray-200 hover:border-purple-400 transition-colors group">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
+                <User className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">Team Members</p>
+                <p className="text-sm text-gray-600">Manage access controls</p>
+              </div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
