@@ -17,12 +17,17 @@ import {
   TrendingDown,
   IndianRupee,
 } from "lucide-react";
+import Button from "../../../components/admin/common/Button";
+import StatusCard from "../../../components/admin/common/StatusCard";
+import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
+import TransactionBooksForm from "../../../components/admin/AdminForm/TransactionBooksForm";
 
 const TransactionBooks = () => {
   const [activeBook, setActiveBook] = useState("cash"); // 'cash', 'bank', 'day'
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState("today");
   const [branch, setBranch] = useState("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Sample data for Cash Book
   const cashBookData = [
@@ -367,6 +372,111 @@ const TransactionBooks = () => {
     }
   };
 
+  // handle export function
+  const handleExportExcel = () => {
+  const data = getCurrentData();
+
+  if (!data || data.length === 0) {
+    alert("No data available to export");
+    return;
+  }
+
+  let headers = [];
+  let rows = [];
+
+  if (activeBook === "cash") {
+    headers = [
+      "Date",
+      "Voucher No",
+      "Particulars",
+      "Debit",
+      "Credit",
+      "Balance",
+      "Type",
+    ];
+
+    rows = data.map(item => [
+      item.date,
+      item.voucherNo,
+      item.particulars,
+      item.debit,
+      item.credit,
+      item.balance,
+      item.type,
+    ]);
+  }
+
+  if (activeBook === "bank") {
+    headers = [
+      "Date",
+      "Voucher No",
+      "Cheque No",
+      "Bank",
+      "Particulars",
+      "Debit",
+      "Credit",
+      "Balance",
+      "Status",
+    ];
+
+    rows = data.map(item => [
+      item.date,
+      item.voucherNo,
+      item.chequeNo,
+      item.bank,
+      item.particulars,
+      item.debit,
+      item.credit,
+      item.balance,
+      item.status,
+    ]);
+  }
+
+  if (activeBook === "day") {
+    headers = [
+      "Date",
+      "Voucher No",
+      "Ledger",
+      "Particulars",
+      "Voucher Type",
+      "Debit",
+      "Credit",
+    ];
+
+    rows = data.map(item => [
+      item.date,
+      item.voucherNo,
+      item.ledger,
+      item.particulars,
+      item.voucherType,
+      item.debit,
+      item.credit,
+    ]);
+  }
+
+  // 👉 CSV content create
+  const csvContent =
+    [headers, ...rows]
+      .map(row => row.map(value => `"${value ?? ""}"`).join(","))
+      .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${activeBook}_book_${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
+
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Header */}
@@ -383,84 +493,71 @@ const TransactionBooks = () => {
           </div>
 
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </button>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+            
+            <Button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2
+              ">
               <Plus className="h-4 w-4" />
               New Transaction
-            </button>
+            </Button>
+            <TransactionBooksForm
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)}
+            />
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Cash Book Balance</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(7000)}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-xs text-green-600 font-medium">
-                    ₹2,000 incoming
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <IndianRupee className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
+       {/* Stats Cards */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <StatusCard
+    title="Cash Book Balance"
+    value={formatCurrency(7000)}
+    icon={IndianRupee}
+    iconColor="blue"
+    subtext={
+      <span className="flex items-center gap-2">
+        <TrendingUp className="h-4 w-4 text-green-500" />
+        <span className="text-xs text-green-600 font-medium">
+          ₹2,000 incoming
+        </span>
+      </span>
+    }
+  />
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Bank Book Balance</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(54500)}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                  <span className="text-xs text-red-600 font-medium">
-                    ₹15,500 outgoing
-                  </span>
-                </div>
-              </div>
-              <div className="p-3 bg-emerald-50 rounded-lg">
-                <Building className="h-6 w-6 text-emerald-600" />
-              </div>
-            </div>
-          </div>
+  <StatusCard
+    title="Bank Book Balance"
+    value={formatCurrency(54500)}
+    icon={Building}
+    iconColor="green"
+    subtext={
+      <span className="flex items-center gap-2">
+        <TrendingDown className="h-4 w-4 text-red-500" />
+        <span className="text-xs text-red-600 font-medium">
+          ₹15,500 outgoing
+        </span>
+      </span>
+    }
+  />
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Day Book Summary</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  6 transactions
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center">
-                    <span className="text-xs font-medium text-green-600">
-                      ₹30,000 Cr
-                    </span>
-                    <span className="mx-1 text-gray-400">|</span>
-                    <span className="text-xs font-medium text-red-600">
-                      ₹18,000 Dr
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <FileText className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
-        </div>
+  <StatusCard
+    title="Day Book Summary"
+    value="6 transactions"
+    icon={FileText}
+    iconColor="orange"
+    subtext={
+      <div className="flex items-center">
+        <span className="text-xs font-medium text-green-600">
+          ₹30,000 Cr
+        </span>
+        <span className="mx-1 text-gray-400">|</span>
+        <span className="text-xs font-medium text-red-600">
+          ₹18,000 Dr
+        </span>
+      </div>
+    }
+  />
+</div>
       </div>
 
       {/* Book Selection Tabs */}
@@ -559,21 +656,7 @@ const TransactionBooks = () => {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               </div>
-
-              <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <Filter className="h-4 w-4" />
-                More Filters
-              </button>
-
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-                <Download className="h-4 w-4" />
-                Export
-              </button>
-
-              <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <Printer className="h-4 w-4" />
-                Print
-              </button>
+                <ExportButton onClick={handleExportExcel}/>
             </div>
           </div>
         </div>
@@ -622,30 +705,6 @@ const TransactionBooks = () => {
                   </span>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* Pagination */}
-        <div className="px-4 py-3 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Rows per page:</span>
-              <select className="border border-gray-300 rounded text-sm px-2 py-1">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-                <option>100</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">Page 1 of 1</span>
-              <button className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50">
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button className="p-1 rounded border border-gray-300 hover:bg-gray-50 disabled:opacity-50">
-                <ChevronRight className="h-4 w-4" />
-              </button>
             </div>
           </div>
         </div>

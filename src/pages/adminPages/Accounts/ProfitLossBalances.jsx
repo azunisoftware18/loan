@@ -1,24 +1,8 @@
 import React, { useState } from "react";
-import {
-  Download,
-  Printer,
-  TrendingUp,
-  IndianRupee,
-  Building,
-  BarChart3,
-  PieChart,
-  FileText,
-  Calendar,
-  ChevronRight,
-  RefreshCw,
-  DownloadCloud,
-  Share2,
-  CreditCard,
-  Home,
-  Target,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
+import { Download, Printer, TrendingUp, IndianRupee, Building, BarChart3, PieChart, FileText, Calendar, ChevronRight, RefreshCw, DownloadCloud, Share2, Target, AlertCircle, CheckCircle, } from "lucide-react";
+import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
+import StatusCard from "../../../components/admin/common/StatusCard";
+import Button from "../../../components/admin/common/Button";
 
 const ProfitLossBalances = () => {
   const [activeTab, setActiveTab] = useState("profitLoss"); // 'profitLoss', 'balanceSheet', 'branchwise'
@@ -184,85 +168,65 @@ const ProfitLossBalances = () => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatCurrency(profitLossData.summary.totalRevenue)}
-              </p>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">
-                  +12.5% from last month
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
+        <StatusCard
+          title="Total Revenue"
+          value={formatCurrency(profitLossData.summary.totalRevenue)}
+          icon={TrendingUp}
+          iconColor="green"
+          subtext={
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-600 font-medium">
+                +12.5% from last month
+              </span>
+            </span>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Gross Profit</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatCurrency(profitLossData.summary.grossProfit)}
-              </p>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">
-                  +8.7% from last month
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-emerald-50 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-emerald-600" />
-            </div>
-          </div>
-        </div>
+        <StatusCard
+          title="Gross Profit"
+          value={formatCurrency(profitLossData.summary.grossProfit)}
+          icon={BarChart3}
+          iconColor="orange"
+          subtext={
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-600 font-medium">
+                +8.7% from last month
+              </span>
+            </span>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Net Profit</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatCurrency(profitLossData.summary.netProfit)}
-              </p>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">
-                  +15.2% from last month
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <IndianRupee className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
+        <StatusCard
+          title="Net Profit"
+          value={formatCurrency(profitLossData.summary.netProfit)}
+          icon={IndianRupee}
+          iconColor="blue"
+          subtext={
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-600 font-medium">
+                +15.2% from last month
+              </span>
+            </span>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Profit Margin</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {formatPercentage(profitLossData.summary.profitMargin)}
-              </p>
-              <div className="flex items-center gap-1 mt-2">
-                <TrendingUp className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-green-600 font-medium">
-                  +2.1% from last month
-                </span>
-              </div>
-            </div>
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <Target className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
+        <StatusCard
+          title="Profit Margin"
+          value={formatPercentage(profitLossData.summary.profitMargin)}
+          icon={Target}
+          iconColor="red"
+          subtext={
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-600 font-medium">
+                +2.1% from last month
+              </span>
+            </span>
+          }
+        />
       </div>
 
       {/* Detailed P&L Statement */}
@@ -278,12 +242,12 @@ const ProfitLossBalances = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Button >
                 Compare Periods
-              </button>
-              <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              </Button>
+              <Button >
                 Detailed View
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -296,9 +260,8 @@ const ProfitLossBalances = () => {
           >
             <div className="flex items-center gap-3">
               <ChevronRight
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.revenue ? "rotate-90" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${expandedSections.revenue ? "rotate-90" : ""
+                  }`}
               />
               <h4 className="font-semibold text-gray-900">Revenue</h4>
               <span className="text-sm text-gray-600">(Operating Income)</span>
@@ -321,9 +284,8 @@ const ProfitLossBalances = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <span
-                      className={`text-sm ${
-                        item.growth >= 0 ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`text-sm ${item.growth >= 0 ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {item.growth >= 0 ? "+" : ""}
                       {item.growth}%
@@ -375,9 +337,8 @@ const ProfitLossBalances = () => {
           >
             <div className="flex items-center gap-3">
               <ChevronRight
-                className={`h-4 w-4 transition-transform ${
-                  expandedSections.expenses ? "rotate-90" : ""
-                }`}
+                className={`h-4 w-4 transition-transform ${expandedSections.expenses ? "rotate-90" : ""
+                  }`}
               />
               <h4 className="font-semibold text-gray-900">
                 Operating Expenses
@@ -401,9 +362,8 @@ const ProfitLossBalances = () => {
                   </div>
                   <div className="flex items-center gap-4">
                     <span
-                      className={`text-sm ${
-                        item.growth >= 0 ? "text-red-600" : "text-green-600"
-                      }`}
+                      className={`text-sm ${item.growth >= 0 ? "text-red-600" : "text-green-600"
+                        }`}
                     >
                       {item.growth >= 0 ? "+" : ""}
                       {item.growth}%
@@ -438,7 +398,7 @@ const ProfitLossBalances = () => {
         </div>
       </div>
 
-  
+
     </div>
   );
 
@@ -457,12 +417,12 @@ const ProfitLossBalances = () => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+            <Button>
               Previous Period
-            </button>
-            <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            </Button>
+            <Button >
               Generate Report
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -485,9 +445,8 @@ const ProfitLossBalances = () => {
               >
                 <div className="flex items-center gap-2">
                   <ChevronRight
-                    className={`h-4 w-4 transition-transform ${
-                      expandedSections.assets ? "rotate-90" : ""
-                    }`}
+                    className={`h-4 w-4 transition-transform ${expandedSections.assets ? "rotate-90" : ""
+                      }`}
                   />
                   <span className="font-medium text-gray-700">
                     Current Assets
@@ -546,17 +505,15 @@ const ProfitLossBalances = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                       <span
-                        className={`${
-                          asset.isNegative ? "text-red-600" : "text-gray-700"
-                        }`}
+                        className={`${asset.isNegative ? "text-red-600" : "text-gray-700"
+                          }`}
                       >
                         {asset.name}
                       </span>
                     </div>
                     <span
-                      className={`font-medium ${
-                        asset.isNegative ? "text-red-600" : ""
-                      }`}
+                      className={`font-medium ${asset.isNegative ? "text-red-600" : ""
+                        }`}
                     >
                       {asset.isNegative ? "-" : ""}
                       {formatCurrency(asset.amount)}
@@ -704,18 +661,17 @@ const ProfitLossBalances = () => {
           </div>
           <div className="mt-4 text-center">
             <div
-              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                Math.abs(
-                  balanceSheetData.assets.totalAssets -
-                    balanceSheetData.totalLiabilitiesAndEquity
-                ) < 1000
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
-              }`}
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${Math.abs(
+                balanceSheetData.assets.totalAssets -
+                balanceSheetData.totalLiabilitiesAndEquity
+              ) < 1000
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+                }`}
             >
               {Math.abs(
                 balanceSheetData.assets.totalAssets -
-                  balanceSheetData.totalLiabilitiesAndEquity
+                balanceSheetData.totalLiabilitiesAndEquity
               ) < 1000 ? (
                 <>
                   <CheckCircle className="h-4 w-4 mr-1" /> Balance Sheet Matches
@@ -777,11 +733,10 @@ const ProfitLossBalances = () => {
           {branches.map((branch) => (
             <div
               key={branch.id}
-              className={`p-4 rounded-lg border ${
-                selectedBranch === branch.id || selectedBranch === "all"
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 bg-white"
-              }`}
+              className={`p-4 rounded-lg border ${selectedBranch === branch.id || selectedBranch === "all"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 bg-white"
+                }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-gray-900">{branch.name}</span>
@@ -847,28 +802,26 @@ const ProfitLossBalances = () => {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`font-medium ${
-                        branch.profitMargin > 15
-                          ? "text-green-600"
-                          : branch.profitMargin > 10
+                      className={`font-medium ${branch.profitMargin > 15
+                        ? "text-green-600"
+                        : branch.profitMargin > 10
                           ? "text-yellow-600"
                           : "text-red-600"
-                      }`}
+                        }`}
                     >
                       {formatPercentage(branch.profitMargin)}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        branch.performance === "excellent"
-                          ? "bg-green-100 text-green-800"
-                          : branch.performance === "good"
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${branch.performance === "excellent"
+                        ? "bg-green-100 text-green-800"
+                        : branch.performance === "good"
                           ? "bg-blue-100 text-blue-800"
                           : branch.performance === "satisfactory"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
                     >
                       {branch.performance.charAt(0).toUpperCase() +
                         branch.performance.slice(1)}
@@ -881,35 +834,148 @@ const ProfitLossBalances = () => {
         </div>
       </div>
 
-      {/* Charts Placeholder */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h4 className="font-semibold text-gray-900 mb-4">
-            Revenue Distribution by Branch
-          </h4>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center text-gray-500">
-              <PieChart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-              <p>Revenue Distribution Chart</p>
-              <p className="text-sm">(Would show pie chart here)</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h4 className="font-semibold text-gray-900 mb-4">
-            Profit Trend Analysis
-          </h4>
-          <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center text-gray-500">
-              <BarChart3 className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-              <p>Profit Trend Chart</p>
-              <p className="text-sm">(Would show bar chart here)</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
+
+
+  const handleExport = () => {
+    let headers = [];
+    let rows = [];
+    let fileName = "";
+
+    // ---------------- PROFIT & LOSS ----------------
+    if (activeTab === "profitLoss") {
+      fileName = "Profit_and_Loss_Report";
+
+      headers = ["Category", "Name", "Amount", "Growth %"];
+
+      const revenueRows = profitLossData.revenue.map(item => [
+        "Revenue",
+        item.name,
+        item.amount,
+        item.growth,
+      ]);
+
+      const expenseRows = profitLossData.expenses.map(item => [
+        "Expense",
+        item.name,
+        item.amount,
+        item.growth,
+      ]);
+
+      const summaryRows = [
+        ["Summary", "Total Revenue", profitLossData.summary.totalRevenue, ""],
+        ["Summary", "Gross Profit", profitLossData.summary.grossProfit, ""],
+        ["Summary", "Total Expenses", profitLossData.summary.totalExpenses, ""],
+        ["Summary", "Net Profit", profitLossData.summary.netProfit, ""],
+        ["Summary", "Profit Margin (%)", profitLossData.summary.profitMargin, ""],
+      ];
+
+      rows = [...revenueRows, ...expenseRows, ...summaryRows];
+    }
+
+    // ---------------- BALANCE SHEET ----------------
+    if (activeTab === "balanceSheet") {
+      fileName = "Balance_Sheet_Report";
+
+      headers = ["Type", "Name", "Amount"];
+
+      const assetRows = [
+        ...balanceSheetData.assets.currentAssets.map(a => [
+          "Current Asset",
+          a.name,
+          a.amount,
+        ]),
+        ...balanceSheetData.assets.fixedAssets.map(a => [
+          "Fixed Asset",
+          a.name,
+          a.isNegative ? -a.amount : a.amount,
+        ]),
+      ];
+
+      const liabilityRows = [
+        ...balanceSheetData.liabilities.currentLiabilities.map(l => [
+          "Current Liability",
+          l.name,
+          l.amount,
+        ]),
+        ...balanceSheetData.liabilities.longTermLiabilities.map(l => [
+          "Long Term Liability",
+          l.name,
+          l.amount,
+        ]),
+      ];
+
+      const equityRows = balanceSheetData.equity.map(e => [
+        "Equity",
+        e.name,
+        e.amount,
+      ]);
+
+      rows = [
+        ...assetRows,
+        ...liabilityRows,
+        ...equityRows,
+        ["Total", "Total Assets", balanceSheetData.assets.totalAssets],
+        [
+          "Total",
+          "Total Liabilities & Equity",
+          balanceSheetData.totalLiabilitiesAndEquity,
+        ],
+      ];
+    }
+
+    // ---------------- BRANCH WISE ----------------
+    if (activeTab === "branchwise") {
+      fileName = "Branchwise_Financial_Report";
+
+      headers = [
+        "Branch",
+        "Revenue",
+        "Expenses",
+        "Net Profit",
+        "Profit Margin %",
+        "Performance",
+      ];
+
+      rows = branchComparisonData.map(branch => [
+        branch.branch,
+        branch.revenue,
+        branch.expenses,
+        branch.netProfit,
+        branch.profitMargin,
+        branch.performance,
+      ]);
+    }
+
+    if (!rows.length) {
+      alert("No data available for export");
+      return;
+    }
+
+    // ---------------- CSV CREATE ----------------
+    const csvContent =
+      [headers, ...rows]
+        .map(row => row.map(col => `"${col ?? ""}"`).join(","))
+        .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${fileName}_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -927,18 +993,11 @@ const ProfitLossBalances = () => {
           </div>
 
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </button>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-              <DownloadCloud className="h-4 w-4" />
-              Download All
-            </button>
+            <ExportButton onClick={handleExport} />
           </div>
         </div>
 
-      
+
       </div>
 
       {/* Tabs */}
@@ -949,10 +1008,9 @@ const ProfitLossBalances = () => {
               onClick={() => setActiveTab("profitLoss")}
               className={`
                 flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2
-                ${
-                  activeTab === "profitLoss"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ${activeTab === "profitLoss"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
@@ -963,10 +1021,9 @@ const ProfitLossBalances = () => {
               onClick={() => setActiveTab("balanceSheet")}
               className={`
                 flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2
-                ${
-                  activeTab === "balanceSheet"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ${activeTab === "balanceSheet"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
@@ -977,10 +1034,9 @@ const ProfitLossBalances = () => {
               onClick={() => setActiveTab("branchwise")}
               className={`
                 flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2
-                ${
-                  activeTab === "branchwise"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ${activeTab === "branchwise"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
@@ -999,25 +1055,7 @@ const ProfitLossBalances = () => {
       {activeTab === "balanceSheet" && renderBalanceSheet()}
       {activeTab === "branchwise" && renderBranchwise()}
 
-      {/* Action Buttons */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-          <Printer className="h-4 w-4" />
-          Print Report
-        </button>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-          <Download className="h-4 w-4" />
-          Export as PDF
-        </button>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
-          <Share2 className="h-4 w-4" />
-          Share Report
-        </button>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700">
-          <Calendar className="h-4 w-4" />
-          Schedule Report
-        </button>
-      </div>
+
 
       {/* Footer Notes */}
       <div className="mt-6 text-sm text-gray-500">
