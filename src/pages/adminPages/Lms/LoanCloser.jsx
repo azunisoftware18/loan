@@ -379,7 +379,7 @@ export default function LoanCloser() {
     const allData = getCurrentTabData();
     const totalPages = Math.ceil(allData.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, allData.length);
     
     return {
       data: allData.slice(startIndex, endIndex),
@@ -431,65 +431,111 @@ export default function LoanCloser() {
     );
   };
 
-  // --- TAB RENDERERS ---
-  const PreCloserRequestsTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+  // --- TAB RENDERERS WITH PROPER PAGINATION STRUCTURE ---
+  const TableContainer = ({ title, children, showSearch = false, showTotal = true }) => {
+    const { totalItems, startIndex, endIndex, totalPages } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-72">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
-            <input
-              type="text"
-              placeholder="Search Loan ID or Customer..."
-              className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      <div className="h-[520px] relative">
+        <div className="p-6">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">{title}</h2>
+              {showTotal && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Showing {startIndex + 1}-{endIndex} of {totalItems} items
+                </p>
+              )}
+            </div>
+            
+            {showSearch && (
+              <div className="relative flex-1 sm:flex-initial">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
-              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
-            </span>
-            <button className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all">
-              <FileText className="w-4 h-4 mr-2" /> New Request
-            </button>
+
+          {/* Scrollable Table Area */}
+          <div className="h-[340px] overflow-y-auto overflow-x-auto rounded-xl border border-gray-100">
+            {children}
           </div>
         </div>
 
-        <div className="overflow-hidden border rounded-xl shadow-sm">
-          <table className="min-w-full bg-white text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+        {/* PAGINATION COMPONENT - Fixed at bottom */}
+        {totalPages > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 h-[64px] bg-white border-t border-gray-200 px-6">
+            <div className="flex items-center justify-between h-full">
+              <p className="text-sm text-gray-500">
+                Page {currentPage} of {totalPages}
+              </p>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                containerClassName="flex gap-1"
+                buttonClassName="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
+                activeButtonClassName="bg-blue-600 text-white border-blue-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const PreCloserRequestsTable = () => {
+    const { data } = getCurrentPageData();
+    
+    return (
+      <TableContainer title="Pre-Closer Requests" showSearch={true}>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Customer</th>
-                <th className="px-6 py-3">Date</th>
-                <th className="px-6 py-3">Amount</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Action</th>
+                <td colSpan="6" className="p-12 text-center text-gray-500">
+                  No requests found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 font-medium text-blue-600">
+            ) : (
+              data.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                  <td className="p-4 font-medium text-blue-600">
                     {item.id}
                   </td>
-                  <td className="px-6 py-4 text-gray-900">{item.customer}</td>
-                  <td className="px-6 py-4 text-gray-500">
+                  <td className="p-4 text-gray-900">{item.customer}</td>
+                  <td className="p-4 text-gray-500 text-sm">
                     {item.requestedDate}
                   </td>
-                  <td className="px-6 py-4 font-mono">
+                  <td className="p-4 font-semibold text-gray-900">
                     ₹{item.amount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="p-4">
                     <StatusBadge status={item.status} days={item.daysPending} />
                   </td>
-                  <td className="px-6 py-4 text-right flex justify-end">
+                  <td className="p-4 text-right">
                     <ActionMenu
                       items={[
                         { label: "View Details", onClick: () => console.log("View", item.id) },
@@ -500,233 +546,233 @@ export default function LoanCloser() {
                     />
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
   const WriteOffSettledTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    const { data } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="font-bold text-gray-700">Settlement History</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} settlements
-            </p>
-          </div>
-          <ExportButton />
-        </div>
-        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+      <TableContainer title="Settlement History" showTotal={true}>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settlement ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Principal</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settled At</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Recovery %</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Settlement ID</th>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Customer</th>
-                <th className="px-6 py-3">Principal</th>
-                <th className="px-6 py-3">Settled At</th>
-                <th className="px-6 py-3">Recovery %</th>
-                <th className="px-6 py-3 text-right">Status</th>
+                <td colSpan="7" className="p-12 text-center text-gray-500">
+                  No settlement records found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-mono text-gray-500">
+            ) : (
+              data.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                  <td className="p-4 font-mono text-gray-500">
                     {item.id}
                   </td>
-                  <td className="px-6 py-4 text-blue-600 font-medium">
+                  <td className="p-4 text-blue-600 font-medium">
                     {item.loanId}
                   </td>
-                  <td className="px-6 py-4 text-gray-900">{item.customer}</td>
-                  <td className="px-6 py-4 text-gray-500">
+                  <td className="p-4 text-gray-900">{item.customer}</td>
+                  <td className="p-4 text-gray-500">
                     ₹{item.principal.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 font-bold text-gray-900">
+                  <td className="p-4 font-bold text-gray-900">
                     ₹{item.settledAmount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 text-green-600 font-medium">
+                  <td className="p-4 text-green-600 font-medium">
                     {item.recovery}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="p-4 text-right">
                     <StatusBadge status={item.status} />
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
   const LoanCloserUndoTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    const { data } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
-          <div>
-            <h4 className="text-sm font-bold text-amber-800">Critical Zone</h4>
-            <p className="text-xs text-amber-700">
-              Reversing a loan closure affects financial books. Ensure proper
-              authorization before proceeding.
-            </p>
+      <TableContainer title="Undo Requests" showTotal={true}>
+        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
+            <div>
+              <h4 className="text-sm font-bold text-amber-800">Critical Zone</h4>
+              <p className="text-xs text-amber-700">
+                Reversing a loan closure affects financial books. Ensure proper
+                authorization before proceeding.
+              </p>
+            </div>
           </div>
         </div>
-        <div className="mb-4 text-sm text-gray-500">
-          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} requests
-        </div>
-        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+        
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Request ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Processor</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Request ID</th>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Processor</th>
-                <th className="px-6 py-3">Reason</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Action</th>
+                <td colSpan="6" className="p-12 text-center text-gray-500">
+                  No undo requests found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((req) => (
-                <tr key={req.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-gray-500">{req.id}</td>
-                  <td className="px-6 py-4 font-medium text-blue-600">
+            ) : (
+              data.map((req) => (
+                <tr key={req.id} className="hover:bg-gray-50/80 transition-colors">
+                  <td className="p-4 text-gray-500">{req.id}</td>
+                  <td className="p-4 font-medium text-blue-600">
                     {req.loanId}
                   </td>
-                  <td className="px-6 py-4">{req.processor}</td>
-                  <td className="px-6 py-4 text-gray-600">{req.reason}</td>
-                  <td className="px-6 py-4">
+                  <td className="p-4">{req.processor}</td>
+                  <td className="p-4 text-gray-600">{req.reason}</td>
+                  <td className="p-4">
                     <StatusBadge status={req.status} />
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="p-4 text-right">
                     <button className="text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-purple-200 transition">
                       Review
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
   const AutoCloserLogTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    const { data } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h3 className="font-bold text-gray-700">System Job Logs</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} logs
-            </p>
-          </div>
-          <div className="text-xs text-gray-500">Last run: Today, 02:00 AM</div>
-        </div>
-        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+      <TableContainer title="System Job Logs" showTotal={true}>
+        <div className="text-xs text-gray-500 mb-4">Last run: Today, 02:00 AM</div>
+        
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Execution Time</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Result</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Execution Time</th>
-                <th className="px-6 py-3">Criteria</th>
-                <th className="px-6 py-3">Duration</th>
-                <th className="px-6 py-3 text-right">Result</th>
+                <td colSpan="5" className="p-12 text-center text-gray-500">
+                  No log records found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((log) => (
-                <tr key={log.loanId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-mono text-blue-600">
+            ) : (
+              data.map((log) => (
+                <tr key={log.loanId} className="hover:bg-gray-50/80 transition-colors">
+                  <td className="p-4 font-mono text-blue-600">
                     {log.loanId}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{log.closeDate}</td>
-                  <td className="px-6 py-4 text-gray-600">{log.criteria}</td>
-                  <td className="px-6 py-4 text-gray-400 font-mono">
+                  <td className="p-4 text-gray-600">{log.closeDate}</td>
+                  <td className="p-4 text-gray-600">{log.criteria}</td>
+                  <td className="p-4 text-gray-400 font-mono">
                     {log.duration}ms
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="p-4 text-right">
                     <StatusBadge status={log.result} />
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
   const NOCPrintTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    const { data } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-sm text-gray-500">
-            Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} NOCs
-          </div>
-          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 font-medium">
-            <Printer size={16} /> Batch Print (Selected)
-          </button>
-        </div>
-        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+      <TableContainer title="NOC Print Queue" showTotal={true}>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Closure Date</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery Mode</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Customer</th>
-                <th className="px-6 py-3">Closure Date</th>
-                <th className="px-6 py-3">Delivery Mode</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3 text-right">Action</th>
+                <td colSpan="6" className="p-12 text-center text-gray-500">
+                  No NOC records found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((item) => (
-                <tr key={item.loanId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-blue-600">
+            ) : (
+              data.map((item) => (
+                <tr key={item.loanId} className="hover:bg-gray-50/80 transition-colors">
+                  <td className="p-4 font-medium text-blue-600">
                     {item.loanId}
                   </td>
-                  <td className="px-6 py-4 text-gray-900">{item.customer}</td>
-                  <td className="px-6 py-4 text-gray-500">{item.closeDate}</td>
-                  <td className="px-6 py-4 text-gray-600">{item.delivery}</td>
-                  <td className="px-6 py-4">
+                  <td className="p-4 text-gray-900">{item.customer}</td>
+                  <td className="p-4 text-gray-500">{item.closeDate}</td>
+                  <td className="p-4 text-gray-600">{item.delivery}</td>
+                  <td className="p-4">
                     <StatusBadge status={item.printStatus} />
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="p-4 text-right">
                     <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition">
                       <Printer size={16} />
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
   const DeleteRequestTable = () => {
-    const { data, totalItems, startIndex, endIndex } = getCurrentPageData();
+    const { data } = getCurrentPageData();
     
     return (
-      <div className="animate-in fade-in zoom-in duration-300">
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6">
+      <TableContainer title="Delete Requests" showTotal={true}>
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-4">
           <h4 className="text-sm font-bold text-red-800 flex items-center gap-2">
             <Trash2 size={16} /> Deletion Zone
           </h4>
@@ -735,42 +781,46 @@ export default function LoanCloser() {
             (L1, L2, L3) required.
           </p>
         </div>
-        <div className="mb-4 text-sm text-gray-500">
-          Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} deletion requests
-        </div>
-        <div className="overflow-hidden border rounded-xl shadow-sm bg-white">
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
+        
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50/50 border-b text-left">
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Req ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
+              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {data.length === 0 ? (
               <tr>
-                <th className="px-6 py-3">Req ID</th>
-                <th className="px-6 py-3">Loan ID</th>
-                <th className="px-6 py-3">Customer</th>
-                <th className="px-6 py-3">Reason</th>
-                <th className="px-6 py-3">Level</th>
-                <th className="px-6 py-3 text-right">Status</th>
+                <td colSpan="6" className="p-12 text-center text-gray-500">
+                  No deletion requests found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map((req) => (
-                <tr key={req.id} className="hover:bg-red-50/30">
-                  <td className="px-6 py-4 text-gray-500">{req.id}</td>
-                  <td className="px-6 py-4 font-medium text-blue-600">
+            ) : (
+              data.map((req) => (
+                <tr key={req.id} className="hover:bg-red-50/30 transition-colors">
+                  <td className="p-4 text-gray-500">{req.id}</td>
+                  <td className="p-4 font-medium text-blue-600">
                     {req.loanId}
                   </td>
-                  <td className="px-6 py-4 text-gray-900">{req.customer}</td>
-                  <td className="px-6 py-4 text-gray-600">{req.reason}</td>
-                  <td className="px-6 py-4 font-bold text-gray-700">
+                  <td className="p-4 text-gray-900">{req.customer}</td>
+                  <td className="p-4 text-gray-600">{req.reason}</td>
+                  <td className="p-4 font-bold text-gray-700">
                     {req.approvalLevel}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="p-4 text-right">
                     <StatusBadge status={req.status} />
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </TableContainer>
     );
   };
 
@@ -783,8 +833,6 @@ export default function LoanCloser() {
     { id: "noc", label: "NOC Print", icon: Printer },
     { id: "delete", label: "Delete Requests", icon: Trash2 },
   ];
-
-  const { totalPages } = getCurrentPageData();
 
   // --- MAIN RENDER ---
   return (
@@ -837,27 +885,15 @@ export default function LoanCloser() {
       </div>
 
       {/* Content Area */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 min-h-[500px]">
-        {activeTab === "preCloser" && <PreCloserRequestsTable />}
-        {activeTab === "writeOff" && <WriteOffSettledTable />}
-        {activeTab === "undo" && <LoanCloserUndoTable />}
-        {activeTab === "autoCloser" && <AutoCloserLogTable />}
-        {activeTab === "noc" && <NOCPrintTable />}
-        {activeTab === "delete" && <DeleteRequestTable />}
-        
-        {/* Pagination Component */}
-        {totalPages > 1 && (
-          <div className="mt-6">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              containerClassName="justify-end"
-              buttonClassName="hover:bg-gray-100 transition-colors"
-              activeButtonClassName="bg-blue-600 text-white"
-            />
-          </div>
-        )}
+      <div className="bg-white shadow-sm rounded-2xl border border-gray-200">
+        <div className="animate-in fade-in duration-300">
+          {activeTab === "preCloser" && <PreCloserRequestsTable />}
+          {activeTab === "writeOff" && <WriteOffSettledTable />}
+          {activeTab === "undo" && <LoanCloserUndoTable />}
+          {activeTab === "autoCloser" && <AutoCloserLogTable />}
+          {activeTab === "noc" && <NOCPrintTable />}
+          {activeTab === "delete" && <DeleteRequestTable />}
+        </div>
       </div>
     </div>
   );

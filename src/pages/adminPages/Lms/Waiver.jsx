@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   CheckCircle,
@@ -8,7 +8,9 @@ import {
   Plus,
   X,
   Save,
-  IndianRupee
+  IndianRupee,
+  Eye,
+  XCircleIcon
 } from "lucide-react";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
@@ -56,6 +58,9 @@ export default function WaiverDashboard() {
       );
     });
   }, [search, statusFilter, waivers]);
+
+ 
+
 
   // --- Pagination Calculations ---
   const totalPages = Math.ceil(filteredWaivers.length / itemsPerPage);
@@ -128,15 +133,19 @@ export default function WaiverDashboard() {
           </h1>
           <p className="text-slate-500 mt-1 ml-11">Manage and audit fee waiver applications.</p>
         </div>
+        <div className="flex gap-2">
+        <ExportButton onClick={handleExportWaivers} />
         <button 
           onClick={() => setIsModalOpen(true)} 
           className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg flex items-center gap-2 font-medium transition active:scale-95"
         >
           <Plus size={20} /> New Request
         </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-[520px] relative">
+
         <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50">
           <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -145,31 +154,17 @@ export default function WaiverDashboard() {
               placeholder="Search ID, Customer, Loan ID, Reason..." 
               className="w-full pl-10 pr-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" 
               value={search} 
-              onChange={(e) => setSearch(e.target.value)} 
+              onChange={(e) => {
+  setSearch(e.target.value);
+  setCurrentPage(1);
+}}
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
-            <div className="text-sm text-slate-500">
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredWaivers.length)} of {filteredWaivers.length} waivers
-            </div>
-            <select 
-              className="px-4 py-2 bg-white border rounded-xl text-sm outline-none cursor-pointer" 
-              value={statusFilter} 
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setCurrentPage(1); // Reset to page 1 when filter changes
-              }}
-            >
-              <option value="All">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-            <ExportButton onClick={handleExportWaivers} />
-          </div>
+       
         </div>
 
-        <div className="overflow-x-auto">
+       <div className="h-[340px] overflow-y-auto overflow-x-auto">
+
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
               <tr>
@@ -202,12 +197,34 @@ export default function WaiverDashboard() {
                     <StatusBadge status={w.status} />
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <ActionMenu 
-                      onApprove={() => handleUpdateStatus(w.id, 'Approved')}
-                      onReject={() => handleUpdateStatus(w.id, 'Rejected')}
-                      onPending={() => handleUpdateStatus(w.id, 'Pending')}
-                    />
-                  </td>
+  <ActionMenu
+    items={[
+      {
+        label: "View Details",
+        icon: Eye,
+        onClick: () => console.log(`View waiver ${w.id}`),
+      },
+      {
+        label: "Approve",
+        icon: CheckCircle,
+        onClick: () => handleUpdateStatus(w.id, 'Approved'),
+      },
+      {
+        label: "Reject", 
+        icon: XCircleIcon,
+        onClick: () => handleUpdateStatus(w.id, 'Rejected'),
+        danger: true,
+      },
+      {
+        label: "Mark as Pending",
+        icon: AlertTriangle,
+        onClick: () => handleUpdateStatus(w.id, 'Pending'),
+      },
+    ]}
+    buttonClassName="p-2 hover:bg-slate-100 rounded-lg"
+    menuClassName="shadow-xl"
+  />
+</td>
                 </tr>
               ))}
             </tbody>
@@ -216,18 +233,25 @@ export default function WaiverDashboard() {
 
         {/* Pagination Component */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              containerClassName="justify-end"
-              buttonClassName="hover:bg-slate-100 transition-colors"
-              activeButtonClassName="bg-blue-600 text-black"
-              
-            />
-          </div>
-        )}
+  <div className="absolute bottom-0 left-0 right-0 h-[64px] bg-white border-t border-slate-100 px-6">
+    <div className="flex items-center justify-between h-full">
+      <p className="text-sm text-slate-500">
+        Showing {startIndex + 1}–{Math.min(endIndex, filteredWaivers.length)} of {filteredWaivers.length}
+      </p>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        containerClassName="justify-end"
+        buttonClassName="hover:bg-slate-100 transition-colors"
+        activeButtonClassName="bg-blue-600 text-white"
+      />
+    </div>
+  </div>
+)}
+
+
       </div>
 
       {isModalOpen && (

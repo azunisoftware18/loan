@@ -28,6 +28,11 @@ import {
   Copy,
   AlertCircle
 } from "lucide-react";
+import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
+import Button from "../../../components/admin/common/Button";
+import StatusCard from "../../../components/admin/common/StatusCard";
+import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
+
 
 export default function ReceiptEntry() {
   const [form, setForm] = useState({
@@ -88,13 +93,13 @@ export default function ReceiptEntry() {
       status: "success"
     };
     setReceipts([newReceipt, ...receipts]);
-    
+
     setStats(prev => ({
       ...prev,
       todayCollection: prev.todayCollection + parseFloat(form.amount || 0),
       monthlyCollection: prev.monthlyCollection + parseFloat(form.amount || 0)
     }));
-    
+
     alert("Receipt saved successfully!");
     resetForm();
   };
@@ -116,12 +121,70 @@ export default function ReceiptEntry() {
 
   const generateReceiptNo = () => {
     const newNo = `RCT-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-    setForm({...form, receiptNo: newNo});
+    setForm({ ...form, receiptNo: newNo });
   };
+
+  const downloadCSV = (filename, headers, rows) => {
+  const csvContent = [
+    headers.join(","),
+    ...rows.map(row =>
+      row.map(value =>
+        `"${String(value ?? "").replace(/"/g, '""')}"`
+      ).join(",")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+};
+
+
+const handleExport = () => {
+  if (!receipts || receipts.length === 0) {
+    alert("No receipts available to export");
+    return;
+  }
+
+  const headers = [
+    "Receipt No",
+    "Receipt Date",
+    "Payer Name",
+    "Loan Account No",
+    "Payment Mode",
+    "Amount",
+    "Status",
+    "Branch",
+    "Collected By",
+    "Transaction ID"
+  ];
+
+  const rows = receipts.map(r => [
+    r.receiptNo,
+    r.receiptDate,
+    r.payerName,
+    r.loanAccountNo,
+    r.paymentMode,
+    r.amount,
+    r.status,
+    r.branch,
+    r.collectedBy,
+    r.transactionId || "-"
+  ]);
+
+  downloadCSV("receipt_report.csv", headers, rows);
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
-      
+
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -138,70 +201,54 @@ export default function ReceiptEntry() {
           </div>
 
           <div className="flex gap-3 mt-4 md:mt-0">
-            <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
-              <Download size={18} />
-              Export
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors">
+            <ExportButton onClick={handleExport}/>
+             
+            <Button >
               <Plus size={18} />
               New Receipt
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-xl p-5 border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Today's Collection</p>
-                <p className="text-2xl font-bold text-gray-800 mt-1">{formatCurrency(stats.todayCollection)}</p>
+          <StatusCard
+            title="Today's Collection"
+            value={formatCurrency(stats.todayCollection)}
+            subtext={
+              <div className="flex items-center gap-1">
+                <TrendingUp size={16} className="text-green-500" />
+                <span className="text-green-600 text-sm">+12.5% from yesterday</span>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Banknote className="text-blue-600" size={24} />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-3">
-              <TrendingUp size={16} className="text-green-500" />
-              <span className="text-sm text-green-600">+12.5% from yesterday</span>
-            </div>
-          </div>
+            }
+            icon={Banknote}
+            iconColor="blue"
+            borderColor="blue"
+          />
 
-          <div className="bg-white rounded-xl p-5 border-l-4 border-green-500 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Monthly Collection</p>
-                <p className="text-2xl font-bold text-gray-800 mt-1">{formatCurrency(stats.monthlyCollection)}</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <BarChart3 className="text-green-600" size={24} />
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Monthly Collection"
+            value={formatCurrency(stats.monthlyCollection)}
+            icon={BarChart3}
+            iconColor="green"
+            borderColor="green"
+          />
 
-          <div className="bg-white rounded-xl p-5 border-l-4 border-orange-500 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Pending Receipts</p>
-                <p className="text-2xl font-bold text-gray-800 mt-1">{stats.pendingReceipts}</p>
-              </div>
-              <div className="p-3 bg-orange-50 rounded-lg">
-                <FileText className="text-orange-600" size={24} />
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Pending Receipts"
+            value={stats.pendingReceipts}
+            icon={FileText}
+            iconColor="orange"
+            borderColor="orange"
+          />
 
-          <div className="bg-white rounded-xl p-5 border-l-4 border-purple-500 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Active Loans</p>
-                <p className="text-2xl font-bold text-gray-800 mt-1">{stats.activeLoans}</p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <UserCheck className="text-purple-600" size={24} />
-              </div>
-            </div>
-          </div>
+          <StatusCard
+            title="Active Loans"
+            value={stats.activeLoans}
+            icon={UserCheck}
+            iconColor="purple"
+            borderColor="purple"
+          />
         </div>
       </div>
 
@@ -449,12 +496,9 @@ export default function ReceiptEntry() {
                       <X size={18} /> Clear All
                     </button>
 
-                    <button
-                      type="submit"
-                      className="px-6 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 flex items-center gap-2 font-medium shadow-md transition-all hover:shadow-lg"
-                    >
+                    <Button type="submit">
                       <Save size={18} /> Save Receipt
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -475,7 +519,7 @@ export default function ReceiptEntry() {
                       <option>Pending</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {receipts.map((receipt) => (
                       <div key={receipt.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
@@ -509,20 +553,27 @@ export default function ReceiptEntry() {
                               {receipt.collectedBy}
                             </span>
                           </div>
-                          <div className="flex gap-2">
-                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors">
-                              <Eye size={18} />
-                            </button>
-                            <button className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                              <Edit size={18} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(receipt.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
+                          <ActionMenu
+                            items={[
+                              {
+                                label: "View Receipt",
+                                icon: Eye,
+                                onClick: () => console.log("View", receipt.id),
+                              },
+                              {
+                                label: "Edit Receipt",
+                                icon: Edit,
+                                onClick: () => console.log("Edit", receipt.id),
+                              },
+                              {
+                                label: "Delete Receipt",
+                                icon: Trash2,
+                                onClick: () => handleDelete(receipt.id),
+                                danger: true,
+                              },
+                            ]}
+                            buttonClassName="p-2 hover:bg-gray-100 rounded"
+                          />
                         </div>
                       </div>
                     ))}

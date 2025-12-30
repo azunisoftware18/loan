@@ -12,29 +12,20 @@ import {
   XCircle,
   AlertCircle,
   TrendingUp,
-  TrendingDown,
-  DollarSign,
   CreditCard,
-  BarChart3,
-  PieChart,
   Eye,
   Edit,
   MoreVertical,
   Calendar,
-  ChevronDown,
-  Check,
-  X,
   Lock,
-  Unlock,
-  FileCheck,
-  FileX,
-  Settings,
-  ChevronRight,
   Shield,
   Activity,
   Target,
   Zap
 } from 'lucide-react';
+import ExportButton from '../../../components/admin/AdminButtons/ExportButton';
+import StatusCard from '../../../components/admin/common/StatusCard';
+
 
 function Reconcile() {
   const [activeTab, setActiveTab] = useState('general-ledger');
@@ -44,42 +35,42 @@ function Reconcile() {
 
   // Sample data for General Ledger Reconciliation
   const generalLedgerData = [
-    { 
-      id: 1, 
-      accountCode: '1001', 
-      accountName: 'Cash in Hand', 
-      glBalance: 1250000, 
-      bankBalance: 1250000, 
+    {
+      id: 1,
+      accountCode: '1001',
+      accountName: 'Cash in Hand',
+      glBalance: 1250000,
+      bankBalance: 1250000,
       difference: 0,
       status: 'Reconciled',
       lastReconciled: '2024-01-15'
     },
-    { 
-      id: 2, 
-      accountCode: '1002', 
-      accountName: 'Bank Account - HDFC', 
-      glBalance: 3500000, 
-      bankBalance: 3485000, 
+    {
+      id: 2,
+      accountCode: '1002',
+      accountName: 'Bank Account - HDFC',
+      glBalance: 3500000,
+      bankBalance: 3485000,
       difference: 15000,
       status: 'Unreconciled',
       lastReconciled: '2024-01-10'
     },
-    { 
-      id: 3, 
-      accountCode: '1003', 
-      accountName: 'Bank Account - ICICI', 
-      glBalance: 2100000, 
-      bankBalance: 2100000, 
+    {
+      id: 3,
+      accountCode: '1003',
+      accountName: 'Bank Account - ICICI',
+      glBalance: 2100000,
+      bankBalance: 2100000,
       difference: 0,
       status: 'Reconciled',
       lastReconciled: '2024-01-16'
     },
-    { 
-      id: 4, 
-      accountCode: '2001', 
-      accountName: 'Accounts Receivable', 
-      glBalance: 1850000, 
-      bankBalance: 1850000, 
+    {
+      id: 4,
+      accountCode: '2001',
+      accountName: 'Accounts Receivable',
+      glBalance: 1850000,
+      bankBalance: 1850000,
       difference: 0,
       status: 'Partially Reconciled',
       lastReconciled: '2024-01-14'
@@ -88,34 +79,34 @@ function Reconcile() {
 
   // Sample data for Bank Reconciliation
   const bankReconciliationData = [
-    { 
-      id: 1, 
-      bankName: 'HDFC Bank', 
-      accountNo: 'XXXXXX1234', 
-      glBalance: 3500000, 
-      bankStatement: 3485000, 
+    {
+      id: 1,
+      bankName: 'HDFC Bank',
+      accountNo: 'XXXXXX1234',
+      glBalance: 3500000,
+      bankStatement: 3485000,
       outstandingCheques: 50000,
       depositsInTransit: 30000,
       adjustedBalance: 3500000,
       status: 'Pending'
     },
-    { 
-      id: 2, 
-      bankName: 'ICICI Bank', 
-      accountNo: 'XXXXXX5678', 
-      glBalance: 2100000, 
-      bankStatement: 2100000, 
+    {
+      id: 2,
+      bankName: 'ICICI Bank',
+      accountNo: 'XXXXXX5678',
+      glBalance: 2100000,
+      bankStatement: 2100000,
       outstandingCheques: 0,
       depositsInTransit: 0,
       adjustedBalance: 2100000,
       status: 'Completed'
     },
-    { 
-      id: 3, 
-      bankName: 'SBI', 
-      accountNo: 'XXXXXX9012', 
-      glBalance: 850000, 
-      bankStatement: 820000, 
+    {
+      id: 3,
+      bankName: 'SBI',
+      accountNo: 'XXXXXX9012',
+      glBalance: 850000,
+      bankStatement: 820000,
       outstandingCheques: 20000,
       depositsInTransit: 10000,
       adjustedBalance: 850000,
@@ -125,57 +116,57 @@ function Reconcile() {
 
   // Sample data for Trial Balance
   const trialBalanceData = [
-    { 
-      id: 1, 
-      accountCode: '1001', 
-      accountName: 'Cash in Hand', 
-      debit: 1250000, 
-      credit: 0, 
+    {
+      id: 1,
+      accountCode: '1001',
+      accountName: 'Cash in Hand',
+      debit: 1250000,
+      credit: 0,
       type: 'Asset',
       balance: 1250000
     },
-    { 
-      id: 2, 
-      accountCode: '1002', 
-      accountName: 'Bank Account', 
-      debit: 3500000, 
-      credit: 0, 
+    {
+      id: 2,
+      accountCode: '1002',
+      accountName: 'Bank Account',
+      debit: 3500000,
+      credit: 0,
       type: 'Asset',
       balance: 3500000
     },
-    { 
-      id: 3, 
-      accountCode: '2001', 
-      accountName: 'Accounts Payable', 
-      debit: 0, 
-      credit: 1850000, 
+    {
+      id: 3,
+      accountCode: '2001',
+      accountName: 'Accounts Payable',
+      debit: 0,
+      credit: 1850000,
       type: 'Liability',
       balance: 1850000
     },
-    { 
-      id: 4, 
-      accountCode: '3001', 
-      accountName: 'Capital', 
-      debit: 0, 
-      credit: 5000000, 
+    {
+      id: 4,
+      accountCode: '3001',
+      accountName: 'Capital',
+      debit: 0,
+      credit: 5000000,
       type: 'Equity',
       balance: 5000000
     },
-    { 
-      id: 5, 
-      accountCode: '4001', 
-      accountName: 'Sales Revenue', 
-      debit: 0, 
-      credit: 2850000, 
+    {
+      id: 5,
+      accountCode: '4001',
+      accountName: 'Sales Revenue',
+      debit: 0,
+      credit: 2850000,
       type: 'Revenue',
       balance: 2850000
     },
-    { 
-      id: 6, 
-      accountCode: '5001', 
-      accountName: 'Salary Expense', 
-      debit: 950000, 
-      credit: 0, 
+    {
+      id: 6,
+      accountCode: '5001',
+      accountName: 'Salary Expense',
+      debit: 950000,
+      credit: 0,
       type: 'Expense',
       balance: 950000
     },
@@ -209,7 +200,7 @@ function Reconcile() {
       'In Progress': 'bg-blue-50 text-blue-700 border-blue-200',
       'Partially Reconciled': 'bg-violet-50 text-violet-700 border-violet-200'
     };
-    
+
     const icons = {
       'Reconciled': <CheckCircle className="w-3 h-3" />,
       'Completed': <CheckCircle className="w-3 h-3" />,
@@ -218,7 +209,7 @@ function Reconcile() {
       'In Progress': <RefreshCw className="w-3 h-3" />,
       'Partially Reconciled': <AlertCircle className="w-3 h-3" />
     };
-    
+
     return (
       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${colors[status] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
         {icons[status]}
@@ -235,7 +226,7 @@ function Reconcile() {
       'Revenue': 'bg-emerald-50 text-emerald-700 border-emerald-200',
       'Expense': 'bg-amber-50 text-amber-700 border-amber-200'
     };
-    
+
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-medium border ${colors[type] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
         {type}
@@ -256,7 +247,7 @@ function Reconcile() {
   const ActionMenu = ({ item, section }) => (
     <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-10 backdrop-blur-sm">
       <div className="py-2">
-        <button 
+        <button
           onClick={() => {
             console.log(`View ${section} details:`, item.id);
             setActionMenuOpen(null);
@@ -266,7 +257,7 @@ function Reconcile() {
           <Eye className="w-4 h-4" />
           View Details
         </button>
-        <button 
+        <button
           onClick={() => {
             console.log(`Reconcile ${section}:`, item.id);
             setActionMenuOpen(null);
@@ -276,7 +267,7 @@ function Reconcile() {
           <CheckCircle className="w-4 h-4" />
           Reconcile Now
         </button>
-        <button 
+        <button
           onClick={() => {
             console.log(`Download ${section} report:`, item.id);
             setActionMenuOpen(null);
@@ -286,10 +277,10 @@ function Reconcile() {
           <Download className="w-4 h-4" />
           Download Report
         </button>
-        
+
         <div className="border-t border-gray-100 my-1"></div>
-        
-        <button 
+
+        <button
           onClick={() => {
             console.log(`Edit ${section}:`, item.id);
             setActionMenuOpen(null);
@@ -299,8 +290,8 @@ function Reconcile() {
           <Edit className="w-4 h-4" />
           Edit Account
         </button>
-        
-        <button 
+
+        <button
           onClick={() => {
             console.log(`Flag ${section}:`, item.id);
             setActionMenuOpen(null);
@@ -310,10 +301,10 @@ function Reconcile() {
           <AlertCircle className="w-4 h-4" />
           Flag for Review
         </button>
-        
+
         <div className="border-t border-gray-100 my-1"></div>
-        
-        <button 
+
+        <button
           onClick={() => {
             if (window.confirm(`Are you sure you want to delete this ${section} record?`)) {
               console.log(`Delete ${section}:`, item.id);
@@ -336,6 +327,105 @@ function Reconcile() {
     </svg>
   );
 
+  const downloadCSV = (filename, headers, rows) => {
+  const csvContent = [
+    headers.join(","), 
+    ...rows.map(row =>
+      row.map(value =>
+        `"${String(value).replace(/"/g, '""')}"`
+      ).join(",")
+    )
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+};
+
+const handleExport = () => {
+  // ---------------- GENERAL LEDGER ----------------
+  if (activeTab === "general-ledger") {
+    const headers = [
+      "Account Code",
+      "Account Name",
+      "GL Balance",
+      "Subsidiary Balance",
+      "Difference",
+      "Status",
+      "Last Reconciled"
+    ];
+
+    const rows = generalLedgerData.map(item => [
+      item.accountCode,
+      item.accountName,
+      item.glBalance,
+      item.bankBalance,
+      item.difference,
+      item.status,
+      item.lastReconciled
+    ]);
+
+    downloadCSV("general_ledger_reconciliation.csv", headers, rows);
+  }
+
+  // ---------------- BANK RECONCILIATION ----------------
+  if (activeTab === "bank-reconciliation") {
+    const headers = [
+      "Bank Name",
+      "Account Number",
+      "GL Balance",
+      "Bank Statement",
+      "Outstanding Cheques",
+      "Deposits in Transit",
+      "Adjusted Balance",
+      "Status"
+    ];
+
+    const rows = bankReconciliationData.map(item => [
+      item.bankName,
+      item.accountNo,
+      item.glBalance,
+      item.bankStatement,
+      item.outstandingCheques,
+      item.depositsInTransit,
+      item.adjustedBalance,
+      item.status
+    ]);
+
+    downloadCSV("bank_reconciliation.csv", headers, rows);
+  }
+
+  // ---------------- TRIAL BALANCE ----------------
+  if (activeTab === "trial-balance") {
+    const headers = [
+      "Account Code",
+      "Account Name",
+      "Type",
+      "Debit",
+      "Credit",
+      "Balance"
+    ];
+
+    const rows = trialBalanceData.map(item => [
+      item.accountCode,
+      item.accountName,
+      item.type,
+      item.debit,
+      item.credit,
+      item.balance
+    ]);
+
+    downloadCSV("trial_balance.csv", headers, rows);
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -344,7 +434,7 @@ function Reconcile() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg">
+                <div className="p-3 bg-blue-600 rounded-2xl">
                   <Scale className="w-8 h-8 text-white" />
                 </div>
                 <div>
@@ -352,7 +442,7 @@ function Reconcile() {
                   <p className="text-gray-600 mt-1">Maintain financial accuracy with advanced reconciliation tools</p>
                 </div>
               </div>
-              
+
               {/* Time Range Selector */}
               <div className="flex items-center gap-4 mt-6">
                 <div className="flex items-center gap-2">
@@ -376,93 +466,78 @@ function Reconcile() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
-                <RefreshCw className="w-5 h-5" />
-                Run Reconciliation
-              </button>
-              <button className="flex items-center gap-2 bg-white text-gray-700 px-5 py-3 rounded-xl hover:bg-gray-50 transition-all border border-gray-300 shadow-sm">
-                <Download className="w-5 h-5" />
-                Export Report
-              </button>
-            </div>
+            <ExportButton onClick={handleExport} />
           </div>
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Accounts</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{reconciliationSummary.totalAccounts}</p>
+            <StatusCard
+              title="Total Accounts"
+              value={reconciliationSummary.totalAccounts}
+              subtext={
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4 text-emerald-500" />
+                  <span className="text-emerald-600">+2 this month</span>
                 </div>
-                <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="flex items-center gap-1 mt-4 text-sm">
-                <TrendingUp className="w-4 h-4 text-emerald-500" />
-                <span className="text-emerald-600">+2 this month</span>
-              </div>
-            </div>
+              }
+              icon={FileText}
+              iconColor="blue"
+            />
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Reconciled Accounts</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{reconciliationSummary.reconciledAccounts}</p>
+            <StatusCard
+              title="Reconciled Accounts"
+              value={reconciliationSummary.reconciledAccounts}
+              subtext={
+                <div className="w-full">
+                  <div className="flex justify-between text-xs text-gray-500 mb-2">
+                    <span>Progress</span>
+                    <span>
+                      {Math.round((reconciliationSummary.reconciledAccounts / reconciliationSummary.totalAccounts) * 100)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(reconciliationSummary.reconciledAccounts / reconciliationSummary.totalAccounts) * 100}%`
+                      }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl">
-                  <CheckCircle className="w-8 h-8 text-emerald-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-gray-500 mb-2">
-                  <span>Progress</span>
-                  <span>{Math.round((reconciliationSummary.reconciledAccounts / reconciliationSummary.totalAccounts) * 100)}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-500" 
-                    style={{ width: `${(reconciliationSummary.reconciledAccounts / reconciliationSummary.totalAccounts) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+              }
+              icon={CheckCircle}
+              iconColor="green"
+            />
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
+            <StatusCard
+              title="Unreconciled"
+              value={reconciliationSummary.unreconciledAccounts}
+              subtext={
                 <div>
-                  <p className="text-sm text-gray-600">Unreconciled</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">{reconciliationSummary.unreconciledAccounts}</p>
+                  <span className="text-rose-600 font-medium">
+                    {formatCurrency(reconciliationSummary.totalDifference)}
+                  </span>
+                  <span className="text-gray-500 ml-2">total difference</span>
                 </div>
-                <div className="p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl">
-                  <XCircle className="w-8 h-8 text-rose-600" />
-                </div>
-              </div>
-              <div className="mt-4 text-sm">
-                <span className="text-rose-600 font-medium">{formatCurrency(reconciliationSummary.totalDifference)}</span>
-                <span className="text-gray-500 ml-2">total difference</span>
-              </div>
-            </div>
+              }
+              icon={XCircle}
+              iconColor="red"
+            />
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Trial Balance</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-2">
-                    {trialBalanceSummary.isBalanced ? 'Balanced' : 'Unbalanced'}
-                  </p>
+            <StatusCard
+              title="Trial Balance"
+              value={trialBalanceSummary.isBalanced ? 'Balanced' : 'Unbalanced'}
+              subtext={
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-500" />
+                  <span className="text-gray-700">
+                    {formatCurrency(trialBalanceSummary.totalDebit)} = {formatCurrency(trialBalanceSummary.totalCredit)}
+                  </span>
                 </div>
-                <div className="p-3 bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl">
-                  <Calculator className="w-8 h-8 text-violet-600" />
-                </div>
-              </div>
-              <div className="mt-4 text-sm flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-500" />
-                <span className="text-gray-700">{formatCurrency(trialBalanceSummary.totalDebit)} = {formatCurrency(trialBalanceSummary.totalCredit)}</span>
-              </div>
-            </div>
+              }
+              icon={Calculator}
+              iconColor="blue"
+            />
           </div>
         </div>
 
@@ -476,8 +551,8 @@ function Reconcile() {
                   setActiveTab('general-ledger');
                   setActionMenuOpen(null);
                 }}
-                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'general-ledger' 
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white' 
+                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'general-ledger'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white'
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
               >
                 <FileText className="w-5 h-5" />
@@ -491,8 +566,8 @@ function Reconcile() {
                   setActiveTab('bank-reconciliation');
                   setActionMenuOpen(null);
                 }}
-                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'bank-reconciliation' 
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white' 
+                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'bank-reconciliation'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white'
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
               >
                 <CreditCard className="w-5 h-5" />
@@ -506,8 +581,8 @@ function Reconcile() {
                   setActiveTab('trial-balance');
                   setActionMenuOpen(null);
                 }}
-                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'trial-balance' 
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white' 
+                className={`flex items-center gap-3 px-8 py-5 font-medium transition-all ${activeTab === 'trial-balance'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-gradient-to-r from-blue-50 to-white'
                   : 'text-gray-600 hover:text-blue-500 hover:bg-gray-50'}`}
               >
                 <Scale className="w-5 h-5" />
@@ -550,10 +625,7 @@ function Reconcile() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 px-4 py-3 rounded-xl hover:bg-blue-100 transition">
-                  <Lock className="w-5 h-5" />
-                  Lock Period
-                </button>
+                
                 <button className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition shadow-sm">
                   <Calendar className="w-5 h-5" />
                   Date Range
@@ -582,10 +654,7 @@ function Reconcile() {
                       <CheckCircle className="w-5 h-5" />
                       Reconcile All
                     </button>
-                    <button className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition shadow-sm">
-                      <Download className="w-5 h-5" />
-                      Export
-                    </button>
+                    
                   </div>
                 </div>
 
@@ -637,7 +706,7 @@ function Reconcile() {
                   </table>
                 </div>
 
-               
+
               </div>
             )}
 
@@ -763,10 +832,7 @@ function Reconcile() {
                       <Calculator className="w-5 h-5" />
                       Generate Trial Balance
                     </button>
-                    <button className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-3 rounded-xl hover:bg-gray-50 transition shadow-sm">
-                      <Download className="w-5 h-5" />
-                      Export
-                    </button>
+                    
                   </div>
                 </div>
 
@@ -865,32 +931,7 @@ function Reconcile() {
             )}
           </div>
 
-          {/* Footer */}
-          <div className="bg-gradient-to-r from-gray-50 to-slate-50 px-6 py-5 border-t border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-600 flex items-center gap-2">
-            
-                
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 transition">
-                  Previous
-                </button>
-                <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition shadow-md">
-                  1
-                </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 transition">
-                  2
-                </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 transition">
-                  3
-                </button>
-                <button className="px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 text-gray-700 transition">
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
+       
         </div>
 
         {/* Footer Notes */}
@@ -902,8 +943,8 @@ function Reconcile() {
             <div>
               <h4 className="text-lg font-semibold text-gray-800 mb-2">Reconciliation Guidelines</h4>
               <p className="text-sm text-gray-700">
-                All reconciliations should be completed by the 5th of each month. 
-                Unreconciled items older than 90 days must be investigated immediately. 
+                All reconciliations should be completed by the 5th of each month.
+                Unreconciled items older than 90 days must be investigated immediately.
                 Use the auto-reconcile feature for bulk processing and export reports for audit purposes.
               </p>
             </div>

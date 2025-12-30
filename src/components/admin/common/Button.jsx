@@ -6,10 +6,16 @@ function Button({ children, onClick, type = "button", className = "" }) {
     <button
       type={type}
       onClick={onClick}
-      className={`px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg 
-                  hover:bg-blue-700 active:bg-blue-800 transition-colors 
-                  duration-200 shadow-md focus:outline-none focus:ring-2 
-                  focus:ring-blue-400 focus:ring-opacity-75 ${className}`}
+      className={`inline-flex items-center gap-2
+        bg-blue-600 text-white
+        px-5 py-2.5
+        rounded-xl
+        font-medium
+        shadow-sm
+        hover:bg-blue-700
+        transition-all
+        disabled:opacity-60
+        disabled:cursor-not-allowed ${className}`}
     >
       {children}
     </button>
