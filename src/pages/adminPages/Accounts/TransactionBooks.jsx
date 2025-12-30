@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Filter,
@@ -21,13 +21,18 @@ import Button from "../../../components/admin/common/Button";
 import StatusCard from "../../../components/admin/common/StatusCard";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import TransactionBooksForm from "../../../components/admin/AdminForm/TransactionBooksForm";
+import Pagination from "../../../components/admin/common/Pagination";
 
 const TransactionBooks = () => {
-  const [activeBook, setActiveBook] = useState("cash"); // 'cash', 'bank', 'day'
+  const [activeBook, setActiveBook] = useState("cash");
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState("today");
   const [branch, setBranch] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // -------- PAGINATION STATE --------
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Loan Entry page की तरह
 
   // Sample data for Cash Book
   const cashBookData = [
@@ -40,6 +45,76 @@ const TransactionBooks = () => {
       credit: 0,
       balance: 15000,
       type: "opening",
+    },
+    {
+      id: 2,
+      date: "16 Mar 2024",
+      voucherNo: "CB-002",
+      particulars: "Cash Sales",
+      debit: 25000,
+      credit: 0,
+      balance: 40000,
+      type: "receipt",
+    },
+    {
+      id: 3,
+      date: "16 Mar 2024",
+      voucherNo: "CB-003",
+      particulars: "Office Expenses",
+      debit: 0,
+      credit: 5000,
+      balance: 35000,
+      type: "payment",
+    },
+    {
+      id: 4,
+      date: "17 Mar 2024",
+      voucherNo: "CB-004",
+      particulars: "Customer Payment",
+      debit: 15000,
+      credit: 0,
+      balance: 50000,
+      type: "receipt",
+    },
+    {
+      id: 5,
+      date: "17 Mar 2024",
+      voucherNo: "CB-005",
+      particulars: "Salary Payment",
+      debit: 0,
+      credit: 20000,
+      balance: 30000,
+      type: "payment",
+    },
+    {
+      id: 6,
+      date: "18 Mar 2024",
+      voucherNo: "CB-006",
+      particulars: "Service Revenue",
+      debit: 18000,
+      credit: 0,
+      balance: 48000,
+      type: "receipt",
+    },
+    {
+      id: 7,
+      date: "18 Mar 2024",
+      voucherNo: "CB-007",
+      particulars: "Rent Payment",
+      debit: 0,
+      credit: 15000,
+      balance: 33000,
+      type: "payment",
+    },
+    {
+      id: 8,
+      date: "19 Mar 2024",
+      voucherNo: "CB-008",
+      particulars: "Consultation Fees",
+      debit: 12000,
+      credit: 0,
+      balance: 45000,
+      type: "receipt",
     },
   ];
 
@@ -57,6 +132,90 @@ const TransactionBooks = () => {
       bank: "SBI",
       status: "cleared",
     },
+    {
+      id: 2,
+      date: "16 Mar 2024",
+      chequeNo: "456790",
+      voucherNo: "BB-002",
+      particulars: "Loan Disbursement - HDFC",
+      debit: 100000,
+      credit: 0,
+      balance: 150000,
+      bank: "HDFC",
+      status: "cleared",
+    },
+    {
+      id: 3,
+      date: "17 Mar 2024",
+      chequeNo: "456791",
+      voucherNo: "BB-003",
+      particulars: "Supplier Payment",
+      debit: 0,
+      credit: 25000,
+      balance: 125000,
+      bank: "SBI",
+      status: "pending",
+    },
+    {
+      id: 4,
+      date: "18 Mar 2024",
+      chequeNo: "456792",
+      voucherNo: "BB-004",
+      particulars: "Interest Received",
+      debit: 5000,
+      credit: 0,
+      balance: 130000,
+      bank: "ICICI",
+      status: "cleared",
+    },
+    {
+      id: 5,
+      date: "19 Mar 2024",
+      chequeNo: "456793",
+      voucherNo: "BB-005",
+      particulars: "Office Rent",
+      debit: 0,
+      credit: 30000,
+      balance: 100000,
+      bank: "SBI",
+      status: "cleared",
+    },
+    {
+      id: 6,
+      date: "20 Mar 2024",
+      chequeNo: "456794",
+      voucherNo: "BB-006",
+      particulars: "Client Payment",
+      debit: 40000,
+      credit: 0,
+      balance: 140000,
+      bank: "HDFC",
+      status: "pending",
+    },
+    {
+      id: 7,
+      date: "21 Mar 2024",
+      chequeNo: "456795",
+      voucherNo: "BB-007",
+      particulars: "Tax Payment",
+      debit: 0,
+      credit: 15000,
+      balance: 125000,
+      bank: "ICICI",
+      status: "cleared",
+    },
+    {
+      id: 8,
+      date: "22 Mar 2024",
+      chequeNo: "456796",
+      voucherNo: "BB-008",
+      particulars: "Investment Return",
+      debit: 20000,
+      credit: 0,
+      balance: 145000,
+      bank: "SBI",
+      status: "cleared",
+    },
   ];
 
   // Sample data for Day Book
@@ -71,14 +230,78 @@ const TransactionBooks = () => {
       credit: 0,
       voucherType: "Journal",
     },
+    {
+      id: 2,
+      date: "16 Mar 2024",
+      voucherNo: "PV-001",
+      ledger: "Office Expenses",
+      particulars: "Stationery Purchase",
+      debit: 5000,
+      credit: 0,
+      voucherType: "Payment",
+    },
+    {
+      id: 3,
+      date: "16 Mar 2024",
+      voucherNo: "RV-001",
+      ledger: "Sales Account",
+      particulars: "Service Revenue",
+      debit: 0,
+      credit: 25000,
+      voucherType: "Receipt",
+    },
+    {
+      id: 4,
+      date: "17 Mar 2024",
+      voucherNo: "JV-002",
+      ledger: "Bank Account",
+      particulars: "Bank Transfer",
+      debit: 10000,
+      credit: 10000,
+      voucherType: "Journal",
+    },
+    {
+      id: 5,
+      date: "18 Mar 2024",
+      voucherNo: "CV-001",
+      voucherNo: "CV-001",
+      ledger: "Customer Payment",
+      particulars: "Received from ABC Corp",
+      debit: 0,
+      credit: 30000,
+      voucherType: "Contra",
+    },
+    {
+      id: 6,
+      date: "19 Mar 2024",
+      voucherNo: "PV-002",
+      ledger: "Salary Account",
+      particulars: "March Salary",
+      debit: 45000,
+      credit: 0,
+      voucherType: "Payment",
+    },
+    {
+      id: 7,
+      date: "20 Mar 2024",
+      voucherNo: "RV-002",
+      ledger: "Interest Account",
+      particulars: "Interest Received",
+      debit: 0,
+      credit: 5000,
+      voucherType: "Receipt",
+    },
+    {
+      id: 8,
+      date: "21 Mar 2024",
+      voucherNo: "JV-003",
+      ledger: "Tax Account",
+      particulars: "Tax Adjustment",
+      debit: 8000,
+      credit: 8000,
+      voucherType: "Journal",
+    },
   ];
-
-  // Calculate totals
-  const calculateTotals = (data) => {
-    const totalDebit = data.reduce((sum, item) => sum + item.debit, 0);
-    const totalCredit = data.reduce((sum, item) => sum + item.credit, 0);
-    return { totalDebit, totalCredit };
-  };
 
   // Get current book data
   const getCurrentData = () => {
@@ -94,8 +317,38 @@ const TransactionBooks = () => {
     }
   };
 
-  const currentData = getCurrentData();
-  const currentTotals = calculateTotals(currentData);
+  // Filter data based on search
+  const filteredData = useMemo(() => {
+    const data = getCurrentData();
+    if (!searchTerm.trim()) return data;
+    
+    return data.filter(item => 
+      item.particulars.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.voucherNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.ledger && item.ledger.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.bank && item.bank.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [activeBook, searchTerm]);
+
+  // -------- PAGINATION CALCULATIONS --------
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  // Reset to page 1 when book or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeBook, searchTerm]);
+
+  // Calculate totals for current page data
+  const calculateTotals = (data) => {
+    const totalDebit = data.reduce((sum, item) => sum + item.debit, 0);
+    const totalCredit = data.reduce((sum, item) => sum + item.credit, 0);
+    return { totalDebit, totalCredit };
+  };
+
+  const currentTotals = calculateTotals(paginatedData);
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -374,339 +627,294 @@ const TransactionBooks = () => {
 
   // handle export function
   const handleExportExcel = () => {
-  const data = getCurrentData();
+    const data = getCurrentData();
 
-  if (!data || data.length === 0) {
-    alert("No data available to export");
-    return;
-  }
+    if (!data || data.length === 0) {
+      alert("No data available to export");
+      return;
+    }
 
-  let headers = [];
-  let rows = [];
+    let headers = [];
+    let rows = [];
 
-  if (activeBook === "cash") {
-    headers = [
-      "Date",
-      "Voucher No",
-      "Particulars",
-      "Debit",
-      "Credit",
-      "Balance",
-      "Type",
-    ];
+    if (activeBook === "cash") {
+      headers = [
+        "Date",
+        "Voucher No",
+        "Particulars",
+        "Debit",
+        "Credit",
+        "Balance",
+        "Type",
+      ];
 
-    rows = data.map(item => [
-      item.date,
-      item.voucherNo,
-      item.particulars,
-      item.debit,
-      item.credit,
-      item.balance,
-      item.type,
-    ]);
-  }
+      rows = data.map(item => [
+        item.date,
+        item.voucherNo,
+        item.particulars,
+        item.debit,
+        item.credit,
+        item.balance,
+        item.type,
+      ]);
+    }
 
-  if (activeBook === "bank") {
-    headers = [
-      "Date",
-      "Voucher No",
-      "Cheque No",
-      "Bank",
-      "Particulars",
-      "Debit",
-      "Credit",
-      "Balance",
-      "Status",
-    ];
+    if (activeBook === "bank") {
+      headers = [
+        "Date",
+        "Voucher No",
+        "Cheque No",
+        "Bank",
+        "Particulars",
+        "Debit",
+        "Credit",
+        "Balance",
+        "Status",
+      ];
 
-    rows = data.map(item => [
-      item.date,
-      item.voucherNo,
-      item.chequeNo,
-      item.bank,
-      item.particulars,
-      item.debit,
-      item.credit,
-      item.balance,
-      item.status,
-    ]);
-  }
+      rows = data.map(item => [
+        item.date,
+        item.voucherNo,
+        item.chequeNo,
+        item.bank,
+        item.particulars,
+        item.debit,
+        item.credit,
+        item.balance,
+        item.status,
+      ]);
+    }
 
-  if (activeBook === "day") {
-    headers = [
-      "Date",
-      "Voucher No",
-      "Ledger",
-      "Particulars",
-      "Voucher Type",
-      "Debit",
-      "Credit",
-    ];
+    if (activeBook === "day") {
+      headers = [
+        "Date",
+        "Voucher No",
+        "Ledger",
+        "Particulars",
+        "Voucher Type",
+        "Debit",
+        "Credit",
+      ];
 
-    rows = data.map(item => [
-      item.date,
-      item.voucherNo,
-      item.ledger,
-      item.particulars,
-      item.voucherType,
-      item.debit,
-      item.credit,
-    ]);
-  }
+      rows = data.map(item => [
+        item.date,
+        item.voucherNo,
+        item.ledger,
+        item.particulars,
+        item.voucherType,
+        item.debit,
+        item.credit,
+      ]);
+    }
 
-  // 👉 CSV content create
-  const csvContent =
-    [headers, ...rows]
-      .map(row => row.map(value => `"${value ?? ""}"`).join(","))
-      .join("\n");
+    // 👉 CSV content create
+    const csvContent =
+      [headers, ...rows]
+        .map(row => row.map(value => `"${value ?? ""}"`).join(","))
+        .join("\n");
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${activeBook}_book_${new Date()
-    .toISOString()
-    .slice(0, 10)}.csv`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${activeBook}_book_${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
 
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-
-
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-blue-600" />
-              Transaction Books
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Manage cash, bank, and day book transactions
-            </p>
-          </div>
+    <div className="w-full min-h-screen bg-gray-50 p-6 lg:p-10">
 
-          <div className="flex items-center gap-2 mt-4 md:mt-0">
-            
-            <Button
+      {/* Header Section - Loan Entry page की तरह */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Transaction Books</h1>
+          <p className="text-gray-500 mt-1">Manage cash, bank, and day book transactions</p>
+        </div>
+        <div className="flex gap-3">
+          <ExportButton
+            label="Export"
+            onClick={handleExportExcel}
+          />
+          <Button
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2
-              ">
-              <Plus className="h-4 w-4" />
-              New Transaction
-            </Button>
-            <TransactionBooksForm
+            className="inline-flex items-center gap-2 px-4 py-2.5"
+          >
+            <Plus className="h-4 w-4" />
+            New Transaction
+          </Button>
+          <TransactionBooksForm
             isOpen={isModalOpen} 
             onClose={() => setIsModalOpen(false)}
-            />
-          </div>
+          />
         </div>
-
-       {/* Stats Cards */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-  <StatusCard
-    title="Cash Book Balance"
-    value={formatCurrency(7000)}
-    icon={IndianRupee}
-    iconColor="blue"
-    subtext={
-      <span className="flex items-center gap-2">
-        <TrendingUp className="h-4 w-4 text-green-500" />
-        <span className="text-xs text-green-600 font-medium">
-          ₹2,000 incoming
-        </span>
-      </span>
-    }
-  />
-
-  <StatusCard
-    title="Bank Book Balance"
-    value={formatCurrency(54500)}
-    icon={Building}
-    iconColor="green"
-    subtext={
-      <span className="flex items-center gap-2">
-        <TrendingDown className="h-4 w-4 text-red-500" />
-        <span className="text-xs text-red-600 font-medium">
-          ₹15,500 outgoing
-        </span>
-      </span>
-    }
-  />
-
-  <StatusCard
-    title="Day Book Summary"
-    value="6 transactions"
-    icon={FileText}
-    iconColor="orange"
-    subtext={
-      <div className="flex items-center">
-        <span className="text-xs font-medium text-green-600">
-          ₹30,000 Cr
-        </span>
-        <span className="mx-1 text-gray-400">|</span>
-        <span className="text-xs font-medium text-red-600">
-          ₹18,000 Dr
-        </span>
-      </div>
-    }
-  />
-</div>
       </div>
 
-      {/* Book Selection Tabs */}
-      <div className="bg-white rounded-xl border border-gray-200 mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
-            {[
-              {
-                id: "cash",
-                label: "Cash Book",
-                icon: IndianRupee,
-                count: cashBookData.length,
-              },
-              {
-                id: "bank",
-                label: "Bank Book",
-                icon: Building,
-                count: bankBookData.length,
-              },
-              {
-                id: "day",
-                label: "Day Book",
-                icon: FileText,
-                count: dayBookData.length,
-              },
-            ].map((book) => (
-              <button
-                key={book.id}
-                onClick={() => setActiveBook(book.id)}
-                className={`
-                  flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2
-                  ${
-                    activeBook === book.id
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }
-                `}
-              >
-                <book.icon className="h-4 w-4" />
-                {book.label}
-                <span className="ml-1 bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">
-                  {book.count}
-                </span>
-              </button>
-            ))}
-          </nav>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <StatusCard
+          title="Cash Book Balance"
+          value={formatCurrency(33000)}
+          icon={IndianRupee}
+          iconColor="blue"
+          subtext={
+            <span className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs text-green-600 font-medium">
+                ₹18,000 incoming
+              </span>
+            </span>
+          }
+        />
 
-        {/* Filters Bar */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <StatusCard
+          title="Bank Book Balance"
+          value={formatCurrency(145000)}
+          icon={Building}
+          iconColor="green"
+          subtext={
+            <span className="flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-red-500" />
+              <span className="text-xs text-red-600 font-medium">
+                ₹40,000 outgoing
+              </span>
+            </span>
+          }
+        />
+
+        <StatusCard
+          title="Day Book Summary"
+          value={`${filteredData.length} transactions`}
+          icon={FileText}
+          iconColor="orange"
+          subtext={
+            <div className="flex items-center">
+              <span className="text-xs font-medium text-green-600">
+                ₹93,000 Cr
+              </span>
+              <span className="mx-1 text-gray-400">|</span>
+              <span className="text-xs font-medium text-red-600">
+                ₹78,000 Dr
+              </span>
+            </div>
+          }
+        />
+      </div>
+
+      {/* Main Content Area - Loan Entry page की तरह */}
+      <div className="bg-white shadow-sm rounded-2xl border border-gray-200 h-[520px] relative">
+        <div className="p-6">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">
+                {activeBook === "cash" ? "Cash Book" : 
+                 activeBook === "bank" ? "Bank Book" : "Day Book"}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredData.length)} of {filteredData.length} transactions
+              </p>
+            </div>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-initial">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input
                   type="text"
                   placeholder="Search transactions..."
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <select
-                  value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
-                  className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-                >
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="thisWeek">This Week</option>
-                  <option value="thisMonth">This Month</option>
-                  <option value="lastMonth">Last Month</option>
-                  <option value="custom">Custom Range</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              
+              {/* Book Selection Tabs */}
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
+                {[
+                  { id: "cash", label: "Cash", icon: IndianRupee },
+                  { id: "bank", label: "Bank", icon: Building },
+                  { id: "day", label: "Day", icon: FileText },
+                ].map((book) => (
+                  <button
+                    key={book.id}
+                    onClick={() => setActiveBook(book.id)}
+                    className={`
+                      flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all
+                      ${activeBook === book.id
+                        ? "bg-white text-blue-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                      }
+                    `}
+                  >
+                    <book.icon className="h-4 w-4" />
+                    {book.label}
+                  </button>
+                ))}
               </div>
-
-              <div className="relative">
-                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <select
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-                >
-                  <option value="all">All Branches</option>
-                  <option value="main">Main Branch</option>
-                  <option value="north">North Branch</option>
-                  <option value="south">South Branch</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-              </div>
-                <ExportButton onClick={handleExportExcel}/>
             </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>{renderTableHeaders()}</tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  {renderTableRow(item)}
+          <div className="h-[340px] overflow-y-auto overflow-x-auto rounded-xl border border-gray-100">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50/50 border-b text-left">
+                  {renderTableHeaders()}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedData.length > 0 ? paginatedData.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                    {renderTableRow(item)}
+                  </tr>
+                )) : (
+                  <tr>
+                    <td 
+                      colSpan={activeBook === "cash" ? 7 : activeBook === "bank" ? 9 : 7} 
+                      className="text-center py-10 text-gray-400"
+                    >
+                      No transactions found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Summary Footer */}
-        <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing <span className="font-medium">{currentData.length}</span>{" "}
-              transactions
-            </div>
-            <div className="flex items-center gap-6 mt-2 md:mt-0">
-              <div className="text-sm">
-                <span className="font-medium text-green-600">
-                  Total Debit: {formatCurrency(currentTotals.totalDebit)}
-                </span>
-              </div>
-              <div className="text-sm">
-                <span className="font-medium text-red-600">
-                  Total Credit: {formatCurrency(currentTotals.totalCredit)}
-                </span>
-              </div>
-              {activeBook !== "day" && (
-                <div className="text-sm">
-                  <span className="font-medium text-blue-600">
-                    Closing Balance:{" "}
-                    {formatCurrency(
-                      currentData[currentData.length - 1]?.balance || 0
-                    )}
-                  </span>
+          {/* PAGINATION COMPONENT - Exactly Loan Entry page ki tarah */}
+          <div className="absolute bottom-0 left-0 right-0 h-[64px] bg-white border-t border-gray-200 px-6">
+            <div className="flex items-center justify-between h-full">
+              <div className="flex items-center gap-6">
+                <div className="text-sm text-gray-500">
+                  Showing {startIndex + 1}–{Math.min(endIndex, filteredData.length)} of {filteredData.length}
                 </div>
-              )}
+                <div className="flex items-center gap-6">
+                  <div className="text-sm">
+                    <span className="font-medium text-green-600">
+                      Total Debit: {formatCurrency(currentTotals.totalDebit)}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium text-red-600">
+                      Total Credit: {formatCurrency(currentTotals.totalCredit)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                containerClassName="justify-end"
+                buttonClassName="hover:bg-gray-100 transition-colors"
+                activeButtonClassName="bg-blue-600 text-white"
+              />
             </div>
           </div>
+
         </div>
       </div>
     </div>

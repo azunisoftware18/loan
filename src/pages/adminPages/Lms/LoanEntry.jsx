@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { 
-  Search, 
-  Filter, 
-  Eye, 
-  Check, 
+import {
+  Search,
+  Filter,
+  Eye,
+  Check,
   X
 } from "lucide-react";
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
@@ -15,7 +15,7 @@ export default function LoanEntry() {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // हर page पर कितने items show होंगे
-  
+
   // Sample data for applications (Unique IDs और varied data के साथ)
   const [applications, setApplications] = useState([
     { id: 1, customer: "Rahul Sharma", loanAmount: "₹50,000", status: "Pending", applicationDate: "2025-01-15", type: "Personal" },
@@ -50,12 +50,12 @@ export default function LoanEntry() {
   const handleExport = () => {
     const headers = ["Customer", "Loan Type", "Amount", "Status", "Application Date"];
     const rows = applications.map(app => [
-        app.customer,
-        app.type,
-        app.loanAmount,
-        app.status,
-        app.applicationDate,
-      ]);
+      app.customer,
+      app.type,
+      app.loanAmount,
+      app.status,
+      app.applicationDate,
+    ]);
 
     const csvContent = [headers, ...rows]
       .map(row => row.join(","))
@@ -103,21 +103,21 @@ export default function LoanEntry() {
 
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 lg:p-10">
-      
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Loan Management</h1>
           <p className="text-gray-500 mt-1">Manage loan applications and approvals.</p>
         </div>
-        <ExportButton 
+        <ExportButton
           label="Export"
           onClick={handleExport}
         />
       </div>
 
       {/* Main Content Area */}
-      <div className="bg-white shadow-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[500px]">
+      <div className="bg-white shadow-sm rounded-2xl border border-gray-200 h-[520px] relative">
         <div className="p-6">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -137,7 +137,9 @@ export default function LoanEntry() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
+          <div className="h-[340px] overflow-y-auto overflow-x-auto rounded-xl border border-gray-100">
+
+
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b text-left">
@@ -175,39 +177,46 @@ export default function LoanEntry() {
                     </td>
 
                     <td className="p-4 text-right">
-                      <ActionMenu
-                        position="bottom-right"
-                        showStatus
-                        statusInfo={{
-                          title: app.customer,
-                          status: app.status.toLowerCase(),
-                          statusText: app.status,
-                          subtitle: app.applicationDate
-                        }}
-                        items={[
-                          {
-                            label: "View Details",
-                            icon: <Eye size={16} />,
-                            onClick: () => setSelectedLoan(app)
-                          },
-                          {
-                            label: "Approve Loan",
-                            icon: <Check size={16} />,
-                            onClick: () => updateStatus(app.id, "Approved"),
-                            disabled: app.status === "Approved",
-                            badge: app.status === "Approved" ? "Done" : null,
-                            badgeColor: "green"
-                          },
-                          {
-                            label: "Reject Loan",
-                            icon: <X size={16} />,
-                            danger: true,
-                            onClick: () => updateStatus(app.id, "Rejected"),
-                            disabled: app.status === "Rejected"
-                          }
-                        ]}
-                      />
-                    </td>
+  <div
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+  >
+    <ActionMenu
+  position="bottom-right"
+  showStatus
+  statusInfo={{
+    title: app.customer,
+    status: app.status.toLowerCase(),
+    statusText: app.status,
+    subtitle: app.applicationDate
+  }}
+  items={[
+    {
+      label: "View Details",
+      icon: Eye,   // ✅ FIX
+      onClick: () => setSelectedLoan(app)
+    },
+    {
+      label: "Approve Loan",
+      icon: Check, // ✅ FIX
+      onClick: () => updateStatus(app.id, "Approved"),
+      disabled: app.status === "Approved"
+    },
+    {
+      label: "Reject Loan",
+      icon: X,     // ✅ FIX
+      danger: true,
+      onClick: () => updateStatus(app.id, "Rejected"),
+      disabled: app.status === "Rejected"
+    }
+  ]}
+/>
+
+  </div>
+</td>
+
                   </tr>
                 ))}
               </tbody>
@@ -215,14 +224,23 @@ export default function LoanEntry() {
           </div>
 
           {/* PAGINATION COMPONENT */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            containerClassName="justify-end mt-6"
-            buttonClassName="hover:bg-gray-100 transition-colors"
-            activeButtonClassName="bg-blue-600 text-white"
-          />
+          <div className="absolute bottom-0 left-0 right-0 h-[64px] bg-white border-t border-gray-200 px-6">
+            <div className="flex items-center justify-between h-full">
+              <p className="text-sm text-gray-500">
+                Showing {startIndex + 1}–{Math.min(endIndex, applications.length)} of {applications.length}
+              </p>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                containerClassName="justify-end"
+                buttonClassName="hover:bg-gray-100 transition-colors"
+                activeButtonClassName="bg-blue-600 text-white"
+              />
+            </div>
+          </div>
+
         </div>
       </div>
 
