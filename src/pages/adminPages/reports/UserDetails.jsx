@@ -67,7 +67,7 @@
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">User Lead Management</h1>
             <p className="text-gray-600">Manage and view all loan application details</p>
           </div>
 

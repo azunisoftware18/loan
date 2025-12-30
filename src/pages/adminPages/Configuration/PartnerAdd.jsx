@@ -5,7 +5,7 @@ import {
   Search, Trash2, Edit, Eye, UploadCloud, X, Download, Filter, Calendar,
   DollarSign, Users, Target, BarChart, Settings, Home, Bell, MessageSquare,
   Handshake, Network, Star, Award, TrendingUp, FileCheck, Send, Clock4, AlertCircle,
-  MoreVertical, Presentation, CalendarDays, CheckCircle, XCircle, Clock
+  MoreVertical, Presentation, CalendarDays, CheckCircle, XCircle, Clock, Key
 } from 'lucide-react';
 
 export default function PartnerAdd() {
@@ -19,15 +19,19 @@ export default function PartnerAdd() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewData, setViewData] = useState(null);
 
-  // --- PRESENTATION/TASK MODAL STATE ---
+  // --- TASK MODAL STATE ---
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [tasks, setTasks] = useState([]);
   
+  // --- PERMISSIONS MODAL STATE ---
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [selectedPartnerForPermissions, setSelectedPartnerForPermissions] = useState(null);
+  
   // --- SEARCH & FILTER STATE ---
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All'); // All, Active, Inactive, Suspended
-  const [filterType, setFilterType] = useState('All'); // All types
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterType, setFilterType] = useState('All');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   
   // --- 3-DOTS MENU STATE ---
@@ -42,7 +46,6 @@ export default function PartnerAdd() {
   
   // --- FORM STATE ---
   const initialFormState = {
-    // 1. Basic Info
     companyName: '', 
     partnerName: '', 
     email: '', 
@@ -50,10 +53,9 @@ export default function PartnerAdd() {
     altPhone: '',
     website: '',
     establishedYear: '',
-    partnerType: 'Individual', // Individual, Company, Institution
+    partnerType: 'Individual',
     businessNature: '',
     
-    // 2. Address & Contact
     address: '', 
     city: '', 
     state: '', 
@@ -62,7 +64,6 @@ export default function PartnerAdd() {
     contactPerson: '',
     contactPersonDesignation: '',
     
-    // 3. Business Details
     partnerId: '',
     businessCategory: 'Finance',
     specialization: '',
@@ -72,34 +73,29 @@ export default function PartnerAdd() {
     gstNo: '',
     panNo: '',
     
-    // 4. Documents
     companyLogo: null,
     panDoc: null,
     gstDoc: null,
     licenseDoc: null,
     agreementDoc: null,
     
-    // 5. Bank Details
     accountHolder: '', 
     bankName: '', 
     accountNo: '', 
     ifsc: '', 
     upiId: '',
     
-    // 6. Commission & Payments
-    commissionType: 'Percentage', // Percentage, Fixed
+    commissionType: 'Percentage',
     commissionValue: '',
-    paymentCycle: 'Monthly', // Monthly, Quarterly, Per Transaction
+    paymentCycle: 'Monthly',
     minimumPayout: '',
     taxDeduction: '',
     
-    // 7. Performance & Targets
     monthlyTarget: '',
     quarterlyTarget: '',
     annualTarget: '',
-    performanceRating: '3', // 1-5
+    performanceRating: '3',
     
-    // 8. Status & Permissions
     status: 'Active',
     partnershipDate: '',
     renewalDate: '',
@@ -111,7 +107,6 @@ export default function PartnerAdd() {
       manageSubAgents: false 
     },
     
-    // 9. Login Credentials (if portal access)
     username: '',
     password: '',
     portalAccess: false
@@ -140,6 +135,22 @@ export default function PartnerAdd() {
     { value: '4', label: 'Good', color: 'bg-green-100 text-green-800' },
     { value: '5', label: 'Excellent', color: 'bg-blue-100 text-blue-800' }
   ];
+
+  // Partner Page Access Options
+  const partnerPageAccessOptions = [
+    { id: 'dashboard', name: 'Dashboard', icon: <Home size={16} />, description: 'Partner dashboard overview' },
+    { id: 'leads', name: 'Leads Management', icon: <Target size={16} />, description: 'View and manage leads' },
+    { id: 'customers', name: 'Customer Management', icon: <Users size={16} />, description: 'View and manage customers' },
+    { id: 'reports', name: 'Reports & Analytics', icon: <BarChart size={16} />, description: 'View performance reports' },
+    { id: 'commissions', name: 'Commission Reports', icon: <DollarSign size={16} />, description: 'View commission statements' },
+    { id: 'documents', name: 'Document Upload', icon: <FileText size={16} />, description: 'Upload customer documents' },
+    { id: 'notifications', name: 'Notifications', icon: <Bell size={16} />, description: 'View system notifications' },
+    { id: 'profile', name: 'Partner Profile', icon: <User size={16} />, description: 'View and edit partner profile' },
+    { id: 'subagents', name: 'Sub-Agents', icon: <Users size={16} />, description: 'Manage sub-agents (if applicable)' },
+  ];
+
+  // Page Access State for each partner
+  const [partnerPageAccess, setPartnerPageAccess] = useState({});
 
   // --- MOCK DATA ---
   const [partners, setPartners] = useState([
@@ -395,6 +406,25 @@ export default function PartnerAdd() {
     setTasks(mockTasks);
   }, []);
 
+  // Initialize page access for partners
+  useEffect(() => {
+    const initialAccess = {};
+    partners.forEach(partner => {
+      initialAccess[partner.partnerId] = {
+        dashboard: true,
+        leads: partner.permissions?.viewLeads || false,
+        customers: partner.permissions?.addCustomers || false,
+        reports: partner.permissions?.viewReports || false,
+        commissions: true,
+        documents: true,
+        notifications: true,
+        profile: true,
+        subagents: partner.permissions?.manageSubAgents || false
+      };
+    });
+    setPartnerPageAccess(initialAccess);
+  }, [partners]);
+
   // --- FILTERED DATA LOGIC ---
   const filteredPartners = partners.filter(partner => {
       const matchesSearch = 
@@ -416,7 +446,12 @@ export default function PartnerAdd() {
     return tasks.filter(p => p.partnerId === partnerId);
   };
 
-  // --- EXPORT HANDLER (CSV for Excel) ---
+  // Get page access for selected partner
+  const getPartnerPageAccess = (partnerId) => {
+    return partnerPageAccess[partnerId] || {};
+  };
+
+  // --- EXPORT HANDLER ---
   const handleExport = () => {
       let csvContent = "data:text/csv;charset=utf-8,";
       csvContent += "Partner ID,Company Name,Contact Person,Email,Phone,Type,Status,Commission,Monthly Target,Performance Rating\n";
@@ -464,6 +499,49 @@ export default function PartnerAdd() {
   const handleTaskFormChange = (e) => {
     const { name, value } = e.target;
     setTaskForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // --- PERMISSIONS HANDLERS ---
+  const handlePermissionsClick = (partner) => {
+    setSelectedPartnerForPermissions(partner);
+    setShowPermissionsModal(true);
+    setShowActionMenu(null);
+  };
+
+  const handleClosePermissionsModal = () => {
+    setShowPermissionsModal(false);
+    setSelectedPartnerForPermissions(null);
+  };
+
+  const handlePartnerPageAccessChange = (partnerId, pageId, checked) => {
+    setPartnerPageAccess(prev => ({
+      ...prev,
+      [partnerId]: {
+        ...prev[partnerId],
+        [pageId]: checked
+      }
+    }));
+  };
+
+  const handleSavePartnerPermissions = () => {
+    if (selectedPartnerForPermissions) {
+      const updatedPermissions = {
+        viewLeads: partnerPageAccess[selectedPartnerForPermissions.partnerId]?.leads || false,
+        addCustomers: partnerPageAccess[selectedPartnerForPermissions.partnerId]?.customers || false,
+        viewReports: partnerPageAccess[selectedPartnerForPermissions.partnerId]?.reports || false,
+        accessPortal: true,
+        manageSubAgents: partnerPageAccess[selectedPartnerForPermissions.partnerId]?.subagents || false
+      };
+
+      setPartners(prev => prev.map(partner => 
+        partner.id === selectedPartnerForPermissions.id 
+          ? { ...partner, permissions: updatedPermissions }
+          : partner
+      ));
+
+      alert(`Permissions updated for ${selectedPartnerForPermissions.companyName} successfully!`);
+      handleClosePermissionsModal();
+    }
   };
 
   const handleAssignTask = (e) => {
@@ -532,7 +610,7 @@ export default function PartnerAdd() {
           ["GST No", viewData.gstNo || 'N/A'],
           ["PAN No", viewData.panNo],
           ["Bank Name", viewData.bankName],
-          ["Account No", `'${viewData.accountNo || viewData.accountNo}`],
+          ["Account No", `'${viewData.accountNo}`],
           ["IFSC Code", viewData.ifsc],
           ["UPI ID", viewData.upiId || 'N/A'],
           ["Commission Type", viewData.commissionType],
@@ -559,7 +637,6 @@ export default function PartnerAdd() {
   };
 
   // --- FORM HANDLERS ---
-
   const resetForm = () => {
       setFormData(initialFormState);
       setErrors({});
@@ -774,12 +851,11 @@ export default function PartnerAdd() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 lg:p-10 relative">
       
-      {/* VIEW MODAL OVERLAY */}
+      {/* VIEW MODAL */}
       {showViewModal && viewData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                 
-                {/* Modal Header */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg font-bold">
@@ -800,11 +876,9 @@ export default function PartnerAdd() {
                     </div>
                 </div>
 
-                {/* Modal Content - Scrollable */}
                 <div className="p-6 overflow-y-auto custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         
-                        {/* Section 1: Basic Info */}
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Company Details</h3>
@@ -828,7 +902,6 @@ export default function PartnerAdd() {
                             </div>
                         </div>
 
-                        {/* Section 2: Business Details */}
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Business Information</h3>
@@ -853,7 +926,6 @@ export default function PartnerAdd() {
                             </div>
                         </div>
 
-                        {/* Section 3: Financial Details */}
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Commission & Payments</h3>
@@ -875,13 +947,12 @@ export default function PartnerAdd() {
                             </div>
                         </div>
 
-                        {/* Section 4: Banking & Performance */}
                         <div className="space-y-6">
                             <div>
                                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">Banking Details</h3>
                                 <div className="bg-gray-50 p-4 rounded-xl space-y-2 text-sm">
                                     <div className="flex justify-between"><span>Bank Name:</span> <span className="font-bold text-gray-800">{viewData.bankName}</span></div>
-                                    <div className="flex justify-between"><span>Account No:</span> <span className="font-mono text-gray-800">{viewData.accountNo || viewData.bankAccountNo}</span></div>
+                                    <div className="flex justify-between"><span>Account No:</span> <span className="font-mono text-gray-800">{viewData.accountNo}</span></div>
                                     <div className="flex justify-between"><span>IFSC Code:</span> <span className="font-mono text-gray-800">{viewData.ifsc}</span></div>
                                     <div className="flex justify-between"><span>Account Holder:</span> <span className="font-medium text-gray-800">{viewData.accountHolder}</span></div>
                                     {viewData.upiId && (
@@ -926,7 +997,6 @@ export default function PartnerAdd() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
             
-            {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
@@ -945,10 +1015,8 @@ export default function PartnerAdd() {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="p-6 overflow-y-auto">
               
-              {/* Existing Tasks */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <FileCheck size={18} /> Existing Tasks
@@ -1016,7 +1084,6 @@ export default function PartnerAdd() {
                 )}
               </div>
 
-              {/* Assign New Task Form */}
               <div className="bg-green-50 rounded-xl p-6 border border-green-100">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <Send size={18} /> Assign New Task
@@ -1128,6 +1195,129 @@ export default function PartnerAdd() {
         </div>
       )}
 
+      {/* PERMISSIONS MODAL */}
+      {showPermissionsModal && selectedPartnerForPermissions && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            
+            <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800">Manage Partner Permissions</h2>
+                  <p className="text-sm text-gray-500">Managing: {selectedPartnerForPermissions.companyName} ({selectedPartnerForPermissions.partnerId})</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleClosePermissionsModal}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <ShieldCheck size={18} /> Page Access Control
+                </h3>
+                <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 mb-6">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Select which pages this partner can access in the partner portal. This controls their navigation menu and available features.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {partnerPageAccessOptions.map((page) => {
+                      const currentAccess = getPartnerPageAccess(selectedPartnerForPermissions.partnerId);
+                      const isChecked = currentAccess[page.id] || false;
+                      
+                      return (
+                        <div 
+                          key={page.id} 
+                          className={`bg-white rounded-lg border p-4 transition-all ${isChecked ? 'border-blue-300 bg-blue-50/50' : 'border-gray-200'}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="mt-1">
+                              <input
+                                type="checkbox"
+                                id={`partner-page-${page.id}-${selectedPartnerForPermissions.partnerId}`}
+                                checked={isChecked}
+                                onChange={(e) => handlePartnerPageAccessChange(selectedPartnerForPermissions.partnerId, page.id, e.target.checked)}
+                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <label 
+                                htmlFor={`partner-page-${page.id}-${selectedPartnerForPermissions.partnerId}`}
+                                className="flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer"
+                              >
+                                <div className="text-blue-600">
+                                  {page.icon}
+                                </div>
+                                {page.name}
+                              </label>
+                              <p className="text-xs text-gray-500 mt-1 ml-6">
+                                {page.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="mt-6 pt-4 border-t border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Portal Access: <span className={`font-semibold ${selectedPartnerForPermissions.portalAccess ? 'text-green-600' : 'text-red-600'}`}>
+                            {selectedPartnerForPermissions.portalAccess ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Username: <span className="font-mono">{selectedPartnerForPermissions.username || 'Not set'}</span>
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleSavePartnerPermissions}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-200 flex items-center gap-2 transition-all"
+                      >
+                        <Check size={18} /> Save Permissions
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Current Permissions Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {selectedPartnerForPermissions.permissions && Object.entries(selectedPartnerForPermissions.permissions).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {key === 'viewLeads' && 'View Leads'}
+                          {key === 'addCustomers' && 'Add Customers'}
+                          {key === 'viewReports' && 'View Reports'}
+                          {key === 'accessPortal' && 'Portal Access'}
+                          {key === 'manageSubAgents' && 'Manage Sub-Agents'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {value ? 'Allowed' : 'Not Allowed'}
+                        </p>
+                      </div>
+                      <div className={`w-3 h-3 rounded-full ${value ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
@@ -1155,7 +1345,6 @@ export default function PartnerAdd() {
       {/* --- VIEW: ADD/EDIT PARTNER --- */}
       {view === 'add' && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in zoom-in duration-300">
-            {/* STEPPER HEADER */}
             <div className="bg-gray-50 border-b border-gray-200 p-6">
                 <div className="flex items-center justify-between relative mb-6">
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 -z-0"></div>
@@ -1977,7 +2166,6 @@ export default function PartnerAdd() {
       {/* --- VIEW: PARTNER LIST --- */}
       {view === 'list' && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in duration-300">
-            {/* Toolbar */}
             <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
                 <div className="relative w-full sm:w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -1991,7 +2179,6 @@ export default function PartnerAdd() {
                 </div>
                 
                 <div className="flex gap-2 relative">
-                    {/* PARTNER TYPE FILTER */}
                     <div className="relative">
                         <select 
                             value={filterType}
@@ -2004,7 +2191,6 @@ export default function PartnerAdd() {
                         </select>
                     </div>
                     
-                    {/* STATUS FILTER */}
                     <div className="relative">
                         <button 
                             onClick={() => setShowFilterMenu(!showFilterMenu)}
@@ -2029,12 +2215,11 @@ export default function PartnerAdd() {
                         )}
                     </div>
 
-                    {/* EXPORT BUTTON */}
                     <button 
                         onClick={handleExport}
                         className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 text-gray-600 flex items-center gap-2"
                     >
-                        <Download size={16} /> Export
+                        <Download size={16} /> Export``
                     </button>
                 </div>
             </div>
@@ -2110,7 +2295,6 @@ export default function PartnerAdd() {
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2 relative">
                                         
-                                        {/* 3-Dots Menu Button */}
                                         <div className="relative">
                                             <button 
                                                 onClick={() => setShowActionMenu(showActionMenu === partner.id ? null : partner.id)}
@@ -2120,15 +2304,32 @@ export default function PartnerAdd() {
                                                 <MoreVertical size={16} />
                                             </button>
                                             
-                                            {/* Action Menu Dropdown */}
                                             {showActionMenu === partner.id && (
                                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-10 p-1 animate-in slide-in-from-top-2 duration-200">
                                                     <button
-                                                        onClick={() => handleTaskClick(partner)}
+                                                        onClick={() => handlePermissionsClick(partner)}
                                                         className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-purple-50 text-purple-600 flex items-center gap-2 transition-colors"
+                                                    >
+                                                        <ShieldCheck size={14} />
+                                                        Permissions
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleTaskClick(partner)}
+                                                        className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-blue-50 text-blue-600 flex items-center gap-2 transition-colors"
                                                     >
                                                         <FileCheck size={14} />
                                                         Assign Task
+                                                    </button>
+
+                                                    <button onClick={() => handleView(partner)} className="text-blue-600 hover:bg-blue-50 rounded w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors">
+                                                        <Eye size={16} />
+                                                        View Partner
+                                                    </button>
+
+                                                    <button onClick={() => handleEdit(partner)} className="text-green-600 hover:bg-green-50 rounded w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors">
+                                                        <Edit size={16} />
+                                                        Edit Partner
                                                     </button>
 
                                                     <button
@@ -2137,16 +2338,6 @@ export default function PartnerAdd() {
                                                     >
                                                         <Trash2 size={14} />
                                                         Delete Partner
-                                                    </button>
-
-                                                    <button onClick={() => handleView(partner)} className="text-blue-600 hover:bg-blue-50 rounded  w-full text-left px-3 py-2 rounded-lg text-sm  flex items-center gap-2 transition-colors" title="View">
-                                                        <Eye size={16} />
-                                                        View Partner
-                                                    </button>
-
-                                                    <button onClick={() => handleEdit(partner)} className="  text-green-600 hover:bg-green-50 rounded  w-full text-left px-3 py-2 rounded-lg text-sm  flex items-center gap-2 transition-colors rounded" title="Edit">
-                                                        <Edit size={16} />
-                                                        Edit Partner
                                                     </button>
                                                 </div>
                                             )}
