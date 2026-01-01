@@ -63,7 +63,7 @@ export default function SidebarNav() {
             
             // { name: "Customer", path: "/admin/customer"},
             { name: "Disbursement", path: "/admin/disbursement"},
-            // { name: "Schedule", path: "/admin/schedule"},
+            { name: "EMI Management", path: "/admin/emi-management"},
             { name: "Loan Closer", path: "/admin/loan-closer"},
             // { name: "Task", path: "/admin/task" },
             { name: "Waiver", path: "/admin/waiver" },
@@ -88,7 +88,6 @@ export default function SidebarNav() {
             { name: "Profit And Loss Balances", path: "/admin/accounting/profit-loss-balances" },
             { name: "Vouchers", path: "/admin/accounting/vouchers" },
             // { name: "GST Detail", path: "/admin/accounting/gst" },
-            { name: "Schedule Transaction", path: "/admin/accounting/schedule-transaction" },
             { name: "Topup Refund", path: "/admin/accounting/topup-refund" },
             { name: "Balance Report", path: "/admin/accounting/balance-report" },
             { name: "Reconcile Bank Balance", path: "/admin/accounting/reconcile" },

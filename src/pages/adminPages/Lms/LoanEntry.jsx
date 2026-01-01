@@ -9,12 +9,25 @@ import {
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import Pagination from "../../../components/admin/common/Pagination";
+import Button from "../../../components/admin/common/Button";
+import LoanStatementPopup from "../../../components/admin/modals/LoanStatementPopup";
+import ViewDetails from "../../../components/admin/modals/ViewDetails";
 
 export default function LoanEntry() {
   // ------------------ STATE ------------------
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // हर page पर कितने items show होंगे
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [showStatementPopup, setShowStatementPopup] = useState(false);
+  const [selectedLoanAccount, setSelectedLoanAccount] = useState("");
+  const [showViewDetails, setShowViewDetails] = useState(false);
+const [viewDetailsData, setViewDetailsData] = useState(null);
+
+
+
+
 
   // Sample data for applications (Unique IDs और varied data के साथ)
   const [applications, setApplications] = useState([
@@ -32,11 +45,28 @@ export default function LoanEntry() {
     { id: 12, customer: "Suman Tiwari", loanAmount: "₹1,80,000", status: "Under Review", applicationDate: "2024-12-18", type: "Home" }
   ]);
 
+  // 1️⃣ FILTERED DATA (PEHLE)
+  const filteredApplications = applications.filter((app) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      search === "" ||
+      app.customer.toLowerCase().includes(search) ||
+      app.type.toLowerCase().includes(search) ||
+      app.status.toLowerCase().includes(search) ||
+      app.loanAmount.includes(search);
+
+    const matchesStatus =
+      statusFilter === "All" || app.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
   // ------------------ PAGINATION CALCULATIONS ------------------
-  const totalPages = Math.ceil(applications.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentApplications = applications.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
+  const currentApplications = filteredApplications.slice(startIndex, endIndex);
 
   // ------------------ FUNCTIONS ------------------
   const updateStatus = (id, newStatus) => {
@@ -74,33 +104,6 @@ export default function LoanEntry() {
     URL.revokeObjectURL(url);
   };
 
-  // ------------------ MODAL COMPONENT ------------------
-  const LoanModal = ({ loan, onClose }) => {
-    if (!loan) return null;
-    return (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-        <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl animate-in fade-in zoom-in duration-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{loan.customer} Details</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-black p-1 hover:bg-gray-100 rounded-lg">
-              <X size={22} />
-            </button>
-          </div>
-          <div className="space-y-3 py-2">
-            <div className="flex justify-between border-b pb-2"><span className="text-gray-500">Loan Amount</span><span className="font-semibold">{loan.loanAmount}</span></div>
-            <div className="flex justify-between border-b pb-2"><span className="text-gray-500">Status</span><span className="font-semibold">{loan.status}</span></div>
-            <div className="flex justify-between border-b pb-2"><span className="text-gray-500">Application Date</span><span className="font-semibold">{loan.applicationDate}</span></div>
-            <div className="flex justify-between border-b pb-2"><span className="text-gray-500">Loan Type</span><span className="font-semibold">{loan.type}</span></div>
-          </div>
-          <div className="mt-6 flex gap-3">
-            <button onClick={() => { updateStatus(loan.id, "Approved"); onClose(); }} className="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-medium hover:bg-green-700 transition-colors">Approve</button>
-            <button onClick={() => { updateStatus(loan.id, "Rejected"); onClose(); }} className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-medium hover:bg-red-700 transition-colors">Reject</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="w-full min-h-screen bg-gray-50 p-6 lg:p-10">
 
@@ -110,30 +113,66 @@ export default function LoanEntry() {
           <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Loan Management</h1>
           <p className="text-gray-500 mt-1">Manage loan applications and approvals.</p>
         </div>
-        <ExportButton
-          label="Export"
-          onClick={handleExport}
-        />
+        <div className="flex gap-3">
+          <Button
+            onClick={() => {
+              setSelectedLoanAccount("LN-2025-001"); // ya dynamic loan number
+              setShowStatementPopup(true);
+            }}
+          >
+            Download Statement
+          </Button>
+          <ExportButton
+            label="Export"
+            onClick={handleExport}
+          />
+        </div>
+
       </div>
 
       {/* Main Content Area */}
       <div className="bg-white shadow-sm rounded-2xl border border-gray-200 h-[520px] relative">
-        <div className="p-6">
+        <div className="p-6 h-0">
           <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2 className="text-xl font-bold text-gray-800">Loan Applications</h2>
               <p className="text-sm text-gray-500">
-                Showing {startIndex + 1}-{Math.min(endIndex, applications.length)} of {applications.length} applications
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredApplications.length)} of {filteredApplications.length} applications
+
               </p>
             </div>
             <div className="flex gap-3 w-full sm:w-auto">
               <div className="relative flex-1 sm:flex-initial">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input type="text" placeholder="Search applications..." className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                <input
+                  type="text"
+                  placeholder="Search applications..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                />
+
+
+
               </div>
-              <button className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
-                <Filter size={18} />
-              </button>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                <option value="All">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
             </div>
           </div>
 
@@ -177,45 +216,49 @@ export default function LoanEntry() {
                     </td>
 
                     <td className="p-4 text-right">
-  <div
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}
-  >
-    <ActionMenu
-  position="bottom-right"
-  showStatus
-  statusInfo={{
-    title: app.customer,
-    status: app.status.toLowerCase(),
-    statusText: app.status,
-    subtitle: app.applicationDate
-  }}
-  items={[
-    {
-      label: "View Details",
-      icon: Eye,   // ✅ FIX
-      onClick: () => setSelectedLoan(app)
-    },
-    {
-      label: "Approve Loan",
-      icon: Check, // ✅ FIX
-      onClick: () => updateStatus(app.id, "Approved"),
-      disabled: app.status === "Approved"
-    },
-    {
-      label: "Reject Loan",
-      icon: X,     // ✅ FIX
-      danger: true,
-      onClick: () => updateStatus(app.id, "Rejected"),
-      disabled: app.status === "Rejected"
-    }
-  ]}
-/>
+                      <div
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <ActionMenu
+                          position="bottom-right"
+                          showStatus
+                          statusInfo={{
+                            title: app.customer,
+                            status: app.status.toLowerCase(),
+                            statusText: app.status,
+                            subtitle: app.applicationDate
+                          }}
+                          items={[
+                            {
+                              label: "View Details",
+                              icon: Eye,   // ✅ FIX
+                              onClick: () => {
+  setViewDetailsData(app);
+  setShowViewDetails(true);
+}
 
-  </div>
-</td>
+                            },
+                            {
+                              label: "Approve Loan",
+                              icon: Check, // ✅ FIX
+                              onClick: () => updateStatus(app.id, "Approved"),
+                              disabled: app.status === "Approved"
+                            },
+                            {
+                              label: "Reject Loan",
+                              icon: X,     // ✅ FIX
+                              danger: true,
+                              onClick: () => updateStatus(app.id, "Rejected"),
+                              disabled: app.status === "Rejected"
+                            }
+                          ]}
+                        />
+
+                      </div>
+                    </td>
 
                   </tr>
                 ))}
@@ -243,6 +286,19 @@ export default function LoanEntry() {
 
         </div>
       </div>
+      <ViewDetails
+  isOpen={showViewDetails}
+  onClose={() => setShowViewDetails(false)}
+  title="Loan Details"
+  data={viewDetailsData}
+/>
+
+      <LoanStatementPopup
+        isOpen={showStatementPopup}
+        loanAccountNumber={selectedLoanAccount}
+        onClose={() => setShowStatementPopup(false)}
+      />
+
 
       {selectedLoan && <LoanModal loan={selectedLoan} onClose={() => setSelectedLoan(null)} />}
     </div>

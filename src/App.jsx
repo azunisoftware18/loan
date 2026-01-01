@@ -56,7 +56,7 @@ import Nach from "./pages/adminPages/Lms/Nach.jsx";
 import PdcReceipt from "./pages/adminPages/Lms/PdcReceipt.jsx";
 import Customer from "./pages/adminPages/Lms/Customer.jsx";
 import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
-import Schedule from "./pages/adminPages/Lms/Schedule.jsx";
+import Schedule from "./pages/adminPages/Lms/EmiManagement.jsx";
 import LoanCloser from "./pages/adminPages/Lms/LoanCloser.jsx";
 import DueList from "./pages/adminPages/reports/DueList.jsx";
 import Task from "./pages/adminPages/Lms/Task.jsx";
@@ -77,7 +77,6 @@ import TransactionBooks from "./pages/adminPages/Accounts/TransactionBooks.jsx";
 import ProfitLossBalances from "./pages/adminPages/Accounts/ProfitLossBalances.jsx";
 import Vouchers from "./pages/adminPages/Accounts/Vouchers.jsx";
 import Gst from "./pages/adminPages/Accounts/Gst.jsx";
-import ScheduleTransaction from "./pages/adminPages/Accounts/ScheduleTransaction.jsx";
 import TopupRefund from "./pages/adminPages/Accounts/TopupRefund.jsx";
 import BalanceReport from "./pages/adminPages/Accounts/BalanceReport.jsx";
 import Reconcile from "./pages/adminPages/Accounts/Reconcile.jsx";
@@ -97,6 +96,7 @@ import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.j
 import Dashboard from "./pages/mainPages/dashboard.jsx";
 import EmployeeLayout from "./layouts/EmployeeLayout.jsx";
 import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
+import EMIManagement from "./pages/adminPages/Lms/EmiManagement.jsx";
 // import AdminPresentationPage from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 // import CreatePresentation from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 
@@ -162,6 +162,7 @@ function App() {
         <Route path="task" element={<Task />} />
         <Route path="waiver" element={<Waiver />} />
         <Route path="repossess" element={<Repossess />} />
+        <Route path="emi-management" element={<EMIManagement />} />
 
 
         //Configuration
@@ -183,7 +184,6 @@ function App() {
         <Route path="accounting/profit-loss-balances" element={<ProfitLossBalances />} />
         <Route path="accounting/vouchers" element={<Vouchers />} />
         <Route path="accounting/gst" element={<Gst />} />
-        <Route path="accounting/schedule-transaction" element={<ScheduleTransaction />} />
         <Route path="accounting/topup-refund" element={<TopupRefund />} />
         <Route path="accounting/balance-report" element={<BalanceReport />} />
         <Route path="accounting/reconcile" element={<Reconcile />} />

@@ -1,23 +1,18 @@
 import React, { useState } from "react";
 import {
   FileText,
-  DollarSign,
-  RotateCcw,
-  Clock,
   Printer,
-  Trash2,
-  Users,
-  CheckCircle,
-  AlertTriangle,
   Search,
-  MoreVertical,
-  ArrowRight,
-  Download,
-  Clipboard,
+  CheckCircle,
+  Clock,
   XCircle,
-  Filter,
-  Calendar,
+  Clipboard,
+  Users,
+  Download,
+  ArrowRight,
   IndianRupee,
+  AlertTriangle,
+  Calendar
 } from "lucide-react";
 import ExportButton from "../../../components/admin/AdminButtons/ExportButton";
 import ActionMenu from "../../../components/admin/AdminButtons/ActionMenu";
@@ -25,351 +20,217 @@ import Pagination from "../../../components/admin/common/Pagination";
 
 export default function LoanCloser() {
   // --- STATE MANAGEMENT ---
-  const [activeTab, setActiveTab] = useState("preCloser");
+  const [activeTab, setActiveTab] = useState("foreclosure");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 5;
 
   // --- MOCK DATA ---
-  const PRE_CLOSER_DATA = [
+  const FORECLOSURE_DATA = [
     {
       id: "LN0012345",
       customer: "Arun Sharma",
       requestedDate: "2025-10-20",
+      loanAmount: 500000,
+      outstanding: 125000,
+      foreclosureAmount: 120000,
       status: "Pending Approval",
-      amount: 500000,
       daysPending: 4,
+      loanType: "Home Loan",
+      tenure: "36 months",
+      paidEMIs: 24
     },
     {
       id: "LN0012346",
       customer: "Priya Singh",
       requestedDate: "2025-10-18",
+      loanAmount: 120000,
+      outstanding: 25000,
+      foreclosureAmount: 23000,
       status: "Approved",
-      amount: 120000,
       daysPending: 0,
+      loanType: "Personal Loan",
+      tenure: "24 months",
+      paidEMIs: 18
     },
     {
       id: "LN0012347",
       customer: "Vijay Kumar",
       requestedDate: "2025-10-23",
+      loanAmount: 800000,
+      outstanding: 320000,
+      foreclosureAmount: 300000,
       status: "Rejected",
-      amount: 800000,
       daysPending: 0,
+      loanType: "Business Loan",
+      tenure: "60 months",
+      paidEMIs: 12
     },
     {
       id: "LN0012348",
       customer: "Sita Devi",
       requestedDate: "2025-10-15",
+      loanAmount: 35000,
+      outstanding: 8000,
+      foreclosureAmount: 7500,
       status: "Pending Approval",
-      amount: 35000,
       daysPending: 9,
+      loanType: "Education Loan",
+      tenure: "12 months",
+      paidEMIs: 8
     },
     {
       id: "LN0012349",
       customer: "Ravi Menon",
       requestedDate: "2025-10-24",
+      loanAmount: 250000,
+      outstanding: 45000,
+      foreclosureAmount: 42000,
       status: "Approved",
-      amount: 250000,
       daysPending: 0,
+      loanType: "Vehicle Loan",
+      tenure: "36 months",
+      paidEMIs: 30
     },
     {
       id: "LN0012350",
       customer: "Anil Kapoor",
       requestedDate: "2025-10-22",
+      loanAmount: 150000,
+      outstanding: 35000,
+      foreclosureAmount: 32000,
       status: "Pending Approval",
-      amount: 150000,
       daysPending: 2,
-    },
-    {
-      id: "LN0012351",
-      customer: "Meena Reddy",
-      requestedDate: "2025-10-21",
-      status: "Approved",
-      amount: 300000,
-      daysPending: 0,
-    },
-    {
-      id: "LN0012352",
-      customer: "Suresh Nair",
-      requestedDate: "2025-10-19",
-      status: "Rejected",
-      amount: 450000,
-      daysPending: 0,
-    },
-    {
-      id: "LN0012353",
-      customer: "Kavita Desai",
-      requestedDate: "2025-10-17",
-      status: "Pending Approval",
-      amount: 180000,
-      daysPending: 7,
+      loanType: "Personal Loan",
+      tenure: "18 months",
+      paidEMIs: 15
     },
   ];
 
-  const WRITE_OFF_DATA = [
-    {
-      id: "WO009812",
-      loanId: "LN0001122",
-      customer: "Deepak Rao",
-      settlementDate: "2024-09-15",
-      principal: 650000,
-      settledAmount: 180000,
-      status: "Settled",
-      recovery: "27.7%",
-    },
-    {
-      id: "WO009813",
-      loanId: "LN0003344",
-      customer: "Neha Patel",
-      settlementDate: "2024-11-01",
-      principal: 150000,
-      settledAmount: 50000,
-      status: "Settled",
-      recovery: "33.3%",
-    },
-    {
-      id: "WO009814",
-      loanId: "LN0005566",
-      customer: "Gopal Krishnan",
-      settlementDate: "2024-10-25",
-      principal: 2200000,
-      settledAmount: 700000,
-      status: "Settled",
-      recovery: "31.8%",
-    },
-    {
-      id: "WO009815",
-      loanId: "LN0006677",
-      customer: "Rajesh Kumar",
-      settlementDate: "2024-10-20",
-      principal: 850000,
-      settledAmount: 250000,
-      status: "Settled",
-      recovery: "29.4%",
-    },
-    {
-      id: "WO009816",
-      loanId: "LN0007788",
-      customer: "Sunita Sharma",
-      settlementDate: "2024-10-18",
-      principal: 420000,
-      settledAmount: 150000,
-      status: "Settled",
-      recovery: "35.7%",
-    },
-    {
-      id: "WO009817",
-      loanId: "LN0008899",
-      customer: "Vikram Singh",
-      settlementDate: "2024-10-15",
-      principal: 950000,
-      settledAmount: 320000,
-      status: "Settled",
-      recovery: "33.7%",
-    },
-  ];
-
-  const UNDO_REQUESTS = [
-    {
-      id: "UDR001",
-      loanId: "LN0011001",
-      requestDate: "2025-10-28",
-      processor: "Admin A",
-      reason: "Error in Final Payment",
-      status: "Pending Review",
-    },
-    {
-      id: "UDR002",
-      loanId: "LN0011002",
-      requestDate: "2025-10-25",
-      processor: "Admin B",
-      reason: "Customer Dispute",
-      status: "Approved",
-    },
-    {
-      id: "UDR003",
-      loanId: "LN0011003",
-      requestDate: "2025-10-29",
-      processor: "Admin C",
-      reason: "System Glitch",
-      status: "Rejected",
-    },
-    {
-      id: "UDR004",
-      loanId: "LN0011004",
-      requestDate: "2025-10-27",
-      processor: "Admin D",
-      reason: "Document Error",
-      status: "Pending Review",
-    },
-    {
-      id: "UDR005",
-      loanId: "LN0011005",
-      requestDate: "2025-10-26",
-      processor: "Admin E",
-      reason: "Payment Reversal",
-      status: "Approved",
-    },
-  ];
-
-  const AUTO_CLOSER_LOG = [
-    {
-      loanId: "LN0020001",
-      closeDate: "2025-10-29 02:05 AM",
-      criteria: "Final Payment Matched",
-      result: "Success",
-      duration: 120,
-    },
-    {
-      loanId: "LN0020002",
-      closeDate: "2025-10-29 02:07 AM",
-      criteria: "Final Payment Matched",
-      result: "Success",
-      duration: 90,
-    },
-    {
-      loanId: "LN0020003",
-      closeDate: "2025-10-29 02:15 AM",
-      criteria: "Zero Balance Check",
-      result: "Failed",
-      duration: 150,
-    },
-    {
-      loanId: "LN0020004",
-      closeDate: "2025-10-29 02:20 AM",
-      criteria: "Final Payment Matched",
-      result: "Success",
-      duration: 110,
-    },
-    {
-      loanId: "LN0020005",
-      closeDate: "2025-10-29 02:25 AM",
-      criteria: "Zero Balance Check",
-      result: "Success",
-      duration: 130,
-    },
-    {
-      loanId: "LN0020006",
-      closeDate: "2025-10-29 02:30 AM",
-      criteria: "Document Verification",
-      result: "Failed",
-      duration: 200,
-    },
-  ];
-
-  const NOC_PRINT_QUEUE = [
+  const NOC_DATA = [
     {
       loanId: "LN0030101",
       customer: "Hema Chandra",
+      customerId: "CUST001",
+      mobile: "+91 9876543210",
       closeDate: "2025-10-01",
+      closureType: "Normal Closure",
       printStatus: "Ready to Print",
-      delivery: "Mail",
+      deliveryMode: "Email",
+      nocNumber: "NOC2025001",
+      generatedDate: "2025-10-02"
     },
     {
       loanId: "LN0030102",
       customer: "Iqbal Khan",
+      customerId: "CUST002",
+      mobile: "+91 9876543211",
       closeDate: "2025-09-25",
+      closureType: "Foreclosure",
       printStatus: "Printed",
-      delivery: "Email",
+      deliveryMode: "Physical",
+      nocNumber: "NOC2025002",
+      generatedDate: "2025-09-26"
     },
     {
       loanId: "LN0030103",
       customer: "Jaya Varma",
+      customerId: "CUST003",
+      mobile: "+91 9876543212",
       closeDate: "2025-10-20",
+      closureType: "Normal Closure",
       printStatus: "Pending Sign-off",
-      delivery: "Mail",
+      deliveryMode: "Email",
+      nocNumber: "NOC2025003",
+      generatedDate: "2025-10-21"
     },
     {
       loanId: "LN0030104",
       customer: "Kiran Reddy",
+      customerId: "CUST004",
+      mobile: "+91 9876543213",
       closeDate: "2025-10-18",
+      closureType: "Foreclosure",
       printStatus: "Ready to Print",
-      delivery: "Email",
+      deliveryMode: "Physical",
+      nocNumber: "NOC2025004",
+      generatedDate: "2025-10-19"
     },
     {
       loanId: "LN0030105",
       customer: "Lalit Mittal",
+      customerId: "CUST005",
+      mobile: "+91 9876543214",
       closeDate: "2025-10-15",
+      closureType: "Normal Closure",
       printStatus: "Printed",
-      delivery: "Mail",
+      deliveryMode: "Email",
+      nocNumber: "NOC2025005",
+      generatedDate: "2025-10-16"
     },
     {
       loanId: "LN0030106",
       customer: "Manoj Tiwari",
+      customerId: "CUST006",
+      mobile: "+91 9876543215",
       closeDate: "2025-10-12",
+      closureType: "Foreclosure",
       printStatus: "Pending Sign-off",
-      delivery: "Email",
+      deliveryMode: "Physical",
+      nocNumber: "NOC2025006",
+      generatedDate: "2025-10-13"
     },
   ];
 
-  const DELETE_REQUESTS = [
-    {
-      id: "DLR001",
-      loanId: "LN0045001",
-      customer: "Kiran Reddy",
-      requestDate: "2025-10-22",
-      reason: "Duplicate Entry",
-      approvalLevel: "L2",
-      status: "Pending L3",
-    },
-    {
-      id: "DLR002",
-      loanId: "LN0045002",
-      customer: "Lalit Mittal",
-      requestDate: "2025-10-24",
-      reason: "Cancelled before Disbursement",
-      approvalLevel: "L1",
-      status: "Approved",
-    },
-    {
-      id: "DLR003",
-      loanId: "LN0045003",
-      customer: "Neha Sharma",
-      requestDate: "2025-10-26",
-      reason: "Data Corruption",
-      approvalLevel: "L2",
-      status: "Pending L1",
-    },
-    {
-      id: "DLR004",
-      loanId: "LN0045004",
-      customer: "Prakash Verma",
-      requestDate: "2025-10-23",
-      reason: "Test Entry",
-      approvalLevel: "L1",
-      status: "Approved",
-    },
-  ];
+  // --- STATUS BADGE COMPONENT ---
+  const StatusBadge = ({ status, days = 0 }) => {
+    let styles = "";
+    let icon = null;
+
+    if (status === "Approved" || status === "Printed") {
+      styles = "bg-green-50 text-green-700 border-green-200";
+      icon = <CheckCircle className="w-3 h-3 mr-1" />;
+    } else if (status === "Pending Approval" || status === "Pending Sign-off") {
+      styles = days > 7 
+        ? "bg-red-50 text-red-700 border-red-200" 
+        : "bg-amber-50 text-amber-700 border-amber-200";
+      icon = <Clock className="w-3 h-3 mr-1" />;
+    } else if (status === "Rejected") {
+      styles = "bg-red-50 text-red-700 border-red-200";
+      icon = <XCircle className="w-3 h-3 mr-1" />;
+    } else if (status === "Ready to Print") {
+      styles = "bg-blue-50 text-blue-700 border-blue-200";
+      icon = <Clipboard className="w-3 h-3 mr-1" />;
+    } else {
+      styles = "bg-gray-50 text-gray-700 border-gray-200";
+      icon = <Clipboard className="w-3 h-3 mr-1" />;
+    }
+
+    return (
+      <span
+        className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full border ${styles}`}
+      >
+        {icon} {status} {days > 0 && `(${days}d)`}
+      </span>
+    );
+  };
 
   // --- PAGINATION FUNCTIONS ---
   const getCurrentTabData = () => {
     let data = [];
     
-    switch (activeTab) {
-      case "preCloser":
-        data = PRE_CLOSER_DATA.filter(
-          (l) =>
-            l.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            l.customer.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        break;
-      case "writeOff":
-        data = WRITE_OFF_DATA;
-        break;
-      case "undo":
-        data = UNDO_REQUESTS;
-        break;
-      case "autoCloser":
-        data = AUTO_CLOSER_LOG;
-        break;
-      case "noc":
-        data = NOC_PRINT_QUEUE;
-        break;
-      case "delete":
-        data = DELETE_REQUESTS;
-        break;
-      default:
-        data = [];
+    if (activeTab === "foreclosure") {
+      data = FORECLOSURE_DATA.filter(
+        (l) =>
+          l.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          l.customer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    } else if (activeTab === "noc") {
+      data = NOC_DATA.filter(
+        (l) =>
+          l.loanId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          l.customer.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
     
     return data;
@@ -396,42 +257,7 @@ export default function LoanCloser() {
     setSearchTerm("");
   };
 
-  // --- SHARED COMPONENTS ---
-  const StatusBadge = ({ status, days = 0 }) => {
-    let styles = "";
-    let icon = null;
-
-    if (
-      ["Approved", "Success", "Settled", "Printed"].some((s) =>
-        status.includes(s)
-      )
-    ) {
-      styles = "bg-green-50 text-green-700 border-green-200";
-      icon = <CheckCircle className="w-3 h-3 mr-1" />;
-    } else if (["Pending", "Ready"].some((s) => status.includes(s))) {
-      styles =
-        days > 7 || status.includes("L3")
-          ? "bg-red-50 text-red-700 border-red-200"
-          : "bg-amber-50 text-amber-700 border-amber-200";
-      icon = <Clock className="w-3 h-3 mr-1" />;
-    } else if (["Rejected", "Failed"].some((s) => status.includes(s))) {
-      styles = "bg-red-50 text-red-700 border-red-200";
-      icon = <XCircle className="w-3 h-3 mr-1" />;
-    } else {
-      styles = "bg-gray-50 text-gray-700 border-gray-200";
-      icon = <Clipboard className="w-3 h-3 mr-1" />;
-    }
-
-    return (
-      <span
-        className={`inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full border ${styles}`}
-      >
-        {icon} {status} {days > 0 && `(${days}d)`}
-      </span>
-    );
-  };
-
-  // --- TAB RENDERERS WITH PROPER PAGINATION STRUCTURE ---
+  // --- TABLE CONTAINER COMPONENT ---
   const TableContainer = ({ title, children, showSearch = false, showTotal = true }) => {
     const { totalItems, startIndex, endIndex, totalPages } = getCurrentPageData();
     
@@ -456,7 +282,7 @@ export default function LoanCloser() {
                 />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Loan ID or Customer..."
                   className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
                   value={searchTerm}
                   onChange={(e) => {
@@ -496,342 +322,292 @@ export default function LoanCloser() {
     );
   };
 
-  const PreCloserRequestsTable = () => {
+  // --- FORECLOSURE TABLE ---
+  const ForeclosureTable = () => {
     const { data } = getCurrentPageData();
     
-    return (
-      <TableContainer title="Pre-Closer Requests" showSearch={true}>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-500">
-                  No requests found
-                </td>
-              </tr>
-            ) : (
-              data.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="p-4 font-medium text-blue-600">
-                    {item.id}
-                  </td>
-                  <td className="p-4 text-gray-900">{item.customer}</td>
-                  <td className="p-4 text-gray-500 text-sm">
-                    {item.requestedDate}
-                  </td>
-                  <td className="p-4 font-semibold text-gray-900">
-                    ₹{item.amount.toLocaleString()}
-                  </td>
-                  <td className="p-4">
-                    <StatusBadge status={item.status} days={item.daysPending} />
-                  </td>
-                  <td className="p-4 text-right">
-                    <ActionMenu
-                      items={[
-                        { label: "View Details", onClick: () => console.log("View", item.id) },
-                        { label: "Approve", onClick: () => console.log("Approve", item.id) },
-                        { label: "Reject", onClick: () => console.log("Reject", item.id) },
-                        { label: "Edit Request", onClick: () => console.log("Edit", item.id) },
-                      ]}
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
-    );
-  };
+    const handleExportForeclosure = () => {
+      const headers = ["Loan ID", "Customer", "Requested Date", "Loan Amount", "Outstanding", "Foreclosure Amount", "Status", "Loan Type"];
+      const rows = FORECLOSURE_DATA.map(item => [
+        item.id,
+        item.customer,
+        item.requestedDate,
+        `₹${item.loanAmount.toLocaleString()}`,
+        `₹${item.outstanding.toLocaleString()}`,
+        `₹${item.foreclosureAmount.toLocaleString()}`,
+        item.status,
+        item.loanType
+      ]);
 
-  const WriteOffSettledTable = () => {
-    const { data } = getCurrentPageData();
-    
-    return (
-      <TableContainer title="Settlement History" showTotal={true}>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settlement ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Principal</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Settled At</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Recovery %</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="p-12 text-center text-gray-500">
-                  No settlement records found
-                </td>
-              </tr>
-            ) : (
-              data.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="p-4 font-mono text-gray-500">
-                    {item.id}
-                  </td>
-                  <td className="p-4 text-blue-600 font-medium">
-                    {item.loanId}
-                  </td>
-                  <td className="p-4 text-gray-900">{item.customer}</td>
-                  <td className="p-4 text-gray-500">
-                    ₹{item.principal.toLocaleString()}
-                  </td>
-                  <td className="p-4 font-bold text-gray-900">
-                    ₹{item.settledAmount.toLocaleString()}
-                  </td>
-                  <td className="p-4 text-green-600 font-medium">
-                    {item.recovery}
-                  </td>
-                  <td className="p-4 text-right">
-                    <StatusBadge status={item.status} />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
-    );
-  };
+      const csvContent = [headers, ...rows]
+        .map(row => row.join(","))
+        .join("\n");
 
-  const LoanCloserUndoTable = () => {
-    const { data } = getCurrentPageData();
-    
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "foreclosure-requests.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
     return (
-      <TableContainer title="Undo Requests" showTotal={true}>
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="text-amber-600 mt-0.5" size={20} />
-            <div>
-              <h4 className="text-sm font-bold text-amber-800">Critical Zone</h4>
-              <p className="text-xs text-amber-700">
-                Reversing a loan closure affects financial books. Ensure proper
-                authorization before proceeding.
-              </p>
-            </div>
-          </div>
+      <div>
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={handleExportForeclosure}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+          >
+            <Download size={16} />
+            Export Foreclosure List
+          </button>
         </div>
         
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Request ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Processor</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-500">
-                  No undo requests found
-                </td>
+        <TableContainer title="Foreclosure Requests" showSearch={true}>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b text-left">
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan Details</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount Details</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
-            ) : (
-              data.map((req) => (
-                <tr key={req.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="p-4 text-gray-500">{req.id}</td>
-                  <td className="p-4 font-medium text-blue-600">
-                    {req.loanId}
-                  </td>
-                  <td className="p-4">{req.processor}</td>
-                  <td className="p-4 text-gray-600">{req.reason}</td>
-                  <td className="p-4">
-                    <StatusBadge status={req.status} />
-                  </td>
-                  <td className="p-4 text-right">
-                    <button className="text-purple-600 hover:bg-purple-50 px-3 py-1.5 rounded-lg text-xs font-medium border border-purple-200 transition">
-                      Review
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-12 text-center text-gray-500">
+                    No foreclosure requests found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
+              ) : (
+                data.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="p-4 font-medium text-blue-600">
+                      {item.id}
+                    </td>
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium text-gray-900">{item.customer}</p>
+                        <p className="text-xs text-gray-500">Type: {item.loanType}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-sm">
+                        <p className="text-gray-600">Tenure: {item.tenure}</p>
+                        <p className="text-gray-600">Paid EMIs: {item.paidEMIs}</p>
+                        <p className="text-gray-500 text-xs">{item.requestedDate}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="text-gray-500">Loan:</span> 
+                          <span className="font-semibold ml-1">₹{item.loanAmount.toLocaleString()}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-gray-500">Outstanding:</span> 
+                          <span className="font-semibold ml-1">₹{item.outstanding.toLocaleString()}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-gray-500">Foreclosure:</span> 
+                          <span className="font-bold text-green-600 ml-1">₹{item.foreclosureAmount.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <StatusBadge status={item.status} days={item.daysPending} />
+                    </td>
+                    <td className="p-4 text-right">
+                      <ActionMenu
+                        items={[
+                          { 
+                            label: "View Details", 
+                            onClick: () => console.log("View", item.id),
+                            icon: FileText
+                          },
+                          { 
+                            label: "Approve Foreclosure", 
+                            onClick: () => console.log("Approve", item.id),
+                            icon: CheckCircle
+                          },
+                          { 
+                            label: "Calculate Charges", 
+                            onClick: () => console.log("Charges", item.id),
+                            icon: IndianRupee
+                          },
+                          { 
+                            label: "Generate NOC", 
+                            onClick: () => console.log("Generate NOC", item.id),
+                            icon: Printer
+                          }
+                        ]}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </TableContainer>
+      </div>
     );
   };
 
-  const AutoCloserLogTable = () => {
+  // --- NOC TABLE ---
+  const NocTable = () => {
     const { data } = getCurrentPageData();
     
-    return (
-      <TableContainer title="System Job Logs" showTotal={true}>
-        <div className="text-xs text-gray-500 mb-4">Last run: Today, 02:00 AM</div>
-        
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Execution Time</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Criteria</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Duration</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Result</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="p-12 text-center text-gray-500">
-                  No log records found
-                </td>
-              </tr>
-            ) : (
-              data.map((log) => (
-                <tr key={log.loanId} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="p-4 font-mono text-blue-600">
-                    {log.loanId}
-                  </td>
-                  <td className="p-4 text-gray-600">{log.closeDate}</td>
-                  <td className="p-4 text-gray-600">{log.criteria}</td>
-                  <td className="p-4 text-gray-400 font-mono">
-                    {log.duration}ms
-                  </td>
-                  <td className="p-4 text-right">
-                    <StatusBadge status={log.result} />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
-    );
-  };
+    const handleExportNOC = () => {
+      const headers = ["Loan ID", "Customer", "Customer ID", "Close Date", "Closure Type", "NOC Number", "Print Status", "Delivery Mode"];
+      const rows = NOC_DATA.map(item => [
+        item.loanId,
+        item.customer,
+        item.customerId,
+        item.closeDate,
+        item.closureType,
+        item.nocNumber,
+        item.printStatus,
+        item.deliveryMode
+      ]);
 
-  const NOCPrintTable = () => {
-    const { data } = getCurrentPageData();
-    
-    return (
-      <TableContainer title="NOC Print Queue" showTotal={true}>
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Closure Date</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery Mode</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-500">
-                  No NOC records found
-                </td>
-              </tr>
-            ) : (
-              data.map((item) => (
-                <tr key={item.loanId} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="p-4 font-medium text-blue-600">
-                    {item.loanId}
-                  </td>
-                  <td className="p-4 text-gray-900">{item.customer}</td>
-                  <td className="p-4 text-gray-500">{item.closeDate}</td>
-                  <td className="p-4 text-gray-600">{item.delivery}</td>
-                  <td className="p-4">
-                    <StatusBadge status={item.printStatus} />
-                  </td>
-                  <td className="p-4 text-right">
-                    <button className="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition">
-                      <Printer size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
-    );
-  };
+      const csvContent = [headers, ...rows]
+        .map(row => row.join(","))
+        .join("\n");
 
-  const DeleteRequestTable = () => {
-    const { data } = getCurrentPageData();
-    
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "noc-print-queue.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    const handlePrintNOC = (loanId) => {
+      console.log("Print NOC for:", loanId);
+      // Add your print logic here
+    };
+
+    const handleEmailNOC = (loanId) => {
+      console.log("Email NOC for:", loanId);
+      // Add your email logic here
+    };
+
     return (
-      <TableContainer title="Delete Requests" showTotal={true}>
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-4">
-          <h4 className="text-sm font-bold text-red-800 flex items-center gap-2">
-            <Trash2 size={16} /> Deletion Zone
-          </h4>
-          <p className="text-xs text-red-700 mt-1">
-            Permanent deletion of loan records. Approvals from multiple levels
-            (L1, L2, L3) required.
-          </p>
+      <div>
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={handleExportNOC}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+          >
+            <Download size={16} />
+            Export NOC List
+          </button>
         </div>
         
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50/50 border-b text-left">
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Req ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Loan ID</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
-              <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-500">
-                  No deletion requests found
-                </td>
+        <TableContainer title="NOC Print Queue" showSearch={true}>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b text-left">
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">NOC Details</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Details</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Closure Info</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Delivery</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
-            ) : (
-              data.map((req) => (
-                <tr key={req.id} className="hover:bg-red-50/30 transition-colors">
-                  <td className="p-4 text-gray-500">{req.id}</td>
-                  <td className="p-4 font-medium text-blue-600">
-                    {req.loanId}
-                  </td>
-                  <td className="p-4 text-gray-900">{req.customer}</td>
-                  <td className="p-4 text-gray-600">{req.reason}</td>
-                  <td className="p-4 font-bold text-gray-700">
-                    {req.approvalLevel}
-                  </td>
-                  <td className="p-4 text-right">
-                    <StatusBadge status={req.status} />
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="p-12 text-center text-gray-500">
+                    No NOC records found
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </TableContainer>
+              ) : (
+                data.map((item) => (
+                  <tr key={item.loanId} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium text-blue-600">{item.loanId}</p>
+                        <p className="text-xs text-gray-500 mt-1">NOC: {item.nocNumber}</p>
+                        <p className="text-xs text-gray-400">Generated: {item.generatedDate}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div>
+                        <p className="font-medium text-gray-900">{item.customer}</p>
+                        <p className="text-xs text-gray-500">ID: {item.customerId}</p>
+                        <p className="text-xs text-gray-500">{item.mobile}</p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="text-gray-500">Close Date:</span> 
+                          <span className="font-medium ml-1">{item.closeDate}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-gray-500">Type:</span> 
+                          <span className={`font-medium ml-1 ${
+                            item.closureType === "Foreclosure" 
+                              ? "text-purple-600" 
+                              : "text-green-600"
+                          }`}>
+                            {item.closureType}
+                          </span>
+                        </p>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        item.deliveryMode === "Email" 
+                          ? "bg-blue-50 text-blue-700 border border-blue-100" 
+                          : "bg-gray-50 text-gray-700 border border-gray-100"
+                      }`}>
+                        {item.deliveryMode === "Email" ? "📧 Email" : "📦 Physical"}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <StatusBadge status={item.printStatus} />
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => handlePrintNOC(item.loanId)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-medium border border-blue-100"
+                        >
+                          <Printer size={14} />
+                          Print
+                        </button>
+                        <button
+                          onClick={() => handleEmailNOC(item.loanId)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-xs font-medium border border-green-100"
+                        >
+                          📧 Email
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </TableContainer>
+      </div>
     );
   };
 
   // --- TAB CONFIGURATION ---
   const tabs = [
-    { id: "preCloser", label: "Pre-Closer Request", icon: FileText },
-    { id: "writeOff", label: "Write-Off Settled", icon: IndianRupee },
-    { id: "undo", label: "Loan Closer Undo", icon: RotateCcw },
-    { id: "autoCloser", label: "Loan Auto Closer", icon: Clock },
+    { id: "foreclosure", label: "Loan Foreclosure", icon: FileText },
     { id: "noc", label: "NOC Print", icon: Printer },
-    { id: "delete", label: "Delete Requests", icon: Trash2 },
   ];
 
   // --- MAIN RENDER ---
@@ -841,22 +617,23 @@ export default function LoanCloser() {
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <Users className="text-blue-600" size={32} /> Loan Closure
-            Operations
+            <Users className="text-blue-600" size={32} /> Loan Closure & NOC Management
           </h1>
           <p className="text-gray-500 mt-1 ml-11">
-            Manage settlements, NOCs, write-offs and deletions.
+            Manage loan foreclosures and No Objection Certificates
           </p>
         </div>
-        <div className="text-right hidden md:block">
-          <p className="text-xs font-bold text-gray-400 uppercase">Today</p>
-          <p className="text-lg font-bold text-gray-700">
-            {new Date().toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
+        <div className="flex items-center gap-2">
+          <div className="text-right hidden md:block">
+            <p className="text-xs font-bold text-gray-400 uppercase">Today</p>
+            <p className="text-lg font-bold text-gray-700">
+              {new Date().toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -887,12 +664,71 @@ export default function LoanCloser() {
       {/* Content Area */}
       <div className="bg-white shadow-sm rounded-2xl border border-gray-200">
         <div className="animate-in fade-in duration-300">
-          {activeTab === "preCloser" && <PreCloserRequestsTable />}
-          {activeTab === "writeOff" && <WriteOffSettledTable />}
-          {activeTab === "undo" && <LoanCloserUndoTable />}
-          {activeTab === "autoCloser" && <AutoCloserLogTable />}
-          {activeTab === "noc" && <NOCPrintTable />}
-          {activeTab === "delete" && <DeleteRequestTable />}
+          {activeTab === "foreclosure" && <ForeclosureTable />}
+          {activeTab === "noc" && <NocTable />}
+        </div>
+      </div>
+
+      {/* Stats Summary */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Total Foreclosure Requests</p>
+              <p className="text-2xl font-bold text-gray-800">{FORECLOSURE_DATA.length}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <FileText className="text-blue-600" size={24} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            <span className="text-green-600">● {FORECLOSURE_DATA.filter(f => f.status === "Approved").length} Approved</span>
+            <span className="text-amber-600">● {FORECLOSURE_DATA.filter(f => f.status === "Pending Approval").length} Pending</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Pending NOC Prints</p>
+              <p className="text-2xl font-bold text-gray-800">{NOC_DATA.filter(n => n.printStatus !== "Printed").length}</p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <Printer className="text-green-600" size={24} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            <span className="text-blue-600">● {NOC_DATA.filter(n => n.printStatus === "Ready to Print").length} Ready</span>
+            <span className="text-amber-600">● {NOC_DATA.filter(n => n.printStatus === "Pending Sign-off").length} Pending</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">Total Closure Amount</p>
+              <p className="text-2xl font-bold text-gray-800">
+                ₹{FORECLOSURE_DATA.reduce((sum, item) => sum + item.foreclosureAmount, 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-3 bg-purple-50 rounded-lg">
+              <IndianRupee className="text-purple-600" size={24} />
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-gray-500">Foreclosure settlements</p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500">NOC Delivery</p>
+              <p className="text-2xl font-bold text-gray-800">{NOC_DATA.filter(n => n.deliveryMode === "Email").length}</p>
+              <p className="text-sm text-gray-500 mt-1">Emails / {NOC_DATA.length} Total</p>
+            </div>
+            <div className="p-3 bg-amber-50 rounded-lg">
+              <span className="text-2xl">📧</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
