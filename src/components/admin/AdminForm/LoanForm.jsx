@@ -68,26 +68,25 @@ const LoanForm = ({
     occupation: '',
     companyName: '',
     designation: '',
-    workExperience: '',
     monthlyIncome: '',
     otherIncome: '',
-    totalIncome: '',
     incomeSource: '',
     
     // Financial Details
     existingLoans: '',
     existingEMIs: '',
-    creditScore: '',
+    cibilScore: '',
     bankName: '',
     accountNumber: '',
     ifscCode: '',
     
     // Loan Details
-    amount: '',
-    tenure: '',
-    product: '',
+    requestedAmount: '',
+    tenureMonths: '',
+    loanType: '',
     loanCategory: '',
-    purpose: '',
+    loanPurpose: '',
+    interestRate: '',
     
     // Address Information
     address: '',
@@ -96,18 +95,11 @@ const LoanForm = ({
     country: 'India',
     pincode: '',
     residenceType: '',
-    yearsAtCurrentAddress: '',
     
     // Co-applicant Details
     coApplicantName: '',
     coApplicantRelation: '',
     coApplicantIncome: '',
-    
-    // References
-    reference1Name: '',
-    reference1Phone: '',
-    reference2Name: '',
-    reference2Phone: '',
     
     ...initialFormData
   });
@@ -156,57 +148,46 @@ const LoanForm = ({
   const calculateTotalIncome = () => {
     const monthly = parseFloat(form.monthlyIncome) || 0;
     const other = parseFloat(form.otherIncome) || 0;
-    return (monthly + other).toString();
+    return (monthly + other);
   };
 
-  // Update total income when monthly or other income changes
-  React.useEffect(() => {
-    if (form.monthlyIncome || form.otherIncome) {
-      setForm(prev => ({
-        ...prev,
-        totalIncome: calculateTotalIncome()
-      }));
-    }
-  }, [form.monthlyIncome, form.otherIncome]);
-
-  // Calculate interest rate based on loan category and product
-  const calculateInterestRate = (category, product) => {
+  // Calculate interest rate based on loan category and type
+  const calculateInterestRate = (category, loanType) => {
     const rates = {
       'Secured': {
-        'Home Loan': '8.2% - 9.5%',
-        'Car Loan': '9.5% - 11%',
-        'Loan Against Property': '10.5% - 12%',
-        'Gold Loan': '12.0% - 14%',
-        'Construction Loan': '9.0% - 11%',
-        'Mortgage Loan': '10.0% - 12%'
+        'Home Loan': 9.5,
+        'Car Loan': 11.0,
+        'Loan Against Property': 12.0,
+        'Gold Loan': 14.0,
+        'Construction Loan': 11.0,
+        'Mortgage Loan': 12.0
       },
       'Unsecured': {
-        'Personal Loan': '13.5% - 18%',
-        'Education Loan': '11.2% - 14%',
-        'Business Loan': '15.0% - 20%',
-        'Credit Card Loan': '18.0% - 24%',
-        'Medical Loan': '14.0% - 17%',
-        'Travel Loan': '16.0% - 19%'
+        'Personal Loan': 18.0,
+        'Education Loan': 14.0,
+        'Business Loan': 20.0,
+        'Credit Card Loan': 24.0,
+        'Medical Loan': 17.0,
+        'Travel Loan': 19.0
       }
     };
-    return rates[category]?.[product] || '12.0% - 15%';
+    return rates[category]?.[loanType] || 15.0;
   };
 
   // Calculate EMI
-  const calculateEMI = (amount, tenure) => {
-    if (!amount || !tenure) return '₹0';
+  const calculateEMI = (amount, tenureMonths) => {
+    if (!amount || !tenureMonths) return 0;
     const principal = parseFloat(amount);
-    const months = parseInt(tenure) || 12;
-    const rate = 0.12 / 12; // 12% annual interest
+    const months = parseInt(tenureMonths) || 12;
+    const rate = (form.interestRate || 15.0) / 12 / 100; // Monthly interest rate
     const emi = principal * rate * Math.pow(1 + rate, months) / (Math.pow(1 + rate, months) - 1);
-    return `₹${Math.round(emi).toLocaleString()}`;
+    return Math.round(emi);
   };
 
-  // Calculate next due date
-  const calculateNextDueDate = () => {
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    return nextMonth.toISOString().split('T')[0];
+  // Calculate total payable
+  const calculateTotalPayable = (amount, tenureMonths) => {
+    const emi = calculateEMI(amount, tenureMonths);
+    return emi * (parseInt(tenureMonths) || 12);
   };
 
   // Handle document upload
@@ -242,7 +223,7 @@ const LoanForm = ({
 
     try {
       // Basic validation
-      if (!form.customerName || !form.amount || !form.loanCategory || !form.mobile) {
+      if (!form.customerName || !form.requestedAmount || !form.loanCategory || !form.mobile) {
         alert('Customer name, mobile number, amount, and loan category are required');
         return;
       }
@@ -261,57 +242,85 @@ const LoanForm = ({
       }
 
       // Document validation
-      const requiredDocs = ['aadharCard', 'panCard', 'photo'];
+      const requiredDocs = ['aadharCard', 'panCard'];
       const missingDocs = requiredDocs.filter(doc => !documents[doc]);
       
       if (missingDocs.length > 0) {
-        alert(`Please upload required documents: ${missingDocs.join(', ').replace(/([A-Z])/g, ' $1')}`);
+        alert(`Please upload required documents: ${missingDocs.join(', ')}`);
         return;
       }
 
-      // Prepare loan data for LoansTable
-      const loanData = {
-        id: `LN-${Date.now()}`,
-        borrower: form.customerName,
-        amount: `₹${parseInt(form.amount).toLocaleString()}`,
-        type: form.product || 'Personal Loan',
-        status: 'Pending',
-        interestRate: calculateInterestRate(form.loanCategory, form.product),
-        emi: calculateEMI(form.amount, form.tenure),
-        tenure: form.tenure || '12 months',
-        disbursedDate: new Date().toISOString().split('T')[0],
-        nextDue: calculateNextDueDate(),
-        details: {
-          mobile: form.mobile,
+      // Prepare loan application data matching Prisma schema
+      const loanApplicationData = {
+        // Customer information (would come from customer relation in real app)
+        customerInfo: {
+          name: form.customerName,
           email: form.email,
+          phone: form.mobile,
+          dateOfBirth: form.dateOfBirth,
+          gender: form.gender,
+          maritalStatus: form.maritalStatus,
+          education: form.education,
           occupation: form.occupation,
-          monthlyIncome: form.monthlyIncome,
-          totalIncome: form.totalIncome,
-          purpose: form.purpose,
+          companyName: form.companyName,
+          designation: form.designation,
+          monthlyIncome: parseFloat(form.monthlyIncome) || 0,
+          otherIncome: parseFloat(form.otherIncome) || 0,
+          incomeSource: form.incomeSource,
           address: form.address,
           city: form.city,
           state: form.state,
           pincode: form.pincode,
-          loanCategory: form.loanCategory,
-          creditScore: form.creditScore,
+          residenceType: form.residenceType,
           existingLoans: form.existingLoans,
-          coApplicant: form.coApplicantName || 'None',
-          education: form.education
+          existingEMIs: parseFloat(form.existingEMIs) || 0
         },
+        
+        // Loan application fields
+        requestedAmount: parseFloat(form.requestedAmount),
+        tenureMonths: parseInt(form.tenureMonths) || 12,
+        interestRate: parseFloat(form.interestRate) || calculateInterestRate(form.loanCategory, form.loanType),
+        loanType: form.loanType || 'Personal Loan',
+        loanPurpose: form.loanPurpose,
+        cibilScore: parseInt(form.cibilScore) || null,
+        
+        // Bank details
+        bankDetails: {
+          bankName: form.bankName,
+          accountNumber: form.accountNumber,
+          ifscCode: form.ifscCode
+        },
+        
+        // Co-applicant information
+        coApplicant: form.coApplicantName ? {
+          name: form.coApplicantName,
+          relation: form.coApplicantRelation,
+          income: parseFloat(form.coApplicantIncome) || 0
+        } : null,
+        
+        // Documents
         documents: Object.keys(documents).reduce((acc, key) => {
           if (documents[key]) {
             acc[key] = {
               name: documents[key].name,
-              uploadedAt: documents[key].uploadedAt
+              type: documents[key].type,
+              size: documents[key].size
             };
           }
           return acc;
-        }, {})
+        }, {}),
+        
+        // Calculated fields
+        calculatedFields: {
+          totalIncome: calculateTotalIncome(),
+          emiAmount: calculateEMI(form.requestedAmount, form.tenureMonths),
+          totalPayable: calculateTotalPayable(form.requestedAmount, form.tenureMonths)
+        }
       };
 
       // Call onSubmit with the formatted data
       if (onSubmit) {
-        await onSubmit(loanData);
+        await onSubmit(loanApplicationData);
       }
 
       // Show success message
@@ -341,36 +350,30 @@ const LoanForm = ({
       occupation: '',
       companyName: '',
       designation: '',
-      workExperience: '',
       monthlyIncome: '',
       otherIncome: '',
-      totalIncome: '',
       incomeSource: '',
       existingLoans: '',
       existingEMIs: '',
-      creditScore: '',
+      cibilScore: '',
       bankName: '',
       accountNumber: '',
       ifscCode: '',
-      amount: '',
-      tenure: '',
-      product: '',
+      requestedAmount: '',
+      tenureMonths: '',
+      loanType: '',
       loanCategory: '',
-      purpose: '',
+      loanPurpose: '',
+      interestRate: '',
       address: '',
       city: '',
       state: '',
       country: 'India',
       pincode: '',
       residenceType: '',
-      yearsAtCurrentAddress: '',
       coApplicantName: '',
       coApplicantRelation: '',
-      coApplicantIncome: '',
-      reference1Name: '',
-      reference1Phone: '',
-      reference2Name: '',
-      reference2Phone: ''
+      coApplicantIncome: ''
     });
     setDocuments({
       aadharCard: null,
@@ -394,6 +397,17 @@ const LoanForm = ({
       additionalDocuments: null
     });
   };
+
+  // Update interest rate when loan category or type changes
+  React.useEffect(() => {
+    if (form.loanCategory && form.loanType) {
+      const rate = calculateInterestRate(form.loanCategory, form.loanType);
+      setForm(prev => ({
+        ...prev,
+        interestRate: rate.toString()
+      }));
+    }
+  }, [form.loanCategory, form.loanType]);
 
   // Document upload component
   const DocumentUploadField = ({ label, docType, required = false, accept = "*", icon: Icon }) => (
@@ -744,8 +758,6 @@ const LoanForm = ({
                       placeholder="Designation/Role"
                     />
                   </div>
-
-                
                 </div>
               </div>
             </div>
@@ -773,12 +785,20 @@ const LoanForm = ({
                     />
                   </div>
 
-                 
-
-                 
+                  <div className="relative">
+                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="number"
+                      value={form.otherIncome}
+                      onChange={(e) => setForm({ ...form, otherIncome: e.target.value })}
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Other Monthly Income"
+                      min="0"
+                    />
+                  </div>
 
                   <div className="relative">
-                     <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <select
                       value={form.incomeSource}
                       onChange={(e) => setForm({ ...form, incomeSource: e.target.value })}
@@ -803,22 +823,24 @@ const LoanForm = ({
                   <div className="relative">
                     <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
-                      type="text"
+                      type="number"
                       value={form.existingLoans}
                       onChange={(e) => setForm({ ...form, existingLoans: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Total Existing Loans"
+                      min="0"
                     />
                   </div>
 
                   <div className="relative">
                     <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
-                      type="text"
+                      type="number"
                       value={form.existingEMIs}
                       onChange={(e) => setForm({ ...form, existingEMIs: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Monthly EMIs"
+                      min="0"
                     />
                   </div>
 
@@ -826,10 +848,10 @@ const LoanForm = ({
                     <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="number"
-                      value={form.creditScore}
-                      onChange={(e) => setForm({ ...form, creditScore: e.target.value })}
+                      value={form.cibilScore}
+                      onChange={(e) => setForm({ ...form, cibilScore: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Credit Score"
+                      placeholder="CIBIL Score"
                       min="300"
                       max="900"
                     />
@@ -939,8 +961,8 @@ const LoanForm = ({
                     <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <input
                       type="number"
-                      value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                      value={form.requestedAmount}
+                      onChange={(e) => setForm({ ...form, requestedAmount: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Loan Amount *"
                       required
@@ -956,7 +978,7 @@ const LoanForm = ({
                         setForm({ 
                           ...form, 
                           loanCategory: e.target.value,
-                          product: '' // Reset product when category changes
+                          loanType: '' // Reset loan type when category changes
                         });
                       }}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
@@ -972,15 +994,15 @@ const LoanForm = ({
                   <div className="relative">
                     <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <select
-                      value={form.product}
-                      onChange={(e) => setForm({ ...form, product: e.target.value })}
+                      value={form.loanType}
+                      onChange={(e) => setForm({ ...form, loanType: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                       disabled={!form.loanCategory}
                       required
                     >
-                      <option value="">Loan Product *</option>
-                      {form.loanCategory && loanProducts[form.loanCategory]?.map(product => (
-                        <option key={product} value={product}>{product}</option>
+                      <option value="">Loan Type *</option>
+                      {form.loanCategory && loanProducts[form.loanCategory]?.map(type => (
+                        <option key={type} value={type}>{type}</option>
                       ))}
                     </select>
                   </div>
@@ -988,11 +1010,11 @@ const LoanForm = ({
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     <select
-                      value={form.tenure}
-                      onChange={(e) => setForm({ ...form, tenure: e.target.value })}
+                      value={form.tenureMonths}
+                      onChange={(e) => setForm({ ...form, tenureMonths: e.target.value })}
                       className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                     >
-                      <option value="">Select Tenure</option>
+                      <option value="">Select Tenure (Months)</option>
                       <option value="6">6 months</option>
                       <option value="12">12 months</option>
                       <option value="24">24 months</option>
@@ -1005,69 +1027,29 @@ const LoanForm = ({
                     </select>
                   </div>
 
-       
-                </div>
-              </div>
-
-              {/* Reference Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <User size={18} />
-                  References
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-700">Reference 1</h4>
-                    <div className="grid grid-cols-1 gap-3">
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                          type="text"
-                          value={form.reference1Name}
-                          onChange={(e) => setForm({ ...form, reference1Name: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Name"
-                        />
-                      </div>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                          type="tel"
-                          value={form.reference1Phone}
-                          onChange={(e) => setForm({ ...form, reference1Phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Mobile Number"
-                          maxLength={10}
-                        />
-                      </div>
-                    </div>
+                  <div className="relative">
+                    <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="number"
+                      value={form.interestRate}
+                      onChange={(e) => setForm({ ...form, interestRate: e.target.value })}
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Interest Rate (%)"
+                      step="0.1"
+                      min="0"
+                      max="30"
+                    />
                   </div>
 
-                  <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-700">Reference 2</h4>
-                    <div className="grid grid-cols-1 gap-3">
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                          type="text"
-                          value={form.reference2Name}
-                          onChange={(e) => setForm({ ...form, reference2Name: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Name"
-                        />
-                      </div>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                          type="tel"
-                          value={form.reference2Phone}
-                          onChange={(e) => setForm({ ...form, reference2Phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Mobile Number"
-                          maxLength={10}
-                        />
-                      </div>
-                    </div>
+                  <div className="relative">
+                    <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      value={form.loanPurpose}
+                      onChange={(e) => setForm({ ...form, loanPurpose: e.target.value })}
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Loan Purpose"
+                    />
                   </div>
                 </div>
               </div>
@@ -1081,19 +1063,25 @@ const LoanForm = ({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <p className="text-xs text-gray-500">Estimated EMI</p>
-                    <p className="font-semibold text-gray-800">{calculateEMI(form.amount, form.tenure)}</p>
+                    <p className="font-semibold text-gray-800">
+                      ₹{calculateEMI(form.requestedAmount, form.tenureMonths).toLocaleString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Interest Rate</p>
-                    <p className="font-semibold text-gray-800">{calculateInterestRate(form.loanCategory, form.product)}</p>
+                    <p className="font-semibold text-gray-800">
+                      {(form.interestRate || calculateInterestRate(form.loanCategory, form.loanType))}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Total Payable</p>
+                    <p className="font-semibold text-gray-800">
+                      ₹{calculateTotalPayable(form.requestedAmount, form.tenureMonths).toLocaleString()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Processing Time</p>
                     <p className="font-semibold text-gray-800">3-5 business days</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Next Due Date</p>
-                    <p className="font-semibold text-gray-800">{calculateNextDueDate()}</p>
                   </div>
                 </div>
               </div>
@@ -1133,12 +1121,6 @@ const LoanForm = ({
                       accept=".pdf,.jpg,.jpeg,.png"
                       icon={CreditCard}
                     />
-                    <DocumentUploadField 
-                      label="Passport (if any)" 
-                      docType="passport" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={File}
-                    />
                   </div>
                 </div>
 
@@ -1146,13 +1128,12 @@ const LoanForm = ({
                 <div className="mb-8">
                   <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Camera size={16} />
-                    Photo & Signature (Required)
+                    Photo & Signature
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <DocumentUploadField 
                       label="Passport Size Photo" 
                       docType="photo" 
-                      required 
                       accept=".jpg,.jpeg,.png"
                       icon={Camera}
                     />
@@ -1178,7 +1159,6 @@ const LoanForm = ({
                       accept=".pdf,.jpg,.jpeg,.png"
                       icon={Home}
                     />
-                    
                   </div>
                 </div>
 
@@ -1207,16 +1187,8 @@ const LoanForm = ({
                       accept=".pdf,.jpg,.jpeg,.png"
                       icon={FileText}
                     />
-                    <DocumentUploadField 
-                      label="ITR Documents (2 years)" 
-                      docType="itrDocuments" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={FileBarChart}
-                    />
                   </div>
                 </div>
-
-              
               </div>
             </div>
           )}
