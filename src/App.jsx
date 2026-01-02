@@ -48,7 +48,7 @@ import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
-// import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
+import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
 import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
 import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
 import LoanEntry from "./pages/adminPages/Lms/LoanEntry.jsx";
@@ -149,7 +149,7 @@ function App() {
         <Route path="borrowers" element={<Borrowers  />} />
         <Route path="reports" element={<Reports />} />
         <Route path="configuration" element={<Configuration />} />
-        {/* <Route path="admin-roles" element={<AdminRoles />} /> */}
+        <Route path="admin-roles" element={<AdminRoles />} />
 
         //LMS 
         <Route path="loanEntry" element={<LoanEntry />} />

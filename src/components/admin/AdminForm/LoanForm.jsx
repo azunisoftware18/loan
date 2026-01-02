@@ -1,1266 +1,1846 @@
-import React, { useState } from 'react';
+// LoanApplicationForm.jsx
+import React, { useState, useEffect } from 'react';
 import { 
-  User, Phone, Mail, Briefcase, IndianRupee, Target, 
-  Home, MapPin, Shield, FileText, Calendar, FileCheck,
-  IdCard, CreditCard, Camera, Banknote, Signature, 
-  CheckCircle, X, Upload, File, ArrowLeft, ChevronRight,
-  Building, Globe, GraduationCap, Heart, Car, Package,
-  TrendingUp, Percent, Clock, DollarSign, Building2,
-  FileQuestion, FileSpreadsheet, FileBarChart,
-  Check, Circle, Navigation, Crosshair
+  User, Phone, Mail, Calendar, MapPin, Briefcase, 
+  Banknote, FileText, Shield, CheckCircle, Upload, 
+  File, X, Home, Building, IndianRupee, Percent, 
+  Clock, Target, DollarSign, CreditCard, IdCard,
+  Check, AlertCircle, UserPlus, Building2, FileCheck
 } from 'lucide-react';
+import LoanApplicationPreview from './LoanApplicationPreview';
 
-const LoanForm = ({ 
-  onSubmit, 
+const LoanApplicationForm = ({ 
+  userRole = 'customer', // customer, employee, admin
+  initialData = {},
+  isEditMode = false,
+  onSubmit,
   onCancel,
-  initialFormData = {}, 
-  initialDocuments = {},
-  loanCategories = ['Secured', 'Unsecured'],
-  loanProducts = {
-    'Secured': ['Home Loan', 'Car Loan', 'Loan Against Property', 'Gold Loan', 'Construction Loan', 'Mortgage Loan'],
-    'Unsecured': ['Personal Loan', 'Education Loan', 'Business Loan', 'Credit Card Loan', 'Medical Loan', 'Travel Loan']
-  },
-  occupationTypes = [
-    'Salaried - Government',
-    'Salaried - Private',
-    'Self-Employed Business',
-    'Self-Employed Professional',
-    'Agriculturist',
-    'Retired',
-    'Student',
-    'Homemaker',
-    'Unemployed',
-    'Other'
-  ],
-  incomeSources = [
-    'Salary',
-    'Business Income',
-    'Rental Income',
-    'Investment Returns',
-    'Pension',
-    'Agriculture Income',
-    'Other Sources'
-  ],
-  relationshipStatuses = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'],
-  educationLevels = [
-    'Below 10th',
-    '10th Pass',
-    '12th Pass',
-    'Diploma',
-    'Graduate',
-    'Post Graduate',
-    'Doctorate',
-    'Other'
-  ]
+  onSaveDraft
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [form, setForm] = useState({
-    // Personal Information
-    customerName: '',
-    mobile: '',
-    email: '',
-    dateOfBirth: '',
-    gender: '',
-    maritalStatus: '',
-    education: '',
+  // Form state management
+  const [formData, setFormData] = useState({
+    // Section 1: Applicant Basic Details
+    personalDetails: {
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      mobile: '',
+      email: '',
+      dob: '',
+      gender: '',
+      maritalStatus: '',
+      fatherSpouseName: '',
+      nationality: 'Indian',
+      category: ''
+    },
     
-    // Employment Details
-    occupation: '',
-    companyName: '',
-    designation: '',
-    monthlyIncome: '',
-    otherIncome: '',
-    incomeSource: '',
+    // Section 2: KYC Details
+    kycDetails: {
+      aadhaarNumber: '',
+      panNumber: '',
+      voterId: '',
+      passportNumber: '',
+      aadhaarFront: null,
+      aadhaarBack: null,
+      panCardImage: null,
+      aadhaarVerification: 'Pending',
+      panVerification: 'Pending'
+    },
     
-    // Financial Details
-    existingLoans: '',
-    existingEMIs: '',
-    cibilScore: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    
-    // Loan Details
-    requestedAmount: '',
-    tenureMonths: '',
-    loanType: '',
-    loanCategory: '',
-    loanPurpose: '',
-    interestRate: '',
-    
-    // Address Information
-    address: '',
-    city: '',
-    state: '',
-    country: 'India',
-    pincode: '',
-    residenceType: '',
-    
-    // Co-applicant Details
-    coApplicantName: '',
-    coApplicantRelation: '',
-    coApplicantIncome: '',
-    
-    ...initialFormData
-  });
-
-  const [documents, setDocuments] = useState({
-    // Identity Proof
-    aadharCard: null,
-    panCard: null,
-    passport: null,
-    voterId: null,
-    drivingLicense: null,
-    
-    // Photo & Signature
-    photo: null,
-    signature: null,
-    
-    // Address Proof
-    addressProof: null,
-    utilityBill: null,
-    
-    // Income Proof
-    salarySlips: null,
-    form16: null,
-    itrDocuments: null,
-    bankStatements: null,
-    
-    // Property Documents (for secured loans)
-    propertyPapers: null,
-    valuationReport: null,
-    
-    // Business Documents (for self-employed)
-    businessProof: null,
-    gstCertificate: null,
-    
-    // Other Documents
-    nocFromEmployer: null,
-    additionalDocuments: null,
-    
-    ...initialDocuments
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalSteps = 4;
-
-  // Calculate total income
-  const calculateTotalIncome = () => {
-    const monthly = parseFloat(form.monthlyIncome) || 0;
-    const other = parseFloat(form.otherIncome) || 0;
-    return (monthly + other);
-  };
-
-  // Calculate interest rate based on loan category and type
-  const calculateInterestRate = (category, loanType) => {
-    const rates = {
-      'Secured': {
-        'Home Loan': 9.5,
-        'Car Loan': 11.0,
-        'Loan Against Property': 12.0,
-        'Gold Loan': 14.0,
-        'Construction Loan': 11.0,
-        'Mortgage Loan': 12.0
+    // Section 3: Address Details
+    addressDetails: {
+      currentAddress: {
+        line1: '',
+        line2: '',
+        city: '',
+        state: '',
+        pincode: '',
+        residenceType: ''
       },
-      'Unsecured': {
-        'Personal Loan': 18.0,
-        'Education Loan': 14.0,
-        'Business Loan': 20.0,
-        'Credit Card Loan': 24.0,
-        'Medical Loan': 17.0,
-        'Travel Loan': 19.0
+      permanentAddress: {
+        line1: '',
+        line2: '',
+        city: '',
+        state: '',
+        pincode: ''
+      },
+      sameAsCurrent: true
+    },
+    
+    // Section 4: Employment Details
+    employmentDetails: {
+      employmentType: '',
+      salariedDetails: {
+        companyName: '',
+        designation: '',
+        monthlySalary: '',
+        workExperience: '',
+        officeAddress: ''
+      },
+      selfEmployedDetails: {
+        businessName: '',
+        businessType: '',
+        monthlyTurnover: '',
+        annualIncome: '',
+        businessVintage: ''
       }
-    };
-    return rates[category]?.[loanType] || 15.0;
-  };
+    },
+    
+    // Section 5: Income & Bank Details
+    financialDetails: {
+      monthlyIncome: '',
+      otherIncome: '',
+      bankName: '',
+      accountNumber: '',
+      ifscCode: '',
+      accountType: 'Saving',
+      bankStatement: null,
+      salarySlips: null,
+      itrDocuments: null
+    },
+    
+    // Section 6: Loan Details
+    loanDetails: {
+      loanType: '',
+      loanAmount: '',
+      tenureMonths: '',
+      interestRate: '',
+      emi: 0,
+      purpose: ''
+    },
+    
+    // Section 7: Co-Applicant
+    coApplicant: {
+      hasCoApplicant: false,
+      name: '',
+      relation: '',
+      mobile: '',
+      panOrAadhaar: '',
+      income: ''
+    },
+    
+    // Section 8: Credit & Risk Assessment (Internal)
+    riskAssessment: {
+      cibilScore: '',
+      creditStatus: '',
+      foirPercentage: '',
+      ltvPercentage: '',
+      riskCategory: '',
+      internalRemarks: ''
+    },
+    
+    // Section 9: Declaration
+    declarations: {
+      termsAccepted: false,
+      creditCheckAuthorized: false,
+      detailsConfirmed: false
+    },
+    
+    // Section 10: Internal Assignment
+    internalDetails: {
+      assignedEmployee: '',
+      assignedPartner: '',
+      branchName: '',
+      applicationSource: 'Online',
+      applicationStatus: 'Draft'
+    },
+    
+    // Common
+    submittedAt: null,
+    applicationId: `APP${Date.now().toString().slice(-8)}`
+  });
 
-  // Calculate EMI
-  const calculateEMI = (amount, tenureMonths) => {
-    if (!amount || !tenureMonths) return 0;
-    const principal = parseFloat(amount);
-    const months = parseInt(tenureMonths) || 12;
-    const rate = (form.interestRate || 15.0) / 12 / 100; // Monthly interest rate
-    const emi = principal * rate * Math.pow(1 + rate, months) / (Math.pow(1 + rate, months) - 1);
-    return Math.round(emi);
-  };
+  // State for current section and validation
+  const [currentSection, setCurrentSection] = useState(1);
+  const [errors, setErrors] = useState({});
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  // Calculate total payable
-  const calculateTotalPayable = (amount, tenureMonths) => {
-    const emi = calculateEMI(amount, tenureMonths);
-    return emi * (parseInt(tenureMonths) || 12);
-  };
 
-  // Handle document upload
-  const handleDocumentUpload = (docType, file) => {
-    if (file && file.size <= 10 * 1024 * 1024) { // 10MB limit
-      setDocuments(prev => ({
+  // Load initial data if provided
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData(prev => ({ ...prev, ...initialData }));
+    }
+  }, [initialData]);
+
+  // Calculate EMI when loan details change
+  useEffect(() => {
+    if (formData.loanDetails.loanAmount && formData.loanDetails.tenureMonths && formData.loanDetails.interestRate) {
+      calculateEMI();
+    }
+  }, [formData.loanDetails.loanAmount, formData.loanDetails.tenureMonths, formData.loanDetails.interestRate]);
+
+  // Handle input changes
+  const handleChange = (section, field, value, subField = null) => {
+    setFormData(prev => {
+      if (subField) {
+        return {
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: {
+              ...prev[section][field],
+              [subField]: value
+            }
+          }
+        };
+      }
+      return {
         ...prev,
-        [docType]: {
-          file,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
+        [section]: {
+          ...prev[section],
+          [field]: value
         }
-      }));
-    } else if (file) {
-      alert('File size must be less than 10MB');
+      };
+    });
+
+    // Clear error for this field
+    if (errors[`${section}.${field}`]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`${section}.${field}`];
+        return newErrors;
+      });
     }
   };
 
-  // Remove document
-  const removeDocument = (docType) => {
-    setDocuments(prev => ({
-      ...prev,
-      [docType]: null
-    }));
+  // Calculate EMI
+  const calculateEMI = () => {
+    const { loanAmount, tenureMonths, interestRate } = formData.loanDetails;
+    if (!loanAmount || !tenureMonths || !interestRate) return;
+
+    const principal = parseFloat(loanAmount);
+    const months = parseInt(tenureMonths);
+    const rate = parseFloat(interestRate) / 12 / 100;
+
+    const emi = principal * rate * Math.pow(1 + rate, months) / (Math.pow(1 + rate, months) - 1);
+    
+    handleChange('loanDetails', 'emi', emi.toFixed(2));
+  };
+
+  // Handle document upload
+  const handleFileUpload = (section, field, file) => {
+    if (file && file.size <= 5 * 1024 * 1024) { // 5MB limit
+      handleChange(section, field, {
+        file,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString()
+      });
+    } else {
+      alert('File size must be less than 5MB');
+    }
+  };
+
+  // Validate current section
+  const validateSection = (section) => {
+    const newErrors = {};
+
+    switch(section) {
+      case 1: // Personal Details
+        const { personalDetails } = formData;
+        if (!personalDetails.firstName.trim()) newErrors['personalDetails.firstName'] = 'First name is required';
+        if (!personalDetails.lastName.trim()) newErrors['personalDetails.lastName'] = 'Last name is required';
+        if (!/^[6-9]\d{9}$/.test(personalDetails.mobile)) newErrors['personalDetails.mobile'] = 'Valid 10-digit mobile number required';
+        if (personalDetails.email && !/^\S+@\S+\.\S+$/.test(personalDetails.email)) newErrors['personalDetails.email'] = 'Valid email required';
+        if (!personalDetails.dob) newErrors['personalDetails.dob'] = 'Date of birth is required';
+        break;
+
+      case 2: // KYC Details
+        const { kycDetails } = formData;
+        if (!/^\d{12}$/.test(kycDetails.aadhaarNumber)) newErrors['kycDetails.aadhaarNumber'] = 'Valid 12-digit Aadhaar required';
+        if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(kycDetails.panNumber)) newErrors['kycDetails.panNumber'] = 'Valid PAN required';
+        if (!kycDetails.aadhaarFront) newErrors['kycDetails.aadhaarFront'] = 'Aadhaar front image required';
+        if (!kycDetails.panCardImage) newErrors['kycDetails.panCardImage'] = 'PAN card image required';
+        break;
+
+      case 6: // Loan Details
+        const { loanDetails } = formData;
+        if (!loanDetails.loanType) newErrors['loanDetails.loanType'] = 'Loan type is required';
+        if (!loanDetails.loanAmount || parseFloat(loanDetails.loanAmount) <= 0) newErrors['loanDetails.loanAmount'] = 'Valid loan amount required';
+        if (!loanDetails.tenureMonths || parseInt(loanDetails.tenureMonths) <= 0) newErrors['loanDetails.tenureMonths'] = 'Valid tenure required';
+        break;
+
+      case 9: // Declarations
+        const { declarations } = formData;
+        if (!declarations.termsAccepted) newErrors['declarations.termsAccepted'] = 'Must accept terms';
+        if (!declarations.creditCheckAuthorized) newErrors['declarations.creditCheckAuthorized'] = 'Must authorize credit check';
+        if (!declarations.detailsConfirmed) newErrors['declarations.detailsConfirmed'] = 'Must confirm details';
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Navigation
+  const nextSection = () => {
+    if (validateSection(currentSection)) {
+      setCurrentSection(prev => Math.min(prev + 1, 10));
+    }
+  };
+
+  const prevSection = () => {
+    setCurrentSection(prev => Math.max(prev - 1, 1));
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Basic validation
-      if (!form.customerName || !form.requestedAmount || !form.loanCategory || !form.mobile) {
-        alert('Customer name, mobile number, amount, and loan category are required');
-        return;
+    
+    // Final validation
+    const sectionsToValidate = [1, 2, 6, 9];
+    let isValid = true;
+    
+    sectionsToValidate.forEach(section => {
+      if (!validateSection(section)) {
+        isValid = false;
       }
+    });
 
-      // Mobile number validation
-      const mobileRegex = /^[6-9]\d{9}$/;
-      if (!mobileRegex.test(form.mobile)) {
-        alert('Please enter a valid 10-digit mobile number');
-        return;
-      }
-
-      // Email validation
-      if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-
-      // Document validation
-      const requiredDocs = ['aadharCard', 'panCard'];
-      const missingDocs = requiredDocs.filter(doc => !documents[doc]);
-      
-      if (missingDocs.length > 0) {
-        alert(`Please upload required documents: ${missingDocs.join(', ')}`);
-        return;
-      }
-
-      // Prepare loan application data matching Prisma schema
-      const loanApplicationData = {
-        // Customer information (would come from customer relation in real app)
-        customerInfo: {
-          name: form.customerName,
-          email: form.email,
-          phone: form.mobile,
-          dateOfBirth: form.dateOfBirth,
-          gender: form.gender,
-          maritalStatus: form.maritalStatus,
-          education: form.education,
-          occupation: form.occupation,
-          companyName: form.companyName,
-          designation: form.designation,
-          monthlyIncome: parseFloat(form.monthlyIncome) || 0,
-          otherIncome: parseFloat(form.otherIncome) || 0,
-          incomeSource: form.incomeSource,
-          address: form.address,
-          city: form.city,
-          state: form.state,
-          pincode: form.pincode,
-          residenceType: form.residenceType,
-          existingLoans: form.existingLoans,
-          existingEMIs: parseFloat(form.existingEMIs) || 0
-        },
-        
-        // Loan application fields
-        requestedAmount: parseFloat(form.requestedAmount),
-        tenureMonths: parseInt(form.tenureMonths) || 12,
-        interestRate: parseFloat(form.interestRate) || calculateInterestRate(form.loanCategory, form.loanType),
-        loanType: form.loanType || 'Personal Loan',
-        loanPurpose: form.loanPurpose,
-        cibilScore: parseInt(form.cibilScore) || null,
-        
-        // Bank details
-        bankDetails: {
-          bankName: form.bankName,
-          accountNumber: form.accountNumber,
-          ifscCode: form.ifscCode
-        },
-        
-        // Co-applicant information
-        coApplicant: form.coApplicantName ? {
-          name: form.coApplicantName,
-          relation: form.coApplicantRelation,
-          income: parseFloat(form.coApplicantIncome) || 0
-        } : null,
-        
-        // Documents
-        documents: Object.keys(documents).reduce((acc, key) => {
-          if (documents[key]) {
-            acc[key] = {
-              name: documents[key].name,
-              type: documents[key].type,
-              size: documents[key].size
-            };
-          }
-          return acc;
-        }, {}),
-        
-        // Calculated fields
-        calculatedFields: {
-          totalIncome: calculateTotalIncome(),
-          emiAmount: calculateEMI(form.requestedAmount, form.tenureMonths),
-          totalPayable: calculateTotalPayable(form.requestedAmount, form.tenureMonths)
-        }
+    if (isValid) {
+      const submissionData = {
+        ...formData,
+        submittedAt: new Date().toISOString(),
+        applicationStatus: 'Submitted'
       };
-
-      // Call onSubmit with the formatted data
+      
       if (onSubmit) {
-        await onSubmit(loanApplicationData);
+        onSubmit(submissionData);
       }
+    }
+  };
 
-      // Show success message
-      alert('Loan application submitted successfully!');
-      
-      // Reset form after successful submission
-      resetForm();
-      setCurrentStep(1);
-      
-    } catch (error) {
-      alert('Error submitting application: ' + error.message);
-    } finally {
-      setIsSubmitting(false);
+  // Handle save draft
+  const handleSaveDraft = () => {
+    if (onSaveDraft) {
+      onSaveDraft({
+        ...formData,
+        applicationStatus: 'Draft'
+      });
     }
   };
 
   // Reset form
-  const resetForm = () => {
-    setForm({
-      customerName: '',
-      mobile: '',
-      email: '',
-      dateOfBirth: '',
-      gender: '',
-      maritalStatus: '',
-      education: '',
-      occupation: '',
-      companyName: '',
-      designation: '',
-      monthlyIncome: '',
-      otherIncome: '',
-      incomeSource: '',
-      existingLoans: '',
-      existingEMIs: '',
-      cibilScore: '',
-      bankName: '',
-      accountNumber: '',
-      ifscCode: '',
-      requestedAmount: '',
-      tenureMonths: '',
-      loanType: '',
-      loanCategory: '',
-      loanPurpose: '',
-      interestRate: '',
-      address: '',
-      city: '',
-      state: '',
-      country: 'India',
-      pincode: '',
-      residenceType: '',
-      coApplicantName: '',
-      coApplicantRelation: '',
-      coApplicantIncome: ''
+  const handleReset = () => {
+    setFormData({
+      personalDetails: {
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        mobile: '',
+        email: '',
+        dob: '',
+        gender: '',
+        maritalStatus: '',
+        fatherSpouseName: '',
+        nationality: 'Indian',
+        category: ''
+      },
+      kycDetails: {
+        aadhaarNumber: '',
+        panNumber: '',
+        voterId: '',
+        passportNumber: '',
+        aadhaarFront: null,
+        aadhaarBack: null,
+        panCardImage: null,
+        aadhaarVerification: 'Pending',
+        panVerification: 'Pending'
+      },
+      addressDetails: {
+        currentAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          pincode: '',
+          residenceType: ''
+        },
+        permanentAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          pincode: ''
+        },
+        sameAsCurrent: true
+      },
+      employmentDetails: {
+        employmentType: '',
+        salariedDetails: {
+          companyName: '',
+          designation: '',
+          monthlySalary: '',
+          workExperience: '',
+          officeAddress: ''
+        },
+        selfEmployedDetails: {
+          businessName: '',
+          businessType: '',
+          monthlyTurnover: '',
+          annualIncome: '',
+          businessVintage: ''
+        }
+      },
+      financialDetails: {
+        monthlyIncome: '',
+        otherIncome: '',
+        bankName: '',
+        accountNumber: '',
+        ifscCode: '',
+        accountType: 'Saving',
+        bankStatement: null,
+        salarySlips: null,
+        itrDocuments: null
+      },
+      loanDetails: {
+        loanType: '',
+        loanAmount: '',
+        tenureMonths: '',
+        interestRate: '',
+        emi: 0,
+        purpose: ''
+      },
+      coApplicant: {
+        hasCoApplicant: false,
+        name: '',
+        relation: '',
+        mobile: '',
+        panOrAadhaar: '',
+        income: ''
+      },
+      riskAssessment: {
+        cibilScore: '',
+        creditStatus: '',
+        foirPercentage: '',
+        ltvPercentage: '',
+        riskCategory: '',
+        internalRemarks: ''
+      },
+      declarations: {
+        termsAccepted: false,
+        creditCheckAuthorized: false,
+        detailsConfirmed: false
+      },
+      internalDetails: {
+        assignedEmployee: '',
+        assignedPartner: '',
+        branchName: '',
+        applicationSource: 'Online',
+        applicationStatus: 'Draft'
+      },
+      submittedAt: null,
+      applicationId: `APP${Date.now().toString().slice(-8)}`
     });
-    setDocuments({
-      aadharCard: null,
-      panCard: null,
-      passport: null,
-      voterId: null,
-      drivingLicense: null,
-      photo: null,
-      signature: null,
-      addressProof: null,
-      utilityBill: null,
-      salarySlips: null,
-      form16: null,
-      itrDocuments: null,
-      bankStatements: null,
-      propertyPapers: null,
-      valuationReport: null,
-      businessProof: null,
-      gstCertificate: null,
-      nocFromEmployer: null,
-      additionalDocuments: null
-    });
+    setCurrentSection(1);
+    setErrors({});
   };
 
-  // Update interest rate when loan category or type changes
-  React.useEffect(() => {
-    if (form.loanCategory && form.loanType) {
-      const rate = calculateInterestRate(form.loanCategory, form.loanType);
-      setForm(prev => ({
-        ...prev,
-        interestRate: rate.toString()
-      }));
-    }
-  }, [form.loanCategory, form.loanType]);
-
-  // Document upload component
-  const DocumentUploadField = ({ label, docType, required = false, accept = "*", icon: Icon }) => (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
-      <label className="block text-sm font-medium mb-2 text-gray-700">
-        <div className="flex items-center gap-2">
-          <Icon size={16} className="text-blue-600" />
-          {label} {required && <span className="text-red-500">*</span>}
-        </div>
-      </label>
-      {!documents[docType] ? (
-        <div className="text-center py-4">
-          <Upload className="mx-auto text-gray-400 mb-2" size={24} />
-          <input
-            type="file"
-            onChange={(e) => handleDocumentUpload(docType, e.target.files[0])}
-            className="hidden"
-            id={docType}
-            accept={accept}
-          />
-          <label
-            htmlFor={docType}
-            className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block text-sm"
-          >
-            Upload File
-          </label>
-          <p className="text-xs text-gray-500 mt-2">Max file size: 10MB</p>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-          <div className="flex items-center gap-3">
-            <File className="text-green-600" size={20} />
-            <div>
-              <p className="text-sm font-medium text-gray-800">{documents[docType].name}</p>
-              <p className="text-xs text-gray-500">
-                {(documents[docType].size / 1024 / 1024).toFixed(2)} MB
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => removeDocument(docType)}
-            className="text-red-500 hover:text-red-700"
-            type="button"
-          >
-            <X size={18} />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
-  // Step navigation
-  const StepNavigation = () => (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        {[1, 2, 3, 4].map((step) => (
-          <React.Fragment key={step}>
-            <div className="flex flex-col items-center">
-              <div className={`
-                w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
-                ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}
-                ${currentStep === step ? 'ring-4 ring-blue-100' : ''}
-              `}>
-                {currentStep > step ? <Check size={20} /> : step}
-              </div>
-              <span className="text-xs mt-2 text-gray-600">
-                {step === 1 && 'Personal Info'}
-                {step === 2 && 'Financial Details'}
-                {step === 3 && 'Loan Details'}
-                {step === 4 && 'Documents'}
-              </span>
-            </div>
-            {step < 4 && (
-              <div className={`flex-1 h-1 mx-4 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-      <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {currentStep === 1 && 'Personal & Employment Information'}
-          {currentStep === 2 && 'Financial & Bank Details'}
-          {currentStep === 3 && 'Loan Application Details'}
-          {currentStep === 4 && 'Document Upload'}
-        </h2>
-        <p className="text-gray-600 text-sm mt-1">
-          Step {currentStep} of {totalSteps}
-        </p>
-      </div>
-    </div>
-  );
-
-  // Next step
-  const nextStep = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo(0, 0);
-    }
+  // Role-based visibility
+  const isVisible = (section) => {
+    if (userRole === 'admin') return true;
+    if (userRole === 'employee') return section !== 8; // Hide risk assessment from employees
+    if (userRole === 'customer') return [1, 2, 3, 4, 5, 6, 7, 9].includes(section);
+    return true;
   };
 
-  // Previous step
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo(0, 0);
-    }
-  };
+  // Form sections configuration
+  const sections = [
+    { id: 1, title: 'Applicant Basic Details', icon: User, mandatory: true },
+    { id: 2, title: 'KYC Details', icon: IdCard, mandatory: true },
+    { id: 3, title: 'Address Details', icon: MapPin, mandatory: false },
+    { id: 4, title: 'Employment Details', icon: Briefcase, mandatory: true },
+    { id: 5, title: 'Income & Bank Details', icon: Banknote, mandatory: true },
+    { id: 6, title: 'Loan Details', icon: DollarSign, mandatory: true },
+    { id: 7, title: 'Co-Applicant', icon: UserPlus, mandatory: false },
+    { id: 8, title: 'Credit Assessment', icon: Shield, mandatory: false },
+    { id: 9, title: 'Declaration', icon: FileCheck, mandatory: true },
+    { id: 10, title: 'Internal Assignment', icon: Building2, mandatory: false }
+  ];
 
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {onCancel && (
-              <button
-                onClick={onCancel}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                type="button"
-              >
-                <ArrowLeft size={20} className="text-gray-600" />
-              </button>
-            )}
-            <h1 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <FileText size={20} />
-              New Loan Application
-            </h1>
-          </div>
-          <div className="text-sm text-gray-500">
-            All fields marked with <span className="text-red-500">*</span> are required
-          </div>
-        </div>
-      </div>
+  // Render current section
+  const renderSection = () => {
+    if (!isVisible(currentSection)) return null;
 
-      <div className="p-6">
-        <StepNavigation />
-        
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Step 1: Personal & Employment Information */}
-          {currentStep === 1 && (
-            <div className="space-y-8">
-              {/* Personal Information */}
+    switch(currentSection) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <User size={20} />
+              Applicant Basic Details
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <User size={18} />
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.customerName}
-                      onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Full Name *"
-                      required
-                    />
-                  </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.personalDetails.firstName}
+                  onChange={(e) => handleChange('personalDetails', 'firstName', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['personalDetails.firstName'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors['personalDetails.firstName'] && (
+                  <p className="text-red-500 text-xs mt-1">{errors['personalDetails.firstName']}</p>
+                )}
+              </div>
 
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="tel"
-                      value={form.mobile}
-                      onChange={(e) => setForm({ ...form, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Mobile Number *"
-                      required
-                      maxLength={10}
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Middle Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.personalDetails.middleName}
+                  onChange={(e) => handleChange('personalDetails', 'middleName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
 
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Email Address"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.personalDetails.lastName}
+                  onChange={(e) => handleChange('personalDetails', 'lastName', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['personalDetails.lastName'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+              </div>
 
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="date"
-                      value={form.dateOfBirth}
-                      onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Date of Birth"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mobile Number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={formData.personalDetails.mobile}
+                  onChange={(e) => handleChange('personalDetails', 'mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['personalDetails.mobile'] ? 'border-red-500' : 'border-gray-300'}`}
+                  maxLength={10}
+                  required
+                />
+              </div>
 
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.gender}
-                      onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email ID
+                </label>
+                <input
+                  type="email"
+                  value={formData.personalDetails.email}
+                  onChange={(e) => handleChange('personalDetails', 'email', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['personalDetails.email'] ? 'border-red-500' : 'border-gray-300'}`}
+                />
+              </div>
 
-                  <div className="relative">
-                    <Heart className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.maritalStatus}
-                      onChange={(e) => setForm({ ...form, maritalStatus: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Marital Status</option>
-                      {relationshipStatuses.map(status => (
-                        <option key={status} value={status}>{status}</option>
-                      ))}
-                    </select>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date of Birth <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={formData.personalDetails.dob}
+                  onChange={(e) => handleChange('personalDetails', 'dob', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['personalDetails.dob'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+              </div>
 
-                  <div className="relative">
-                    <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.education}
-                      onChange={(e) => setForm({ ...form, education: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Education Level</option>
-                      {educationLevels.map(level => (
-                        <option key={level} value={level}>{level}</option>
-                      ))}
-                    </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Gender
+                </label>
+                <select
+                  value={formData.personalDetails.gender}
+                  onChange={(e) => handleChange('personalDetails', 'gender', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Select</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Marital Status
+                </label>
+                <select
+                  value={formData.personalDetails.maritalStatus}
+                  onChange={(e) => handleChange('personalDetails', 'maritalStatus', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Select</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Father/Spouse Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.personalDetails.fatherSpouseName}
+                  onChange={(e) => handleChange('personalDetails', 'fatherSpouseName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nationality
+                </label>
+                <input
+                  type="text"
+                  value={formData.personalDetails.nationality}
+                  onChange={(e) => handleChange('personalDetails', 'nationality', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  value={formData.personalDetails.category}
+                  onChange={(e) => handleChange('personalDetails', 'category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Select</option>
+                  <option value="General">General</option>
+                  <option value="OBC">OBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <IdCard size={20} />
+              KYC Details
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">Identity Documents</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Aadhaar Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kycDetails.aadhaarNumber}
+                    onChange={(e) => handleChange('kycDetails', 'aadhaarNumber', e.target.value.replace(/\D/g, '').slice(0, 12))}
+                    className={`w-full px-3 py-2 border rounded-lg ${errors['kycDetails.aadhaarNumber'] ? 'border-red-500' : 'border-gray-300'}`}
+                    maxLength={12}
+                    required
+                  />
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500">Status:</span>
+                    <span className={`text-xs px-2 py-1 rounded ${formData.kycDetails.aadhaarVerification === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {formData.kycDetails.aadhaarVerification}
+                    </span>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    PAN Number <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kycDetails.panNumber}
+                    onChange={(e) => handleChange('kycDetails', 'panNumber', e.target.value.toUpperCase())}
+                    className={`w-full px-3 py-2 border rounded-lg ${errors['kycDetails.panNumber'] ? 'border-red-500' : 'border-gray-300'}`}
+                    maxLength={10}
+                    required
+                  />
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500">Status:</span>
+                    <span className={`text-xs px-2 py-1 rounded ${formData.kycDetails.panVerification === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {formData.kycDetails.panVerification}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Voter ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kycDetails.voterId}
+                    onChange={(e) => handleChange('kycDetails', 'voterId', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Passport Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.kycDetails.passportNumber}
+                    onChange={(e) => handleChange('kycDetails', 'passportNumber', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
                 </div>
               </div>
 
-              {/* Address Information */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">Document Uploads</h4>
+                
+                <DocumentUpload
+                  label="Aadhaar Front Image *"
+                  value={formData.kycDetails.aadhaarFront}
+                  onChange={(file) => handleFileUpload('kycDetails', 'aadhaarFront', file)}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  error={errors['kycDetails.aadhaarFront']}
+                />
+
+                <DocumentUpload
+                  label="Aadhaar Back Image"
+                  value={formData.kycDetails.aadhaarBack}
+                  onChange={(file) => handleFileUpload('kycDetails', 'aadhaarBack', file)}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                />
+
+                <DocumentUpload
+                  label="PAN Card Image *"
+                  value={formData.kycDetails.panCardImage}
+                  onChange={(file) => handleFileUpload('kycDetails', 'panCardImage', file)}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  error={errors['kycDetails.panCardImage']}
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <MapPin size={20} />
+              Address Details
+            </h3>
+
+            <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Navigation size={18} />
-                  Address Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="md:col-span-2 relative">
-                    <Home className="absolute left-3 top-4 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <textarea
-                      value={form.address}
-                      onChange={(e) => setForm({ ...form, address: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                      placeholder="Complete Address"
-                      rows={2}
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Crosshair className="absolute left-3 top-1/4 transform -translate-y-1/2 text-gray-400" size={18} />
+                <h4 className="font-medium text-gray-700 mb-4">Current Address</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
                     <input
                       type="text"
-                      value={form.city}
-                      onChange={(e) => setForm({ ...form, city: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Address Line 1"
+                      value={formData.addressDetails.currentAddress.line1}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value, 'line1')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <input
+                      type="text"
+                      placeholder="Address Line 2"
+                      value={formData.addressDetails.currentAddress.line2}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value, 'line2')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
                       placeholder="City"
+                      value={formData.addressDetails.currentAddress.city}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value, 'city')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
                   </div>
-
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div>
                     <input
                       type="text"
-                      value={form.state}
-                      onChange={(e) => setForm({ ...form, state: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="State"
+                      value={formData.addressDetails.currentAddress.state}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value, 'state')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
                   </div>
-
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div>
                     <input
                       type="text"
-                      value={form.pincode}
-                      onChange={(e) => setForm({ ...form, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Pincode"
+                      value={formData.addressDetails.currentAddress.pincode}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value.replace(/\D/g, '').slice(0, 6), 'pincode')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       maxLength={6}
                     />
                   </div>
-
-                  <div className="relative">
-                    <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div>
                     <select
-                      value={form.residenceType}
-                      onChange={(e) => setForm({ ...form, residenceType: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      value={formData.addressDetails.currentAddress.residenceType}
+                      onChange={(e) => handleChange('addressDetails', 'currentAddress', e.target.value, 'residenceType')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     >
                       <option value="">Residence Type</option>
                       <option value="Owned">Owned</option>
                       <option value="Rented">Rented</option>
-                      <option value="Parental">Parental</option>
-                      <option value="Company Provided">Company Provided</option>
                     </select>
                   </div>
                 </div>
               </div>
 
-              {/* Employment Information */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Briefcase size={18} />
-                  Employment Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.occupation}
-                      onChange={(e) => setForm({ ...form, occupation: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Occupation *</option>
-                      {occupationTypes.map(occupation => (
-                        <option key={occupation} value={occupation}>{occupation}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.companyName}
-                      onChange={(e) => setForm({ ...form, companyName: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Company/Organization Name"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.designation}
-                      onChange={(e) => setForm({ ...form, designation: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Designation/Role"
-                    />
-                  </div>
+                <div className="flex items-center gap-2 mb-4">
+                  <input
+                    type="checkbox"
+                    id="sameAsCurrent"
+                    checked={formData.addressDetails.sameAsCurrent}
+                    onChange={(e) => handleChange('addressDetails', 'sameAsCurrent', e.target.checked)}
+                    className="rounded"
+                  />
+                  <label htmlFor="sameAsCurrent" className="text-sm font-medium text-gray-700">
+                    Same as Current Address
+                  </label>
                 </div>
+
+                {!formData.addressDetails.sameAsCurrent && (
+                  <>
+                    <h4 className="font-medium text-gray-700 mb-4">Permanent Address</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Address Line 1"
+                          value={formData.addressDetails.permanentAddress.line1}
+                          onChange={(e) => handleChange('addressDetails', 'permanentAddress', e.target.value, 'line1')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <input
+                          type="text"
+                          placeholder="Address Line 2"
+                          value={formData.addressDetails.permanentAddress.line2}
+                          onChange={(e) => handleChange('addressDetails', 'permanentAddress', e.target.value, 'line2')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="City"
+                          value={formData.addressDetails.permanentAddress.city}
+                          onChange={(e) => handleChange('addressDetails', 'permanentAddress', e.target.value, 'city')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="State"
+                          value={formData.addressDetails.permanentAddress.state}
+                          onChange={(e) => handleChange('addressDetails', 'permanentAddress', e.target.value, 'state')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Pincode"
+                          value={formData.addressDetails.permanentAddress.pincode}
+                          onChange={(e) => handleChange('addressDetails', 'permanentAddress', e.target.value.replace(/\D/g, '').slice(0, 6), 'pincode')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          maxLength={6}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          )}
+          </div>
+        );
 
-          {/* Step 2: Financial Details */}
-          {currentStep === 2 && (
-            <div className="space-y-8">
-              {/* Income Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <TrendingUp size={18} />
-                  Income Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+      case 4:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Briefcase size={20} />
+              Employment Details
+            </h3>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Employment Type
+              </label>
+              <div className="flex gap-4 mb-6">
+                <button
+                  type="button"
+                  onClick={() => handleChange('employmentDetails', 'employmentType', 'Salaried')}
+                  className={`px-4 py-2 rounded-lg border ${formData.employmentDetails.employmentType === 'Salaried' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
+                >
+                  Salaried
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange('employmentDetails', 'employmentType', 'Self-Employed')}
+                  className={`px-4 py-2 rounded-lg border ${formData.employmentDetails.employmentType === 'Self-Employed' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300'}`}
+                >
+                  Self-Employed
+                </button>
+              </div>
+
+              {formData.employmentDetails.employmentType === 'Salaried' && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-700">Salaried Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Company Name"
+                      value={formData.employmentDetails.salariedDetails.companyName}
+                      onChange={(e) => handleChange('employmentDetails', 'salariedDetails', e.target.value, 'companyName')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Designation"
+                      value={formData.employmentDetails.salariedDetails.designation}
+                      onChange={(e) => handleChange('employmentDetails', 'salariedDetails', e.target.value, 'designation')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
                     <input
                       type="number"
-                      value={form.monthlyIncome}
-                      onChange={(e) => setForm({ ...form, monthlyIncome: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Monthly Income"
-                      min="0"
+                      placeholder="Monthly Salary (₹)"
+                      value={formData.employmentDetails.salariedDetails.monthlySalary}
+                      onChange={(e) => handleChange('employmentDetails', 'salariedDetails', e.target.value, 'monthlySalary')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
+                    <input
+                      type="text"
+                      placeholder="Total Work Experience (Years)"
+                      value={formData.employmentDetails.salariedDetails.workExperience}
+                      onChange={(e) => handleChange('employmentDetails', 'salariedDetails', e.target.value, 'workExperience')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <div className="md:col-span-2">
+                      <input
+                        type="text"
+                        placeholder="Office Address"
+                        value={formData.employmentDetails.salariedDetails.officeAddress}
+                        onChange={(e) => handleChange('employmentDetails', 'salariedDetails', e.target.value, 'officeAddress')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
                   </div>
+                </div>
+              )}
 
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              {formData.employmentDetails.employmentType === 'Self-Employed' && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-700">Self-Employed Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Business Name"
+                      value={formData.employmentDetails.selfEmployedDetails.businessName}
+                      onChange={(e) => handleChange('employmentDetails', 'selfEmployedDetails', e.target.value, 'businessName')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Business Type"
+                      value={formData.employmentDetails.selfEmployedDetails.businessType}
+                      onChange={(e) => handleChange('employmentDetails', 'selfEmployedDetails', e.target.value, 'businessType')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
                     <input
                       type="number"
-                      value={form.otherIncome}
-                      onChange={(e) => setForm({ ...form, otherIncome: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Other Monthly Income"
-                      min="0"
+                      placeholder="Monthly Turnover (₹)"
+                      value={formData.employmentDetails.selfEmployedDetails.monthlyTurnover}
+                      onChange={(e) => handleChange('employmentDetails', 'selfEmployedDetails', e.target.value, 'monthlyTurnover')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Annual Income (₹)"
+                      value={formData.employmentDetails.selfEmployedDetails.annualIncome}
+                      onChange={(e) => handleChange('employmentDetails', 'selfEmployedDetails', e.target.value, 'annualIncome')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Business Vintage (Years)"
+                        value={formData.employmentDetails.selfEmployedDetails.businessVintage}
+                        onChange={(e) => handleChange('employmentDetails', 'selfEmployedDetails', e.target.value, 'businessVintage')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Banknote size={20} />
+              Income & Bank Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">Income Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Monthly Income (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.financialDetails.monthlyIncome}
+                      onChange={(e) => handleChange('financialDetails', 'monthlyIncome', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
                   </div>
-
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.incomeSource}
-                      onChange={(e) => setForm({ ...form, incomeSource: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Primary Income Source</option>
-                      {incomeSources.map(source => (
-                        <option key={source} value={source}>{source}</option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Other Income (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.financialDetails.otherIncome}
+                      onChange={(e) => handleChange('financialDetails', 'otherIncome', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Existing Loans */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <FileBarChart size={18} />
-                  Existing Financial Obligations
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.existingLoans}
-                      onChange={(e) => setForm({ ...form, existingLoans: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Total Existing Loans"
-                      min="0"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.existingEMIs}
-                      onChange={(e) => setForm({ ...form, existingEMIs: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Monthly EMIs"
-                      min="0"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.cibilScore}
-                      onChange={(e) => setForm({ ...form, cibilScore: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="CIBIL Score"
-                      min="300"
-                      max="900"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Bank Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Building2 size={18} />
-                  Bank Account Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">Bank Details</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bank Name
+                    </label>
                     <input
                       type="text"
-                      value={form.bankName}
-                      onChange={(e) => setForm({ ...form, bankName: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Bank Name"
+                      value={formData.financialDetails.bankName}
+                      onChange={(e) => handleChange('financialDetails', 'bankName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
                   </div>
-
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Number
+                    </label>
                     <input
                       type="text"
-                      value={form.accountNumber}
-                      onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Account Number"
+                      value={formData.financialDetails.accountNumber}
+                      onChange={(e) => handleChange('financialDetails', 'accountNumber', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     />
                   </div>
-
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      IFSC Code
+                    </label>
                     <input
                       type="text"
-                      value={form.ifscCode}
-                      onChange={(e) => setForm({ ...form, ifscCode: e.target.value.toUpperCase() })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="IFSC Code"
+                      value={formData.financialDetails.ifscCode}
+                      onChange={(e) => handleChange('financialDetails', 'ifscCode', e.target.value.toUpperCase())}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       maxLength={11}
                     />
                   </div>
-                </div>
-              </div>
-
-              {/* Co-applicant Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <User size={18} />
-                  Co-applicant Details (Optional)
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.coApplicantName}
-                      onChange={(e) => setForm({ ...form, coApplicantName: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Co-applicant Name"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Heart className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.coApplicantRelation}
-                      onChange={(e) => setForm({ ...form, coApplicantRelation: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Relation"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.coApplicantIncome}
-                      onChange={(e) => setForm({ ...form, coApplicantIncome: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Co-applicant Income"
-                      min="0"
-                    />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Account Type
+                    </label>
+                    <select
+                      value={formData.financialDetails.accountType}
+                      onChange={(e) => handleChange('financialDetails', 'accountType', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    >
+                      <option value="Saving">Saving</option>
+                      <option value="Current">Current</option>
+                    </select>
                   </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Step 3: Loan Details */}
-          {currentStep === 3 && (
-            <div className="space-y-8">
-              {/* Loan Application Details */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-700">Document Uploads</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <DocumentUpload
+                  label="Last 6 Months Bank Statement"
+                  value={formData.financialDetails.bankStatement}
+                  onChange={(file) => handleFileUpload('financialDetails', 'bankStatement', file)}
+                  accept=".pdf"
+                />
+                <DocumentUpload
+                  label="Salary Slips (Last 3 Months)"
+                  value={formData.financialDetails.salarySlips}
+                  onChange={(file) => handleFileUpload('financialDetails', 'salarySlips', file)}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                />
+                <DocumentUpload
+                  label="ITR Documents"
+                  value={formData.financialDetails.itrDocuments}
+                  onChange={(file) => handleFileUpload('financialDetails', 'itrDocuments', file)}
+                  accept=".pdf"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <DollarSign size={20} />
+              Loan Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <FileText size={18} />
-                  Loan Application Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <IndianRupee className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.requestedAmount}
-                      onChange={(e) => setForm({ ...form, requestedAmount: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Loan Amount *"
-                      required
-                      min="1000"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.loanCategory}
-                      onChange={(e) => {
-                        setForm({ 
-                          ...form, 
-                          loanCategory: e.target.value,
-                          loanType: '' // Reset loan type when category changes
-                        });
-                      }}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      required
-                    >
-                      <option value="">Loan Category *</option>
-                      {loanCategories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.loanType}
-                      onChange={(e) => setForm({ ...form, loanType: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                      disabled={!form.loanCategory}
-                      required
-                    >
-                      <option value="">Loan Type *</option>
-                      {form.loanCategory && loanProducts[form.loanCategory]?.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      value={form.tenureMonths}
-                      onChange={(e) => setForm({ ...form, tenureMonths: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-                    >
-                      <option value="">Select Tenure (Months)</option>
-                      <option value="6">6 months</option>
-                      <option value="12">12 months</option>
-                      <option value="24">24 months</option>
-                      <option value="36">36 months</option>
-                      <option value="48">48 months</option>
-                      <option value="60">60 months</option>
-                      <option value="84">84 months</option>
-                      <option value="120">120 months</option>
-                      <option value="240">240 months</option>
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="number"
-                      value={form.interestRate}
-                      onChange={(e) => setForm({ ...form, interestRate: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Interest Rate (%)"
-                      step="0.1"
-                      min="0"
-                      max="30"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      type="text"
-                      value={form.loanPurpose}
-                      onChange={(e) => setForm({ ...form, loanPurpose: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Loan Purpose"
-                    />
-                  </div>
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Loan Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.loanDetails.loanType}
+                  onChange={(e) => handleChange('loanDetails', 'loanType', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['loanDetails.loanType'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Business">Business</option>
+                  <option value="Home">Home</option>
+                  <option value="Vehicle">Vehicle</option>
+                  <option value="Education">Education</option>
+                  <option value="Gold">Gold</option>
+                </select>
               </div>
 
-              {/* Loan Preview */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Loan Amount (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.loanDetails.loanAmount}
+                  onChange={(e) => handleChange('loanDetails', 'loanAmount', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['loanDetails.loanAmount'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                  min="1000"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tenure (Months) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.loanDetails.tenureMonths}
+                  onChange={(e) => handleChange('loanDetails', 'tenureMonths', e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg ${errors['loanDetails.tenureMonths'] ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                >
+                  <option value="">Select</option>
+                  <option value="6">6 Months</option>
+                  <option value="12">12 Months</option>
+                  <option value="24">24 Months</option>
+                  <option value="36">36 Months</option>
+                  <option value="48">48 Months</option>
+                  <option value="60">60 Months</option>
+                  <option value="84">84 Months</option>
+                  <option value="120">120 Months</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Interest Rate (%)
+                </label>
+                <input
+                  type="number"
+                  value={formData.loanDetails.interestRate}
+                  onChange={(e) => handleChange('loanDetails', 'interestRate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  step="0.01"
+                  min="0"
+                  max="30"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  EMI (₹)
+                </label>
+                <input
+                  type="text"
+                  value={formData.loanDetails.emi ? `₹${formData.loanDetails.emi}` : ''}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose of Loan
+                </label>
+                <input
+                  type="text"
+                  value={formData.loanDetails.purpose}
+                  onChange={(e) => handleChange('loanDetails', 'purpose', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  placeholder="e.g., Home Renovation, Vehicle Purchase"
+                />
+              </div>
+            </div>
+
+            {formData.loanDetails.emi > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <FileCheck size={16} />
-                  Loan Preview
-                </h4>
+                <h4 className="font-medium text-blue-800 mb-2">Loan Summary</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
-                    <p className="text-xs text-gray-500">Estimated EMI</p>
-                    <p className="font-semibold text-gray-800">
-                      ₹{calculateEMI(form.requestedAmount, form.tenureMonths).toLocaleString()}
+                    <p className="text-xs text-blue-600">Total Loan Amount</p>
+                    <p className="font-semibold">₹{parseFloat(formData.loanDetails.loanAmount).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Monthly EMI</p>
+                    <p className="font-semibold">₹{parseFloat(formData.loanDetails.emi).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Total Interest</p>
+                    <p className="font-semibold">
+                      ₹{(parseFloat(formData.loanDetails.emi) * parseInt(formData.loanDetails.tenureMonths) - parseFloat(formData.loanDetails.loanAmount)).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Interest Rate</p>
-                    <p className="font-semibold text-gray-800">
-                      {(form.interestRate || calculateInterestRate(form.loanCategory, form.loanType))}%
+                    <p className="text-xs text-blue-600">Total Payable</p>
+                    <p className="font-semibold">
+                      ₹{(parseFloat(formData.loanDetails.emi) * parseInt(formData.loanDetails.tenureMonths)).toLocaleString()}
                     </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Total Payable</p>
-                    <p className="font-semibold text-gray-800">
-                      ₹{calculateTotalPayable(form.requestedAmount, form.tenureMonths).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Processing Time</p>
-                    <p className="font-semibold text-gray-800">3-5 business days</p>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Step 4: Document Upload */}
-          {currentStep === 4 && (
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <FileCheck size={18} />
-                  Upload Required Documents
-                </h3>
-                <p className="text-gray-600 text-sm mb-6">
-                  Please upload clear scans/photos of all required documents. All documents should be in PDF, JPG, or PNG format (Max 10MB each).
-                </p>
-
-                {/* Identity Proof Documents */}
-                <div className="mb-8">
-                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <IdCard size={16} />
-                    Identity Proof Documents (Required)
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <DocumentUploadField 
-                      label="Aadhar Card" 
-                      docType="aadharCard" 
-                      required 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={IdCard}
-                    />
-                    <DocumentUploadField 
-                      label="PAN Card" 
-                      docType="panCard" 
-                      required 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={CreditCard}
-                    />
-                  </div>
-                </div>
-
-                {/* Photo & Signature */}
-                <div className="mb-8">
-                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <Camera size={16} />
-                    Photo & Signature
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <DocumentUploadField 
-                      label="Passport Size Photo" 
-                      docType="photo" 
-                      accept=".jpg,.jpeg,.png"
-                      icon={Camera}
-                    />
-                    <DocumentUploadField 
-                      label="Signature" 
-                      docType="signature" 
-                      accept=".jpg,.jpeg,.png"
-                      icon={Signature}
-                    />
-                  </div>
-                </div>
-
-                {/* Address Proof Documents */}
-                <div className="mb-8">
-                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <Home size={16} />
-                    Address Proof Documents
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <DocumentUploadField 
-                      label="Address Proof" 
-                      docType="addressProof" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={Home}
-                    />
-                  </div>
-                </div>
-
-                {/* Income Proof Documents */}
-                <div className="mb-8">
-                  <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <Banknote size={16} />
-                    Income Proof Documents
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <DocumentUploadField 
-                      label="Salary Slips (3 months)" 
-                      docType="salarySlips" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={FileSpreadsheet}
-                    />
-                    <DocumentUploadField 
-                      label="Form 16" 
-                      docType="form16" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={FileBarChart}
-                    />
-                    <DocumentUploadField 
-                      label="Bank Statements (6 months)" 
-                      docType="bankStatements" 
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      icon={FileText}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-gray-200">
-            {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="flex items-center gap-2 px-8 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-              >
-                <ArrowLeft size={18} />
-                Previous
-              </button>
-            )}
-
-            {currentStep < totalSteps ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 font-medium transition-colors ml-auto"
-              >
-                Next Step
-                <ChevronRight size={18} />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 font-medium transition-colors ml-auto ${
-                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle size={18} />
-                    Submit Application
-                  </>
-                )}
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={resetForm}
-              className="flex items-center gap-2 px-8 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-            >
-              <X size={18} />
-              Reset Form
-            </button>
-
-            {onCancel && (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex items-center gap-2 px-8 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-              >
-                <ArrowLeft size={18} />
-                Cancel
-              </button>
             )}
           </div>
-        </form>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <UserPlus size={20} />
+              Co-Applicant / Guarantor Details (Optional)
+            </h3>
+
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="checkbox"
+                id="hasCoApplicant"
+                checked={formData.coApplicant.hasCoApplicant}
+                onChange={(e) => handleChange('coApplicant', 'hasCoApplicant', e.target.checked)}
+                className="rounded"
+              />
+              <label htmlFor="hasCoApplicant" className="text-sm font-medium text-gray-700">
+                Add Co-Applicant / Guarantor
+              </label>
+            </div>
+
+            {formData.coApplicant.hasCoApplicant && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Co-Applicant Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.coApplicant.name}
+                    onChange={(e) => handleChange('coApplicant', 'name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Relation with Applicant
+                  </label>
+                  <select
+                    value={formData.coApplicant.relation}
+                    onChange={(e) => handleChange('coApplicant', 'relation', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="">Select</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Friend">Friend</option>
+                    <option value="Business Partner">Business Partner</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mobile Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.coApplicant.mobile}
+                    onChange={(e) => handleChange('coApplicant', 'mobile', e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    maxLength={10}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    PAN / Aadhaar Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.coApplicant.panOrAadhaar}
+                    onChange={(e) => handleChange('coApplicant', 'panOrAadhaar', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Income Details (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.coApplicant.income}
+                    onChange={(e) => handleChange('coApplicant', 'income', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Shield size={20} />
+              Credit & Risk Assessment (Internal Use Only)
+            </h3>
+            <p className="text-sm text-gray-600 italic">
+              This section is for internal assessment purposes and is not visible to customers.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  CIBIL Score
+                </label>
+                <input
+                  type="number"
+                  value={formData.riskAssessment.cibilScore}
+                  onChange={(e) => handleChange('riskAssessment', 'cibilScore', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  min="300"
+                  max="900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Credit Status
+                </label>
+                <select
+                  value={formData.riskAssessment.creditStatus}
+                  onChange={(e) => handleChange('riskAssessment', 'creditStatus', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Select</option>
+                  <option value="Good">Good</option>
+                  <option value="Average">Average</option>
+                  <option value="Risky">Risky</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  FOIR Percentage
+                </label>
+                <input
+                  type="number"
+                  value={formData.riskAssessment.foirPercentage}
+                  onChange={(e) => handleChange('riskAssessment', 'foirPercentage', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  LTV Percentage
+                </label>
+                <input
+                  type="number"
+                  value={formData.riskAssessment.ltvPercentage}
+                  onChange={(e) => handleChange('riskAssessment', 'ltvPercentage', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Risk Category
+                </label>
+                <select
+                  value={formData.riskAssessment.riskCategory}
+                  onChange={(e) => handleChange('riskAssessment', 'riskCategory', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="">Select</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Internal Remarks
+              </label>
+              <textarea
+                value={formData.riskAssessment.internalRemarks}
+                onChange={(e) => handleChange('riskAssessment', 'internalRemarks', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                rows={3}
+                placeholder="Enter internal assessment notes..."
+              />
+            </div>
+          </div>
+        );
+
+      case 9:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <FileCheck size={20} />
+              Declaration & Consent
+            </h3>
+
+            <div className="space-y-4">
+              <div className={`p-4 border rounded-lg ${errors['declarations.termsAccepted'] ? 'border-red-500' : 'border-gray-300'}`}>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="termsAccepted"
+                    checked={formData.declarations.termsAccepted}
+                    onChange={(e) => handleChange('declarations', 'termsAccepted', e.target.checked)}
+                    className="mt-1 rounded"
+                    required
+                  />
+                  <div>
+                    <label htmlFor="termsAccepted" className="font-medium text-gray-700">
+                      I agree to the Terms & Conditions <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      I have read and understood all terms and conditions related to this loan application.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 border rounded-lg ${errors['declarations.creditCheckAuthorized'] ? 'border-red-500' : 'border-gray-300'}`}>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="creditCheckAuthorized"
+                    checked={formData.declarations.creditCheckAuthorized}
+                    onChange={(e) => handleChange('declarations', 'creditCheckAuthorized', e.target.checked)}
+                    className="mt-1 rounded"
+                    required
+                  />
+                  <div>
+                    <label htmlFor="creditCheckAuthorized" className="font-medium text-gray-700">
+                      I authorize the company to check my credit score <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      I authorize the NBFC to verify my credit history with credit bureaus.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-4 border rounded-lg ${errors['declarations.detailsConfirmed'] ? 'border-red-500' : 'border-gray-300'}`}>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="detailsConfirmed"
+                    checked={formData.declarations.detailsConfirmed}
+                    onChange={(e) => handleChange('declarations', 'detailsConfirmed', e.target.checked)}
+                    className="mt-1 rounded"
+                    required
+                  />
+                  <div>
+                    <label htmlFor="detailsConfirmed" className="font-medium text-gray-700">
+                      I confirm all provided details are correct <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-sm text-gray-600 mt-1">
+                      I declare that all information provided in this application is true and accurate to the best of my knowledge.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 10:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Building2 size={20} />
+              Internal Assignment
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assigned Employee
+                </label>
+                <input
+                  type="text"
+                  value={formData.internalDetails.assignedEmployee}
+                  onChange={(e) => handleChange('internalDetails', 'assignedEmployee', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assigned Partner / DSA
+                </label>
+                <input
+                  type="text"
+                  value={formData.internalDetails.assignedPartner}
+                  onChange={(e) => handleChange('internalDetails', 'assignedPartner', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Branch Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.internalDetails.branchName}
+                  onChange={(e) => handleChange('internalDetails', 'branchName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Application Source
+                </label>
+                <select
+                  value={formData.internalDetails.applicationSource}
+                  onChange={(e) => handleChange('internalDetails', 'applicationSource', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="Online">Online</option>
+                  <option value="Partner">Partner</option>
+                  <option value="Walk-in">Walk-in</option>
+                  <option value="Tele-calling">Tele-calling</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Application Status
+                </label>
+                <select
+                  value={formData.internalDetails.applicationStatus}
+                  onChange={(e) => handleChange('internalDetails', 'applicationStatus', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  <option value="Draft">Draft</option>
+                  <option value="Submitted">Submitted</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Disbursed">Disbursed</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // Document upload component
+  const DocumentUpload = ({ label, value, onChange, accept, error }) => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <div className={`border-2 border-dashed rounded-lg p-4 ${error ? 'border-red-500' : 'border-gray-300'} hover:border-blue-400 transition-colors`}>
+        {!value ? (
+          <div className="text-center">
+            <input
+              type="file"
+              onChange={(e) => onChange(e.target.files[0])}
+              className="hidden"
+              id={`file-${label}`}
+              accept={accept}
+            />
+            <label
+              htmlFor={`file-${label}`}
+              className="cursor-pointer flex flex-col items-center gap-2"
+            >
+              <Upload className="text-gray-400" size={24} />
+              <span className="text-sm text-gray-600">Click to upload</span>
+              <span className="text-xs text-gray-500">PDF, JPG, PNG (Max 5MB)</span>
+            </label>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <File className="text-green-600" size={18} />
+              <div>
+                <p className="text-sm font-medium text-gray-800">{value.name}</p>
+                <p className="text-xs text-gray-500">
+                  {(value.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onChange(null)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </div>
+  );
+  
+  if (showPreview) {
+  return (
+    <LoanApplicationPreview
+      formData={formData}
+      userRole={userRole}
+
+      onEdit={() => setShowPreview(false)}
+      onCancel={() => setShowPreview(false)}
+
+      onSubmit={(finalData) => {
+        // 🔥 FINAL SUBMIT (API / parent handler)
+        if (onSubmit) {
+          onSubmit(finalData);
+        }
+        setShowPreview(false);
+      }}
+    />
+  );
+}
+
+
+  return (
+    <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEditMode ? 'Edit Loan Application' : 'New Loan Application'}
+            </h1>
+            <p className="text-gray-600">Application ID: {formData.applicationId}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-500">User Role: <span className="font-medium capitalize">{userRole}</span></div>
+            <div className="text-sm text-gray-500">Status: <span className="font-medium">{formData.internalDetails.applicationStatus}</span></div>
+          </div>
+        </div>
+
+        {/* Section Navigation */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {sections.filter(section => isVisible(section.id)).map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              onClick={() => setCurrentSection(section.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentSection === section.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <section.icon size={16} />
+              {section.title}
+              {section.mandatory && <span className="text-red-500">*</span>}
+            </button>
+          ))}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>Progress</span>
+            <span>{Math.round((currentSection / 10) * 100)}%</span>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 transition-all duration-300"
+              style={{ width: `${(currentSection / 10) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Section */}
+      <form onSubmit={handleSubmit}>
+        <div className="mb-8">
+          {renderSection()}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={prevSection}
+            disabled={currentSection === 1}
+            className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${
+              currentSection === 1
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            Previous
+          </button>
+
+          {currentSection < 10 ? (
+            <button
+              type="button"
+              onClick={nextSection}
+              className="ml-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              Next
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              >
+                Save as Draft
+              </button>
+
+              <button
+  type="button"
+  onClick={() => {
+    // optional: final validation
+    const valid = [1,2,6,9].every(sec => validateSection(sec));
+    if (valid) {
+      setShowPreview(true);
+    }
+  }}
+  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+>
+  Preview Application
+</button>
+
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+          >
+            Reset Form
+          </button>
+
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+
+      {/* Form Status Summary */}
+      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-xs text-gray-500">Total Sections</p>
+            <p className="font-medium">10</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Current Section</p>
+            <p className="font-medium">{currentSection}/10</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Mandatory Completed</p>
+            <p className="font-medium text-green-600">
+              {[1, 2, 4, 5, 6, 9].filter(s => isVisible(s)).map(s => currentSection >= s).length}/6
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">Validation Errors</p>
+            <p className="font-medium text-red-600">{Object.keys(errors).length}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default LoanForm;
+export default LoanApplicationForm;
