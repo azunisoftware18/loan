@@ -1,15 +1,24 @@
 // LoanApplicationForm.jsx
 import React, { useState, useEffect } from 'react';
-import { 
-  User, Phone, Mail, Calendar, MapPin, Briefcase, 
-  Banknote, FileText, Shield, CheckCircle, Upload, 
-  File, X, Home, Building, IndianRupee, Percent, 
+import {
+  User, Phone, Mail, Calendar, MapPin, Briefcase,
+  Banknote, FileText, Shield, CheckCircle, Upload,
+  File, X, Home, Building, IndianRupee, Percent,
   Clock, Target, DollarSign, CreditCard, IdCard,
   Check, AlertCircle, UserPlus, Building2, FileCheck
 } from 'lucide-react';
 import LoanApplicationPreview from './LoanApplicationPreview';
 
-const LoanApplicationForm = ({ 
+import { useDispatch, useSelector } from "react-redux";
+import { submitLoanApplication } from "../../../redux/slices/loanApplicationSlice";
+
+
+
+
+
+
+
+const LoanApplicationForm = ({
   userRole = 'customer', // customer, employee, admin
   initialData = {},
   isEditMode = false,
@@ -17,6 +26,10 @@ const LoanApplicationForm = ({
   onCancel,
   onSaveDraft
 }) => {
+  const dispatch = useDispatch();   // ✅ HERE
+  const { loading, success, error } = useSelector(
+    (state) => state.loanApplication
+  );
   // Form state management
   const [formData, setFormData] = useState({
     // Section 1: Applicant Basic Details
@@ -33,7 +46,7 @@ const LoanApplicationForm = ({
       nationality: 'Indian',
       category: ''
     },
-    
+
     // Section 2: KYC Details
     kycDetails: {
       aadhaarNumber: '',
@@ -46,7 +59,7 @@ const LoanApplicationForm = ({
       aadhaarVerification: 'Pending',
       panVerification: 'Pending'
     },
-    
+
     // Section 3: Address Details
     addressDetails: {
       currentAddress: {
@@ -66,7 +79,7 @@ const LoanApplicationForm = ({
       },
       sameAsCurrent: true
     },
-    
+
     // Section 4: Employment Details
     employmentDetails: {
       employmentType: '',
@@ -85,7 +98,7 @@ const LoanApplicationForm = ({
         businessVintage: ''
       }
     },
-    
+
     // Section 5: Income & Bank Details
     financialDetails: {
       monthlyIncome: '',
@@ -98,7 +111,7 @@ const LoanApplicationForm = ({
       salarySlips: null,
       itrDocuments: null
     },
-    
+
     // Section 6: Loan Details
     loanDetails: {
       loanType: '',
@@ -108,7 +121,7 @@ const LoanApplicationForm = ({
       emi: 0,
       purpose: ''
     },
-    
+
     // Section 7: Co-Applicant
     coApplicant: {
       hasCoApplicant: false,
@@ -118,7 +131,7 @@ const LoanApplicationForm = ({
       panOrAadhaar: '',
       income: ''
     },
-    
+
     // Section 8: Credit & Risk Assessment (Internal)
     riskAssessment: {
       cibilScore: '',
@@ -128,14 +141,14 @@ const LoanApplicationForm = ({
       riskCategory: '',
       internalRemarks: ''
     },
-    
+
     // Section 9: Declaration
     declarations: {
       termsAccepted: false,
       creditCheckAuthorized: false,
       detailsConfirmed: false
     },
-    
+
     // Section 10: Internal Assignment
     internalDetails: {
       assignedEmployee: '',
@@ -144,7 +157,7 @@ const LoanApplicationForm = ({
       applicationSource: 'Online',
       applicationStatus: 'Draft'
     },
-    
+
     // Common
     submittedAt: null,
     applicationId: `APP${Date.now().toString().slice(-8)}`
@@ -215,7 +228,7 @@ const LoanApplicationForm = ({
     const rate = parseFloat(interestRate) / 12 / 100;
 
     const emi = principal * rate * Math.pow(1 + rate, months) / (Math.pow(1 + rate, months) - 1);
-    
+
     handleChange('loanDetails', 'emi', emi.toFixed(2));
   };
 
@@ -238,7 +251,7 @@ const LoanApplicationForm = ({
   const validateSection = (section) => {
     const newErrors = {};
 
-    switch(section) {
+    switch (section) {
       case 1: // Personal Details
         const { personalDetails } = formData;
         if (!personalDetails.firstName.trim()) newErrors['personalDetails.firstName'] = 'First name is required';
@@ -289,29 +302,23 @@ const LoanApplicationForm = ({
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Final validation
-    const sectionsToValidate = [1, 2, 6, 9];
-    let isValid = true;
-    
-    sectionsToValidate.forEach(section => {
-      if (!validateSection(section)) {
-        isValid = false;
-      }
-    });
 
-    if (isValid) {
-      const submissionData = {
+    const sectionsToValidate = [1, 2, 6, 9];
+    const valid = sectionsToValidate.every(sec => validateSection(sec));
+    if (!valid) return;
+
+    dispatch(
+      submitLoanApplication({
         ...formData,
         submittedAt: new Date().toISOString(),
-        applicationStatus: 'Submitted'
-      };
-      
-      if (onSubmit) {
-        onSubmit(submissionData);
-      }
-    }
+        internalDetails: {
+          ...formData.internalDetails,
+          applicationStatus: "Submitted"
+        }
+      })
+    );
   };
+
 
   // Handle save draft
   const handleSaveDraft = () => {
@@ -465,7 +472,7 @@ const LoanApplicationForm = ({
   const renderSection = () => {
     if (!isVisible(currentSection)) return null;
 
-    switch(currentSection) {
+    switch (currentSection) {
       case 1:
         return (
           <div className="space-y-6">
@@ -637,11 +644,11 @@ const LoanApplicationForm = ({
               <IdCard size={20} />
               KYC Details
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-700">Identity Documents</h4>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Aadhaar Number <span className="text-red-500">*</span>
@@ -709,7 +716,7 @@ const LoanApplicationForm = ({
 
               <div className="space-y-4">
                 <h4 className="font-medium text-gray-700">Document Uploads</h4>
-                
+
                 <DocumentUpload
                   label="Aadhaar Front Image *"
                   value={formData.kycDetails.aadhaarFront}
@@ -1666,26 +1673,26 @@ const LoanApplicationForm = ({
       {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
     </div>
   );
-  
+
   if (showPreview) {
-  return (
-    <LoanApplicationPreview
-      formData={formData}
-      userRole={userRole}
+    return (
+      <LoanApplicationPreview
+        formData={formData}
+        userRole={userRole}
 
-      onEdit={() => setShowPreview(false)}
-      onCancel={() => setShowPreview(false)}
+        onEdit={() => setShowPreview(false)}
+        onCancel={() => setShowPreview(false)}
 
-      onSubmit={(finalData) => {
-        // 🔥 FINAL SUBMIT (API / parent handler)
-        if (onSubmit) {
-          onSubmit(finalData);
-        }
-        setShowPreview(false);
-      }}
-    />
-  );
-}
+        onSubmit={(finalData) => {
+          // 🔥 FINAL SUBMIT (API / parent handler)
+          if (onSubmit) {
+            onSubmit(finalData);
+          }
+          setShowPreview(false);
+        }}
+      />
+    );
+  }
 
 
   return (
@@ -1712,11 +1719,10 @@ const LoanApplicationForm = ({
               key={section.id}
               type="button"
               onClick={() => setCurrentSection(section.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentSection === section.id
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentSection === section.id
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <section.icon size={16} />
               {section.title}
@@ -1740,81 +1746,95 @@ const LoanApplicationForm = ({
         </div>
       </div>
 
-      {/* Form Section */}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-8">
-          {renderSection()}
-        </div>
+    {/* Form Section */}
+<form onSubmit={handleSubmit}>
+  <div className="mb-8">
+    {renderSection()}
+  </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={prevSection}
-            disabled={currentSection === 1}
-            className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${
-              currentSection === 1
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-gray-50'
-            }`}
-          >
-            Previous
-          </button>
+  {/* 🔔 SUBMIT STATUS MESSAGE (YAHI LAGANA HAI) */}
+  <div className="mb-4">
+    {loading && (
+      <p className="text-blue-600 font-medium">
+        Saving application...
+      </p>
+    )}
 
-          {currentSection < 10 ? (
-            <button
-              type="button"
-              onClick={nextSection}
-              className="ml-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-            >
-              Next
-            </button>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-              >
-                Save as Draft
-              </button>
+    {success && (
+      <p className="text-green-600 font-semibold">
+        ✅ Application successfully saved in database
+      </p>
+    )}
 
-              <button
-  type="button"
-  onClick={() => {
-    // optional: final validation
-    const valid = [1,2,6,9].every(sec => validateSection(sec));
-    if (valid) {
-      setShowPreview(true);
-    }
-  }}
-  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
->
-  Preview Application
-</button>
+    {error && (
+      <p className="text-red-600 font-semibold">
+        ❌ {error}
+      </p>
+    )}
+  </div>
 
-            </>
-          )}
+  {/* Action Buttons */}
+  <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+    <button
+      type="button"
+      onClick={prevSection}
+      disabled={currentSection === 1}
+      className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${
+        currentSection === 1
+          ? "opacity-50 cursor-not-allowed"
+          : "hover:bg-gray-50"
+      }`}
+    >
+      Previous
+    </button>
 
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-          >
-            Reset Form
-          </button>
+    {currentSection < 10 ? (
+      <button
+        type="button"
+        onClick={nextSection}
+        className="ml-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+      >
+        Next
+      </button>
+    ) : (
+      <>
+        <button
+          type="button"
+          onClick={handleSaveDraft}
+          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+        >
+          Save as Draft
+        </button>
 
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
+        <button
+          type="submit"
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+        >
+          Submit Application
+        </button>
+      </>
+    )}
+
+    <button
+      type="button"
+      onClick={handleReset}
+      className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+    >
+      Reset Form
+    </button>
+
+    {onCancel && (
+      <button
+        type="button"
+        onClick={onCancel}
+        className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+      >
+        Cancel
+      </button>
+    )}
+  </div>
+</form>
+
 
       {/* Form Status Summary */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
