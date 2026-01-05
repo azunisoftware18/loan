@@ -97,6 +97,7 @@ import Dashboard from "./pages/mainPages/dashboard.jsx";
 import EmployeeLayout from "./layouts/EmployeeLayout.jsx";
 import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
 import EMIManagement from "./pages/adminPages/Lms/EmiManagement.jsx";
+import AdminRoute from "./routes/AdminRoute.jsx";
 // import AdminPresentationPage from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 // import CreatePresentation from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 
@@ -142,14 +143,21 @@ function App() {
 
 
       {/* ADMIN ROUTES */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="los" element={<Los />} />
-        <Route path="loan-requests" element={<LoanRequests />} />
-        <Route path="borrowers" element={<Borrowers  />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="configuration" element={<Configuration />} />
-        <Route path="admin-roles" element={<AdminRoles />} />
+      <Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <AdminLayout />
+    </AdminRoute>
+  }
+>
+  <Route index element={<Dashboard />} />
+  <Route path="los" element={<Los />} />
+  <Route path="loan-requests" element={<LoanRequests />} />
+  <Route path="borrowers" element={<Borrowers />} />
+  <Route path="reports" element={<Reports />} />
+  <Route path="configuration" element={<Configuration />} />
+  <Route path="admin-roles" element={<AdminRoles />} />
 
         //LMS 
         <Route path="loanEntry" element={<LoanEntry />} />

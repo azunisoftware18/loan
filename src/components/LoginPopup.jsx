@@ -1,45 +1,42 @@
-import { useState } from "react";
-import { X, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginStart, loginSuccess, loginFailure } from "../redux/slices/authSlice";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPopup({ isOpen, onClose }) {
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    email: "", // Pre-filled as shown in image
     password: "",
-    firstName: "",
-    lastName: "",
-    confirmPassword: ""
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // Reset form when modal opens/closes or mode changes
-  useState(() => {
+  // Reset form when modal opens/closes
+  useEffect(() => {
     if (!isOpen) {
       setFormData({
         email: "",
         password: "",
-        firstName: "",
-        lastName: "",
-        confirmPassword: ""
       });
       setErrors({});
       setShowPassword(false);
-      setShowConfirmPassword(false);
     }
   }, [isOpen]);
 
   // Close on escape key
-  useState(() => {
+  useEffect(() => {
     const handleEscape = (e) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   const handleInputChange = (e) => {
@@ -74,67 +71,48 @@ export default function LoginPopup({ isOpen, onClose }) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    if (!isLogin) {
-      // Registration validations
-      if (!formData.firstName) {
-        newErrors.firstName = "First name is required";
-      }
-      if (!formData.lastName) {
-        newErrors.lastName = "Last name is required";
-      }
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your password";
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
+    dispatch(loginStart());
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Handle login/register logic here
-      console.log(`${isLogin ? 'Login' : 'Register'} with:`, formData);
-      
-      // For demo purposes, just close the modal
+      const res = await axios.post(
+        "http://localhost:4000/api/auth/login",
+        {
+          email: formData.email.trim(),
+          password: formData.password,
+        },
+        { withCredentials: true }
+      );
+
+      if (res.data.data.role !== "admin") {
+        dispatch(loginFailure("Only admin can login here"));
+        return;
+      }
+
+      dispatch(
+        loginSuccess({
+          user: res.data.data,
+          token: null, // token cookie me hai
+        })
+      );
+
       onClose();
-      
-      // Show success message (you can replace this with a toast notification)
-      alert(`${isLogin ? 'Login' : 'Registration'} successful!`);
-      
-    } catch (error) {
-      console.error('Authentication error:', error);
-      setErrors({ submit: error.message || "Something went wrong. Please try again." });
+      navigate("/admin");
+    } catch (err) {
+      dispatch(
+        loginFailure(err.response?.data?.message || "Login failed")
+      );
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const switchMode = () => {
-    setIsLogin(!isLogin);
-    setFormData({
-      email: "",
-      password: "",
-      firstName: "",
-      lastName: "",
-      confirmPassword: ""
-    });
-    setErrors({});
-    setShowPassword(false);
-    setShowConfirmPassword(false);
   };
 
   const handleForgotPassword = () => {
@@ -154,12 +132,12 @@ export default function LoginPopup({ isOpen, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm  bg-opacity-30 animate-in fade-in-0 duration-300"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-sm bg-opacity-30 animate-in fade-in-0 duration-300"
       onClick={handleBackdropClick}
     >
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 animate-in fade-in-0 zoom-in-95">
         
-        {/* Header */}
+        {/* Header - Matches image style */}
         <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
           <button
             onClick={onClose}
@@ -169,78 +147,21 @@ export default function LoginPopup({ isOpen, onClose }) {
             <X size={20} />
           </button>
           
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-xl">F</span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">
-                {isLogin ? "Welcome Back" : "Create Account"}
-              </h2>
-              <p className="text-blue-100 text-sm">
-                {isLogin ? "Sign in to your account" : "Join Finova Capital today"}
-              </p>
-            </div>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2">Welcome Back</h2>
+            <p className="text-blue-100 text-sm">Sign in to your account</p>
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {!isLogin && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    id="firstName"
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="John"
-                  />
-                </div>
-                {errors.firstName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                )}
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    id="lastName"
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Doe"
-                  />
-                </div>
-                {errors.lastName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                )}
-              </div>
-            </div>
-          )}
-
+        {/* Form - Simplified to match image */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 id="email"
                 type="email"
@@ -258,12 +179,22 @@ export default function LoginPopup({ isOpen, onClose }) {
             )}
           </div>
 
+          {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors focus:outline-none focus:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -278,10 +209,10 @@ export default function LoginPopup({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {errors.password && (
@@ -289,64 +220,26 @@ export default function LoginPopup({ isOpen, onClose }) {
             )}
           </div>
 
-          {!isLogin && (
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-          )}
+          {/* Remember Me Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="remember"
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+            />
+            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+              Remember me
+            </label>
+          </div>
 
-          {isLogin && (
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-                />
-                <span className="text-sm text-gray-600">Remember me</span>
-              </label>
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors focus:outline-none focus:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
-          )}
-
+          {/* Error Message Display */}
           {errors.submit && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600 text-center">{errors.submit}</p>
             </div>
           )}
 
+          {/* Sign In Button */}
           <button
             type="submit"
             disabled={isLoading}
@@ -355,32 +248,29 @@ export default function LoginPopup({ isOpen, onClose }) {
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Processing...</span>
+                <span>Signing in...</span>
               </div>
             ) : (
-              isLogin ? "Sign In" : "Create Account"
+              "Sign In"
             )}
           </button>
         </form>
 
-        {/* Footer */}
-        <div className="px-6 pb-6">
-          <div className="text-center text-sm text-gray-600">
-            <p>
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button
-                type="button"
-                onClick={switchMode}
-                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors focus:outline-none focus:underline"
-              >
-                {isLogin ? "Sign up" : "Sign in"}
-              </button>
-            </p>
-          </div>
-
-          
-
-       
+        {/* Footer - No registration toggle as per image */}
+        <div className="px-6 pb-6 text-center">
+          <p className="text-sm text-gray-500">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:underline"
+              onClick={() => {
+                // If you want to add registration later, you can add state here
+                console.log("Switch to registration");
+              }}
+            >
+              Contact support
+            </button>
+          </p>
         </div>
       </div>
     </div>
