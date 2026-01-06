@@ -1,20 +1,25 @@
 import { useEffect, useState } from "react";
-import { X, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { X, Eye, EyeOff, Mail, Lock, CheckCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { loginStart, loginSuccess, loginFailure } from "../redux/slices/authSlice";
-import axios from "axios";
+import { loginUser, clearError } from "../redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPopup({ isOpen, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: "", // Pre-filled as shown in image
+    email: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
+  // Get auth state from Redux
+  const { loading, error, success, isAuthenticated, user } = useSelector((state) => state.auth);
+  console.log(user);
+  
+  
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -25,8 +30,30 @@ export default function LoginPopup({ isOpen, onClose }) {
       });
       setErrors({});
       setShowPassword(false);
+      setShowSuccess(false);
+      dispatch(clearError());
     }
-  }, [isOpen]);
+  }, [isOpen, dispatch]);
+
+  // Handle successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Show success message
+      setShowSuccess(true);
+      
+      // After 2 seconds, navigate to admin dashboard
+      const timer = setTimeout(() => {
+        onClose();
+        if (user.role === 'ADMIN') {
+          navigate("/admin");
+        } else {
+          navigate("/dashboard");
+        }
+      }, 2000); // 2 seconds delay for success message
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user, navigate, onClose]);
 
   // Close on escape key
   useEffect(() => {
@@ -51,6 +78,10 @@ export default function LoginPopup({ isOpen, onClose }) {
         ...prev,
         [name]: ""
       }));
+    }
+    // Clear Redux error if any
+    if (error) {
+      dispatch(clearError());
     }
   };
 
@@ -79,46 +110,18 @@ export default function LoginPopup({ isOpen, onClose }) {
     e.preventDefault();
     if (!validateForm()) return;
 
-    setIsLoading(true);
-    dispatch(loginStart());
-
-    try {
-      const res = await axios.post(
-        "http://localhost:4000/api/auth/login",
-        {
-          email: formData.email.trim(),
-          password: formData.password,
-        },
-        { withCredentials: true }
-      );
-
-      if (res.data.data.role !== "admin") {
-        dispatch(loginFailure("Only admin can login here"));
-        return;
-      }
-
-      dispatch(
-        loginSuccess({
-          user: res.data.data,
-          token: null, // token cookie me hai
-        })
-      );
-
-      onClose();
-      navigate("/admin");
-    } catch (err) {
-      dispatch(
-        loginFailure(err.response?.data?.message || "Login failed")
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    // Reset success message
+    setShowSuccess(false);
+    
+    // Dispatch login action
+    dispatch(loginUser({
+      email: formData.email.trim(),
+      password: formData.password,
+    }));
   };
 
   const handleForgotPassword = () => {
-    // Implement forgot password logic
     console.log("Forgot password clicked");
-    // You can open a forgot password modal or redirect
   };
 
   // Close modal when clicking on backdrop
@@ -136,6 +139,20 @@ export default function LoginPopup({ isOpen, onClose }) {
       onClick={handleBackdropClick}
     >
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 animate-in fade-in-0 zoom-in-95">
+        
+        {/* Success Message Overlay */}
+        {showSuccess && (
+          <div className="absolute inset-0 bg-white bg-opacity-95 z-10 flex flex-col items-center justify-center rounded-2xl animate-in fade-in-0 duration-300">
+            <CheckCircle className="w-16 h-16 text-green-500 mb-4 animate-in zoom-in-95 duration-500"/>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">{success}</h3>
+            <p className="text-gray-600 mb-6">Redirecting to dashboard...</p>
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
+            </div>
+          </div>
+        )}
         
         {/* Header - Matches image style */}
         <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
@@ -172,6 +189,7 @@ export default function LoginPopup({ isOpen, onClose }) {
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="you@example.com"
+                disabled={loading || showSuccess}
               />
             </div>
             {errors.email && (
@@ -189,6 +207,7 @@ export default function LoginPopup({ isOpen, onClose }) {
                 type="button"
                 onClick={handleForgotPassword}
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors focus:outline-none focus:underline"
+                disabled={loading || showSuccess}
               >
                 Forgot Password?
               </button>
@@ -205,12 +224,14 @@ export default function LoginPopup({ isOpen, onClose }) {
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="••••••••"
+                disabled={loading || showSuccess}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                disabled={loading || showSuccess}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -226,6 +247,7 @@ export default function LoginPopup({ isOpen, onClose }) {
               type="checkbox"
               id="remember"
               className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+              disabled={loading || showSuccess}
             />
             <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
               Remember me
@@ -233,19 +255,19 @@ export default function LoginPopup({ isOpen, onClose }) {
           </div>
 
           {/* Error Message Display */}
-          {errors.submit && (
+          {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600 text-center">{errors.submit}</p>
+              <p className="text-sm text-red-600 text-center">{error}</p>
             </div>
           )}
 
           {/* Sign In Button */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loading || showSuccess}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3.5 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            {isLoading ? (
+            {loading ? (
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 <span>Signing in...</span>
@@ -256,7 +278,7 @@ export default function LoginPopup({ isOpen, onClose }) {
           </button>
         </form>
 
-        {/* Footer - No registration toggle as per image */}
+        {/* Footer */}
         <div className="px-6 pb-6 text-center">
           <p className="text-sm text-gray-500">
             Don't have an account?{" "}
@@ -264,9 +286,9 @@ export default function LoginPopup({ isOpen, onClose }) {
               type="button"
               className="text-blue-600 hover:text-blue-700 font-medium focus:outline-none focus:underline"
               onClick={() => {
-                // If you want to add registration later, you can add state here
                 console.log("Switch to registration");
               }}
+              disabled={loading || showSuccess}
             >
               Contact support
             </button>
