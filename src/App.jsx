@@ -1,6 +1,12 @@
 // src/App.jsx
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { getCurrentUser } from "./redux/slices/authSlice";
 
+/* -------------------------------
+   LAYOUTS
+-------------------------------- */
 import Layout from "./layouts/Layout.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 
@@ -40,8 +46,10 @@ import OtherDisclosures from "./pages/publicPages/OtherDisclosures.jsx";
 import SarfaesiAuctionNotices from "./pages/publicPages/SarfaesiAuctionNotices.jsx";
 
 /* -------------------------------
-   ADMIN PAGES  
+   ADMIN PAGES
 -------------------------------- */
+import AdminRoute from "./routes/AdminRoute.jsx";
+import Dashboard from "./pages/mainPages/dashboard.jsx";
 
 import Los from "./pages/adminPages/Los.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
@@ -49,19 +57,22 @@ import Borrowers from "./pages/adminPages/Borrowers.jsx";
 import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
-import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
-import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
+
+/* LMS */
 import LoanEntry from "./pages/adminPages/Lms/LoanEntry.jsx";
 import Nach from "./pages/adminPages/Lms/Nach.jsx";
 import PdcReceipt from "./pages/adminPages/Lms/PdcReceipt.jsx";
 import Customer from "./pages/adminPages/Lms/Customer.jsx";
 import Disbursement from "./pages/adminPages/Lms/Disbursement.jsx";
-import Schedule from "./pages/adminPages/Lms/EmiManagement.jsx";
+import EMIManagement from "./pages/adminPages/Lms/EmiManagement.jsx";
 import LoanCloser from "./pages/adminPages/Lms/LoanCloser.jsx";
-import DueList from "./pages/adminPages/reports/DueList.jsx";
 import Task from "./pages/adminPages/Lms/Task.jsx";
 import Waiver from "./pages/adminPages/Lms/Waiver.jsx";
 import Repossess from "./pages/adminPages/Lms/Repossess.jsx";
+
+/* CONFIGURATION */
+import PartnerAdd from "./pages/adminPages/Configuration/PartnerAdd.jsx";
+import EmployeeAdd from "./pages/adminPages/Configuration/EmployeeAdd.jsx";
 import Branch from "./pages/adminPages/Configuration/BranchManagement.jsx";
 import LoanSwap from "./pages/adminPages/Configuration/LoanSwap.jsx";
 import LoanProduct from "./pages/adminPages/Configuration/LoanProduct.jsx";
@@ -71,42 +82,39 @@ import KycVerification from "./pages/adminPages/Configuration/KycVerification.js
 import CreditAsignment from "./pages/adminPages/Configuration/CreditAsignment.jsx";
 import VehicleMasters from "./pages/adminPages/Configuration/VehicleMasters.jsx";
 import ConsumerDurable from "./pages/adminPages/Configuration/ConsumerDurable.jsx";
+
+/* REPORTS */
 import AttendanceReport from "./pages/adminPages/reports/AttendanceReport.jsx";
-import AccountGroupMasters from "./pages/adminPages/Accounts/AccountGroupMasters.jsx";
-import TransactionBooks from "./pages/adminPages/Accounts/TransactionBooks.jsx";
-import ProfitLossBalances from "./pages/adminPages/Accounts/ProfitLossBalances.jsx";
-import Vouchers from "./pages/adminPages/Accounts/Vouchers.jsx";
-import Gst from "./pages/adminPages/Accounts/Gst.jsx";
-import TopupRefund from "./pages/adminPages/Accounts/TopupRefund.jsx";
-import BalanceReport from "./pages/adminPages/Accounts/BalanceReport.jsx";
-import Reconcile from "./pages/adminPages/Accounts/Reconcile.jsx";
-import ImdAuthorization from "./pages/adminPages/Accounts/ImdAuthorization.jsx";
-import RecieptEntry from "./pages/adminPages/Accounts/RecieptEntry.jsx";
-import TrialBalance from "./pages/adminPages/Accounts/TrialBalance.jsx";
+import DueList from "./pages/adminPages/reports/DueList.jsx";
 import DisbursCollection from "./pages/adminPages/reports/DisbursCollection.jsx";
 import CustomerAndBookingList from "./pages/adminPages/reports/CustomerAndBookingList.jsx";
-import SalesTargetAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
 import SalesTargetAndAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
 import NpaReports from "./pages/adminPages/reports/NpaReports.jsx";
 import CrcReport from "./pages/adminPages/reports/CrcReport.jsx";
+import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
+
+/* SYSTEM SETTINGS */
 import CompanyDetails from "./pages/adminPages/SystemSettings/CompanyDetails.jsx";
 import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfiguration.jsx";
 import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
-import Dashboard from "./pages/mainPages/dashboard.jsx";
-import EmployeeLayout from "./layouts/EmployeeLayout.jsx";
-import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
-import EMIManagement from "./pages/adminPages/Lms/EmiManagement.jsx";
-import AdminRoute from "./routes/AdminRoute.jsx";
-// import AdminPresentationPage from "./pages/adminPages/reports/AdminPresentationPage.jsx";
-// import CreatePresentation from "./pages/adminPages/reports/AdminPresentationPage.jsx";
 
 
 function App() {
+  const dispatch = useDispatch();
+
+  // 🔥 🔥 MAIN FIX: RESTORE LOGIN ON REFRESH
+  useEffect(() => {
+    const uid = localStorage.getItem("uid");
+    if (uid) {
+      dispatch(getCurrentUser(uid));
+    }
+  }, [dispatch]);
+
   return (
     <Routes>
 
-      {/* PUBLIC ROUTES */}
+      {/* ================= PUBLIC ROUTES ================= */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="products" element={<Products />} />
@@ -141,39 +149,36 @@ function App() {
         <Route path="others-disclosures" element={<OtherDisclosures />} />
       </Route>
 
-
-      {/* ADMIN ROUTES */}
+      {/* ================= ADMIN ROUTES ================= */}
       <Route
-  path="/admin"
-  element={
-    <AdminRoute>
-      <AdminLayout />
-    </AdminRoute>
-  }
->
-  <Route index element={<Dashboard />} />
-  <Route path="los" element={<Los />} />
-  <Route path="loan-requests" element={<LoanRequests />} />
-  <Route path="borrowers" element={<Borrowers />} />
-  <Route path="reports" element={<Reports />} />
-  <Route path="configuration" element={<Configuration />} />
-  <Route path="admin-roles" element={<AdminRoles />} />
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="los" element={<Los />} />
+        <Route path="loan-requests" element={<LoanRequests />} />
+        <Route path="borrowers" element={<Borrowers />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="configuration" element={<Configuration />} />
+        <Route path="admin-roles" element={<AdminRoles />} />
 
-        //LMS 
+        {/* LMS */}
         <Route path="loanEntry" element={<LoanEntry />} />
         <Route path="nach" element={<Nach />} />
         <Route path="PdcReceipts" element={<PdcReceipt />} />
         <Route path="Customer" element={<Customer />} />
         <Route path="Disbursement" element={<Disbursement />} />
-        <Route path="Schedule" element={<Schedule />} />
+        <Route path="emi-management" element={<EMIManagement />} />
         <Route path="loan-closer" element={<LoanCloser />} />
         <Route path="task" element={<Task />} />
         <Route path="waiver" element={<Waiver />} />
         <Route path="repossess" element={<Repossess />} />
-        <Route path="emi-management" element={<EMIManagement />} />
 
-
-        //Configuration
+        {/* CONFIGURATION */}
         <Route path="Configuration/Partner" element={<PartnerAdd />} />
         <Route path="Configuration/Employee" element={<EmployeeAdd />} />
         <Route path="Configuration/BranchManagement" element={<Branch />} />
@@ -186,21 +191,7 @@ function App() {
         <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
         <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />
 
-        //Accounting
-        <Route path="accounting/account-group-masters" element={<AccountGroupMasters />} />
-        <Route path="accounting/transaction-books" element={<TransactionBooks />} />
-        <Route path="accounting/profit-loss-balances" element={<ProfitLossBalances />} />
-        <Route path="accounting/vouchers" element={<Vouchers />} />
-        <Route path="accounting/gst" element={<Gst />} />
-        <Route path="accounting/topup-refund" element={<TopupRefund />} />
-        <Route path="accounting/balance-report" element={<BalanceReport />} />
-        <Route path="accounting/reconcile" element={<Reconcile />} />
-        <Route path="accounting/imd-authorization" element={<ImdAuthorization />} />
-        <Route path="accounting/reciept-entry" element={<RecieptEntry />} />
-        <Route path="accounting/trial-balance" element={<TrialBalance />} />
-
-
-        //reports
+        {/* REPORTS */}
         <Route path="reports/attendance-report" element={<AttendanceReport />} />
         <Route path="due-list" element={<DueList />} />
         <Route path="reports/disburs-collection" element={<DisbursCollection />} />
@@ -209,21 +200,16 @@ function App() {
         <Route path="reports/npa-reports" element={<NpaReports />} />
         <Route path="reports/crc-report" element={<CrcReport />} />
         <Route path="reports/user-details" element={<UserDetails />} />
-        {/* <Route path="reports/Presentation" element={<CreatePresentation />} /> */}
 
-        //System Settings
+        {/* SYSTEM SETTINGS */}
         <Route path="system-setting/company-details" element={<CompanyDetails />} />
         <Route path="system-setting/loan-configuration" element={<LoanConfiguration />} />
         <Route path="system-setting/security-settings" element={<SecuritySettings />} />
         <Route path="system-setting/payment-settings" element={<PaymentSettings />} />
 
+        //Profile
+        
       </Route>
-
-
-
-       {/* Employee ROUTES */}
-       <Route path="/employee" element={<EmployeeLayout />}>
-       </Route>
 
     </Routes>
   );

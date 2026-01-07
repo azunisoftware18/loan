@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, Menu, X, Phone, MapPin, Clock } from "lucide-react";
+import { ChevronDown, Menu, X, Phone, MapPin, Clock, User } from "lucide-react";
 import ApplyLoanModal from "./Form/ApplyLoanModal";
 import LoginPopup from "./LoginPopup";
+import { useSelector, useDispatch } from "react-redux"; // ✅ Redux hooks import karo
+import { logout } from "../redux/slices/authSlice"; // ✅ Logout action import karo
 
 export default function Header() {
   const [showModal, setShowModal] = useState(false);
@@ -10,6 +12,11 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileSubmenu, setMobileSubmenu] = useState(null);
+  const [showUserDropdown, setShowUserDropdown] = useState(false); // ✅ User dropdown state
+
+  // ✅ Redux hooks
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
 
   const handleApplyLoanModal = () => {
     setShowModal(true);
@@ -33,6 +40,29 @@ export default function Header() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
     setMobileSubmenu(null);
   };
+
+  // ✅ Handle logout
+  const handleLogout = () => {
+    dispatch(logout());
+    setShowUserDropdown(false);
+    setIsMobileMenuOpen(false);
+    // Optional: Redirect to home page
+    // navigate("/");
+  };
+
+  // ✅ Close user dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUserDropdown && !event.target.closest('.user-dropdown')) {
+        setShowUserDropdown(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showUserDropdown]);
 
   const navigationItems = {
     "About Company": [
@@ -85,27 +115,188 @@ export default function Header() {
 
   // Top info bar for desktop
   const TopInfoBar = () => (
-  <div className="hidden lg:flex bg-blue-900 text-white text-sm py-2 px-6 justify-between items-center">
-    <div className="flex items-center space-x-6">
-      <div className="flex items-center space-x-2">
-        <Phone className="w-4 h-4" />
-        <span>+1-800-FINOVA</span>
+    <div className="hidden lg:flex bg-blue-900 text-white text-sm py-2 px-6 justify-between items-center">
+      <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-2">
+          <Phone className="w-4 h-4" />
+          <span>+1-800-FINOVA</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <MapPin className="w-4 h-4" />
+          <span>Jaipur, Rajasthan</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Clock className="w-4 h-4" />
+          <span>Mon-Fri: 9AM-6PM</span>
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <MapPin className="w-4 h-4" />
-        <span>Jaipur, Rajasthan</span>
-      </div>
-      <div className="flex items-center space-x-2">
-        <Clock className="w-4 h-4" />
-        <span>Mon-Fri: 9AM-6PM</span>
+      <div className="flex items-center space-x-4">
+        {/* Login button removed from here - only Branch Locator remains */}
+        <Link to="/branch-locator" className="hover:text-blue-200 transition">Branch Locator</Link>
       </div>
     </div>
-    <div className="flex items-center space-x-4">
-      {/* Login button removed from here - only Branch Locator remains */}
-      <Link to="/branch-locator" className="hover:text-blue-200 transition">Branch Locator</Link>
-    </div>
-  </div>
-);
+  );
+
+  // ✅ User Profile Component (Desktop)
+  const UserProfile = () => {
+    // Get user initials for avatar
+    const getInitials = () => {
+      if (user?.fullName) {
+        return user.fullName
+          .split(' ')
+          .map(name => name[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+      }
+      if (user?.userName) {
+        return user.userName.slice(0, 2).toUpperCase();
+      }
+      return 'U';
+    };
+
+    return (
+      <div className="relative user-dropdown">
+        <button
+          onClick={() => setShowUserDropdown(!showUserDropdown)}
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-blue-50 transition-all"
+        >
+          {/* User Avatar */}
+          <div className="w-9 h-9 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white font-semibold">
+            {getInitials()}
+          </div>
+          
+          {/* User Info (hidden on smaller screens) */}
+          <div className="hidden md:block text-left">
+            <div className="text-sm font-semibold text-gray-800 truncate max-w-[120px]">
+              {user?.fullName || user?.userName || 'User'}
+            </div>
+            <div className="text-xs text-gray-500">
+              {user?.role || 'User'}
+            </div>
+          </div>
+          
+          <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+        </button>
+
+        {/* User Dropdown Menu */}
+        {showUserDropdown && (
+          <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-2">
+            {/* User Info Section */}
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white font-semibold">
+                  {getInitials()}
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-800">
+                    {user?.fullName || user?.userName || 'User'}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {user?.email || 'N/A'}
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium mt-1">
+                    ID: {user?.id?.slice(0, 8) || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div className="py-1">
+              <Link
+                to="/profile"
+                className="flex items-center space-x-2 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-all"
+                onClick={() => setShowUserDropdown(false)}
+              >
+                <User className="w-4 h-4" />
+                <span>My Profile</span>
+              </Link>
+              
+              {user?.role === 'ADMIN' && (
+                <Link
+                  to="/admin"
+                  className="flex items-center space-x-2 px-4 py-3 text-gray-700 hover:bg-blue-50 transition-all"
+                  onClick={() => setShowUserDropdown(false)}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Admin Dashboard</span>
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center space-x-2 px-4 py-3 text-red-600 hover:bg-red-50 transition-all border-t border-gray-100 mt-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ✅ Mobile User Profile Component
+  const MobileUserProfile = () => {
+    const getInitials = () => {
+      if (user?.fullName) {
+        return user.fullName
+          .split(' ')
+          .map(name => name[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2);
+      }
+      return 'U';
+    };
+
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg">
+            {getInitials()}
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-gray-800">
+              {user?.fullName || user?.userName || 'User'}
+            </div>
+            <div className="text-sm text-gray-600">
+              {user?.email || 'N/A'}
+            </div>
+            <div className="text-xs text-blue-600 font-medium mt-1">
+              ID: {user?.id?.slice(0, 12) || 'N/A'}...
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Role: {user?.role || 'User'}
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex space-x-2 mt-3">
+          <Link
+            to="/profile"
+            className="flex-1 bg-white text-blue-600 py-2 rounded-lg text-center font-medium hover:bg-blue-50 transition"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            Profile
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg font-medium hover:bg-red-100 transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Desktop dropdown menu
   const DesktopDropdownMenu = ({ items }) => {
@@ -237,6 +428,9 @@ export default function Header() {
 
     return (
       <div className="space-y-4">
+        {/* Show user profile if logged in */}
+        {isAuthenticated && user && <MobileUserProfile />}
+
         {/* Main navigation links */}
         <div className="space-y-2">
           <Link
@@ -275,6 +469,16 @@ export default function Header() {
         >
           Contact Us
         </Link>
+        
+        {/* Login/Logout button for mobile when not logged in */}
+        {!isAuthenticated && (
+          <button
+            onClick={handleLoginClick}
+            className="w-full border border-blue-600 text-blue-600 py-4 rounded-xl font-semibold hover:bg-blue-50 transition-all text-center"
+          >
+            Login
+          </button>
+        )}
       </div>
     );
   };
@@ -369,17 +573,22 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* CTA Buttons - YAHAN PAR CHANGE KIYA HAI */}
+            {/* CTA Buttons - Updated with user profile */}
             <div className="hidden lg:flex items-center space-x-3">
-              {/* Login Button */}
-              <button
-                onClick={handleLoginClick}
-                className="border border-blue-600 text-blue-600 px-6 py-2.5 rounded-lg hover:bg-blue-50 transition-all font-semibold"
-              >
-                Login
-              </button>
+              {isAuthenticated && user ? (
+                // Show user profile when logged in
+                <UserProfile />
+              ) : (
+                // Show login button when not logged in
+                <button
+                  onClick={handleLoginClick}
+                  className="border border-blue-600 text-blue-600 px-6 py-2.5 rounded-lg hover:bg-blue-50 transition-all font-semibold"
+                >
+                  Login
+                </button>
+              )}
               
-              {/* Apply For Loan Button */}
+              {/* Apply For Loan Button (always visible) */}
               <button
                 onClick={handleApplyLoanModal}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl font-semibold"
@@ -428,21 +637,17 @@ export default function Header() {
                 </button>
               </div>
               
-              {/* Quick Actions */}
-              <div className="space-y-3">
-                <button
-                  onClick={handleApplyLoanModal}
-                  className="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all text-center"
-                >
-                  Apply For Loan
-                </button>
-                <button
-                  onClick={handleLoginClick}
-                  className="w-full border border-white text-white py-3 rounded-lg font-semibold hover:bg-white hover:bg-opacity-20 transition-all text-center"
-                >
-                  Login
-                </button>
-              </div>
+              {/* Quick Actions - Only show Apply Loan button if not logged in */}
+              {!isAuthenticated && (
+                <div className="space-y-3">
+                  <button
+                    onClick={handleApplyLoanModal}
+                    className="w-full bg-white text-blue-600 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all text-center"
+                  >
+                    Apply For Loan
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Navigation Content */}
@@ -480,4 +685,4 @@ export default function Header() {
       {showLoginPopup && <LoginPopup isOpen={showLoginPopup} onClose={closeLoginPopup} />}
     </>
   );
-} 
+}
