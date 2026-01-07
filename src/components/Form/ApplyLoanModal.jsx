@@ -1,15 +1,16 @@
+import axios from "axios";
 import React, { useState } from "react";
 
 export default function ApplyLoanModal({ onClose }) {
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
-    mobile: "",
+    contactNumber: "",
     dob: "",
     gender: "",
     state: "",
     city: "",
-    pincode: "",
+    pinCode: "",
     address: "",
     aadhar: "",
     pan: "",
@@ -23,28 +24,35 @@ export default function ApplyLoanModal({ onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Form submitted successfully!");
-    setFormData({
-      name: "",
-      email: "",
-      mobile: "",
-      dob: "",
-      gender: "",
-      state: "",
-      city: "",
-      pincode: "",
-      address: "",
-      aadhar: "",
-      pan: "",
-      loanType: "",
-      loanAmount: "",
-      customerProfile: "",
-      existingCustomer: "",
-    });
-    onClose();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    fullName: formData.fullName,
+    contactNumber: formData.contactNumber,
+    email: formData.email,
+    dob: formData.dob,
+    gender: formData.gender,
+    loanType: formData.loanType,
+    loanAmount: Number(formData.loanAmount),
+    city: formData.city || null,
+    state: formData.state || null,
+    pinCode: formData.pinCode || null,
+    address: formData.address || null,
   };
+
+  try {
+    const response = await axios.post(
+      import.meta.env.VITE_LEAD_API_URL,
+      payload
+    );
+
+    alert("Lead submitted successfully");
+    onClose();
+  } catch (error) {
+    alert(error.response?.data?.message || "Validation error");
+  }
+};
 
   const handleClose = () => {
     onClose();
@@ -58,12 +66,12 @@ export default function ApplyLoanModal({ onClose }) {
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-md bg-opacity-50 animate-in fade-in-0 duration-300"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-lg sm:rounded-xl shadow-lg w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-2 sm:mx-4 p-4 sm:p-6 lg:p-8 relative overflow-y-auto max-h-[95vh] sm:max-h-[90vh] border border-gray-200">
-        
+
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -79,7 +87,7 @@ export default function ApplyLoanModal({ onClose }) {
             Apply For Loan
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
-            Fill in your details to get started with your loan 
+            Fill in your details to get started with your loan
           </p>
         </div>
 
@@ -95,8 +103,8 @@ export default function ApplyLoanModal({ onClose }) {
             </label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter your full name"
               required
@@ -123,12 +131,12 @@ export default function ApplyLoanModal({ onClose }) {
           {/* Mobile */}
           <div className="xs:col-span-2 lg:col-span-1">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Aadhar Linked Mobile <span className="text-red-500">*</span>
+              Mobile Number <span className="text-red-500">*</span>
             </label>
             <input
               type="tel"
-              name="mobile"
-              value={formData.mobile}
+              name="contactNumber"
+              value={formData.contactNumber}
               onChange={handleChange}
               placeholder="10-digit mobile number"
               required
@@ -167,9 +175,9 @@ export default function ApplyLoanModal({ onClose }) {
               className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
             >
               <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
+              <option value="MALE">MALE</option>
+              <option value="FEMALE">FEMALE</option>
+              <option value="OTHER">OTHER</option>
             </select>
           </div>
 
@@ -219,8 +227,8 @@ export default function ApplyLoanModal({ onClose }) {
             </label>
             <input
               type="text"
-              name="pincode"
-              value={formData.pincode}
+              name="pinCode"
+              value={formData.pinCode}
               onChange={handleChange}
               placeholder="6-digit pincode"
               required
@@ -233,20 +241,18 @@ export default function ApplyLoanModal({ onClose }) {
           {/* Address */}
           <div className="xs:col-span-2 lg:col-span-2">
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-              Property Address <span className="text-red-500">*</span>
+              Address <span className="text-red-500">*</span>
             </label>
             <textarea
               name="address"
               value={formData.address}
               onChange={handleChange}
-              placeholder="Enter complete property address"
+              placeholder="Enter complete address"
               required
               rows="2"
               className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none transition-all"
             />
           </div>
-
-     
 
           {/* Loan Type */}
           <div className="xs:col-span-2 lg:col-span-1">
@@ -261,20 +267,32 @@ export default function ApplyLoanModal({ onClose }) {
               className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
             >
               <option value="">Select Loan Type</option>
-              <option value="Business Loan">Business Loan</option>
-              <option value="Home Loan">Home Loan</option>
-              <option value="Vehicle Loan">Vehicle Loan</option>
-              <option value="Personal Loan">Personal Loan</option>
-              <option value="Education Loan">Education Loan</option>
-              <option value="Gold Loan">Gold Loan</option>
+              <option value="BUSINESS_LOAN">Business Loan</option>
+              <option value="HOME_LOAN">Home Loan</option>
+              <option value="VEHICLE_LOAN">Vehicle Loan</option>
+              <option value="PERSONAL_LOAN">Personal Loan</option>
+              <option value="EDUCATION_LOAN">Education Loan</option>
+              <option value="GOLD_LOAN">Gold Loan</option>
             </select>
+
+
           </div>
-
-      
-
-       
-
-        
+          {/* Loan Amount */}
+          <div className="xs:col-span-2 lg:col-span-1">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              Loan Amount <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              name="loanAmount"
+              value={formData.loanAmount}
+              onChange={handleChange}
+              placeholder="Enter loan amount"
+              required
+              min="1000"
+              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+            />
+          </div>
 
           {/* Submit Button */}
           <div className="xs:col-span-2 lg:col-span-2 mt-2 sm:mt-4 lg:mt-6">
