@@ -9,12 +9,13 @@ import {
 } from 'lucide-react';
 import LoanApplicationPreview from './LoanApplicationPreview';
 
-import { useDispatch, useSelector } from "react-redux";
-import { submitLoanApplication } from "../../../redux/slices/loanApplicationSlice";
+import {
+  useCreateLoan,
+  useGetLoanApplications,
+  useUpdateLoan
+} from "../../../hooks/useLoanApplication";
 
-
-
-
+import { useLoanTypes } from '../../../hooks/useLoan';
 
 
 
@@ -26,10 +27,26 @@ const LoanApplicationForm = ({
   onCancel,
   onSaveDraft
 }) => {
-  const dispatch = useDispatch();   // ✅ HERE
-  const { loading, success, error } = useSelector(
-    (state) => state.loanApplication
-  );
+  const { mutate: submitLoan, isPending, isSuccess, error } = useCreateLoan();
+  const mapGender = (gender) => {
+    if (!gender) return undefined;
+
+    switch (gender) {
+      case "Male":
+        return "MALE";
+      case "Female":
+        return "FEMALE";
+      case "Other":
+        return "OTHER";
+      default:
+        return undefined;
+    }
+  };
+
+  const { data: loanTypes = [], isLoading: loanTypesLoading } = useLoanTypes();
+
+  const [leadId, setLeadId] = useState("");
+  const [leadLoading, setLeadLoading] = useState(false);
   // Form state management
   const [formData, setFormData] = useState({
     // Section 1: Applicant Basic Details
@@ -114,7 +131,7 @@ const LoanApplicationForm = ({
 
     // Section 6: Loan Details
     loanDetails: {
-      loanType: '',
+      loanTypeId: '',
       loanAmount: '',
       tenureMonths: '',
       interestRate: '',
@@ -168,6 +185,10 @@ const LoanApplicationForm = ({
   const [errors, setErrors] = useState({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+
+
+
 
 
   // Load initial data if provided
@@ -271,7 +292,9 @@ const LoanApplicationForm = ({
 
       case 6: // Loan Details
         const { loanDetails } = formData;
-        if (!loanDetails.loanType) newErrors['loanDetails.loanType'] = 'Loan type is required';
+        if (!loanDetails.loanTypeId)
+          newErrors['loanDetails.loanTypeId'] = 'Loan type is required';
+
         if (!loanDetails.loanAmount || parseFloat(loanDetails.loanAmount) <= 0) newErrors['loanDetails.loanAmount'] = 'Valid loan amount required';
         if (!loanDetails.tenureMonths || parseInt(loanDetails.tenureMonths) <= 0) newErrors['loanDetails.tenureMonths'] = 'Valid tenure required';
         break;
@@ -299,25 +322,51 @@ const LoanApplicationForm = ({
     setCurrentSection(prev => Math.max(prev - 1, 1));
   };
 
-  // Handle form submission
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const sectionsToValidate = [1, 2, 6, 9];
-    const valid = sectionsToValidate.every(sec => validateSection(sec));
-    if (!valid) return;
+  const payload = {
+  title: "MR",
 
-    dispatch(
-      submitLoanApplication({
-        ...formData,
-        submittedAt: new Date().toISOString(),
-        internalDetails: {
-          ...formData.internalDetails,
-          applicationStatus: "Submitted"
-        }
-      })
-    );
+  firstName: formData.personalDetails.firstName,
+  lastName: formData.personalDetails.lastName || "",
+
+  contactNumber: formData.personalDetails.mobile,
+  gender: mapGender(formData.personalDetails.gender),
+
+  dob: formData.personalDetails.dob
+    ? new Date(formData.personalDetails.dob)
+    : new Date("1990-01-01"), // fallback
+
+  employmentType:
+    formData.employmentDetails.employmentType === "Salaried"
+      ? "salaried"
+      : "self_employed",
+
+  monthlyIncome: Number(formData.financialDetails.monthlyIncome || 0),
+
+  loanTypeId: formData.loanDetails.loanTypeId,
+  requestedAmount: Number(formData.loanDetails.loanAmount),
+  tenureMonths: Number(formData.loanDetails.tenureMonths),
+  interestRate: Number(formData.loanDetails.interestRate),
+
+  emiAmount: Number(
+    String(formData.loanDetails.emi || 0).replace(/[₹,]/g, "")
+  ),
+
+  status: "draft",
+};
+
+
+
+    submitLoan(payload);
   };
+
+
+
+
+
 
 
   // Handle save draft
@@ -404,7 +453,7 @@ const LoanApplicationForm = ({
         itrDocuments: null
       },
       loanDetails: {
-        loanType: '',
+        loanTypeId: '',
         loanAmount: '',
         tenureMonths: '',
         interestRate: '',
@@ -632,6 +681,31 @@ const LoanApplicationForm = ({
                   <option value="SC">SC</option>
                   <option value="ST">ST</option>
                 </select>
+              </div>
+
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lead ID (Optional)
+              </label>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={leadId}
+                  onChange={(e) => setLeadId(e.target.value)}
+                  placeholder="Enter Lead ID"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+
+                <button
+                  type="button"
+                  onClick={fetchLeadById}
+                  disabled={!leadId || leadLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {leadLoading ? "Fetching..." : "Fetch"}
+                </button>
               </div>
             </div>
           </div>
@@ -1141,19 +1215,26 @@ const LoanApplicationForm = ({
                   Loan Type <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.loanDetails.loanType}
-                  onChange={(e) => handleChange('loanDetails', 'loanType', e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg ${errors['loanDetails.loanType'] ? 'border-red-500' : 'border-gray-300'}`}
+                  value={formData.loanDetails.loanTypeId}
+                  onChange={(e) =>
+                    handleChange("loanDetails", "loanTypeId", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   required
                 >
-                  <option value="">Select</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Business">Business</option>
-                  <option value="Home">Home</option>
-                  <option value="Vehicle">Vehicle</option>
-                  <option value="Education">Education</option>
-                  <option value="Gold">Gold</option>
+                  <option value="">
+                    {loanTypesLoading ? "Loading loan types..." : "Select Loan Type"}
+                  </option>
+
+                  {loanTypes.map((loan) => (
+                    <option key={loan.id} value={loan.id}>
+                      {loan.name}
+                    </option>
+                  ))}
                 </select>
+
+
+
               </div>
 
               <div>
@@ -1670,7 +1751,12 @@ const LoanApplicationForm = ({
           </div>
         )}
       </div>
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+      {error && (
+  <p className="text-red-600 font-semibold">
+    {error?.response?.data?.message || "Something went wrong"}
+  </p>
+)}
+
     </div>
   );
 
@@ -1693,6 +1779,51 @@ const LoanApplicationForm = ({
       />
     );
   }
+
+  const fetchLeadById = async () => {
+    if (!leadId) return;
+
+    try {
+      setLeadLoading(true);
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/lead/${leadId}`,
+        { withCredentials: true }
+      );
+
+      const lead = res.data;
+
+      // 🔥 AUTO FILL FORM
+      setFormData(prev => ({
+        ...prev,
+        personalDetails: {
+          ...prev.personalDetails,
+          firstName: lead.fullName?.split(" ")[0] || "",
+          lastName: lead.fullName?.split(" ").slice(1).join(" ") || "",
+          mobile: lead.contactNumber || "",
+          email: lead.email || ""
+        },
+        addressDetails: {
+          ...prev.addressDetails,
+          currentAddress: {
+            ...prev.addressDetails.currentAddress,
+            city: lead.city || "",
+            state: lead.state || ""
+          }
+        },
+        loanDetails: {
+          ...prev.loanDetails,
+          loanTypeId: lead.loanType?.id || "",
+          loanAmount: lead.loanAmount || ""
+        }
+      }));
+
+    } catch (err) {
+      alert("❌ Invalid Lead ID or Lead not found");
+    } finally {
+      setLeadLoading(false);
+    }
+  };
 
 
   return (
@@ -1720,8 +1851,8 @@ const LoanApplicationForm = ({
               type="button"
               onClick={() => setCurrentSection(section.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentSection === section.id
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
               <section.icon size={16} />
@@ -1746,94 +1877,94 @@ const LoanApplicationForm = ({
         </div>
       </div>
 
-    {/* Form Section */}
-<form onSubmit={handleSubmit}>
-  <div className="mb-8">
-    {renderSection()}
-  </div>
+      {/* Form Section */}
+      <form onSubmit={handleSubmit}>
+        <div className="mb-8">
+          {renderSection()}
+        </div>
 
-  {/* 🔔 SUBMIT STATUS MESSAGE (YAHI LAGANA HAI) */}
-  <div className="mb-4">
-    {loading && (
-      <p className="text-blue-600 font-medium">
-        Saving application...
-      </p>
-    )}
+        {/* 🔔 SUBMIT STATUS MESSAGE (YAHI LAGANA HAI) */}
+        <div className="mb-4">
+          {isPending && (
+            <p className="text-blue-600 font-medium">
+              Saving application...
+            </p>
+          )}
 
-    {success && (
-      <p className="text-green-600 font-semibold">
-        ✅ Application successfully saved in database
-      </p>
-    )}
+          {isSuccess && (
+            <p className="text-green-600 font-semibold">
+              ✅ Application successfully Created
+            </p>
+          )}
 
-    {error && (
-      <p className="text-red-600 font-semibold">
-        ❌ {error}
-      </p>
-    )}
-  </div>
+          {error && (
+            <p className="text-red-600 font-semibold">
+              ❌ {error?.response?.data?.message || error.message || "Something went wrong"}
+            </p>
+          )}
 
-  {/* Action Buttons */}
-  <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
-    <button
-      type="button"
-      onClick={prevSection}
-      disabled={currentSection === 1}
-      className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${
-        currentSection === 1
-          ? "opacity-50 cursor-not-allowed"
-          : "hover:bg-gray-50"
-      }`}
-    >
-      Previous
-    </button>
+        </div>
 
-    {currentSection < 10 ? (
-      <button
-        type="button"
-        onClick={nextSection}
-        className="ml-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-      >
-        Next
-      </button>
-    ) : (
-      <>
-        <button
-          type="button"
-          onClick={handleSaveDraft}
-          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-        >
-          Save as Draft
-        </button>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={prevSection}
+            disabled={currentSection === 1}
+            className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${currentSection === 1
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:bg-gray-50"
+              }`}
+          >
+            Previous
+          </button>
 
-        <button
-          type="submit"
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-        >
-          Submit Application
-        </button>
-      </>
-    )}
+          {currentSection < 10 ? (
+            <button
+              type="button"
+              onClick={nextSection}
+              className="ml-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              Next
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              >
+                Save as Draft
+              </button>
 
-    <button
-      type="button"
-      onClick={handleReset}
-      className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-    >
-      Reset Form
-    </button>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+              >
+                Submit Application
+              </button>
+            </>
+          )}
 
-    {onCancel && (
-      <button
-        type="button"
-        onClick={onCancel}
-        className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-      >
-        Cancel
-      </button>
-    )}
-  </div>
-</form>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+          >
+            Reset Form
+          </button>
+
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
 
 
       {/* Form Status Summary */}

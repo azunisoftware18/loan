@@ -1,62 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus, Search, Filter, Edit, Trash2, Eye,
   DollarSign, Percent, Calendar, Users,
   TrendingUp, Shield, FileText, CheckCircle, XCircle,
   Download, MoreVertical, Tag, Clock, ChevronDown
 } from 'lucide-react';
+import axios from "axios";
+import AddLoanTypes from '../../../components/admin/modals/AddLoanTypes';
+
+
+
+const ALLOWED_LOAN_TYPES = [
+  "PERSONAL_LOAN",
+  "VEHICLE_LOAN",
+  "HOME_LOAN",
+  "EDUCATION_LOAN",
+  "BUSINESS_LOAN",
+  "GOLD_LOAN",
+];
 
 const LoanProduct = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1, name: 'Home Loan', interest: '8.4% - 9.2%',
-      amount: '₹10L - ₹5Cr', tenure: '5-20 yrs',
-      fee: '0.5% - 1%', status: 'active',
-      category: 'Property', applicants: 245,
-      created: '2024-01-15', type: 'Secured'
-    },
-    {
-      id: 2, name: 'Personal Loan', interest: '10.5% - 15%',
-      amount: '₹50K - ₹15L', tenure: '1-5 yrs',
-      fee: '1.5% - 2%', status: 'active',
-      category: 'Unsecured', applicants: 189,
-      created: '2024-01-10', type: 'Unsecured'
-    },
-    {
-      id: 3, name: 'Car Loan', interest: '7.9% - 8.5%',
-      amount: '₹3L - ₹50L', tenure: '1-7 yrs',
-      fee: '1%', status: 'inactive',
-      category: 'Vehicle', applicants: 92,
-      created: '2024-01-05', type: 'Secured'
-    },
-    {
-      id: 4, name: 'Business Loan', interest: '9.5% - 12%',
-      amount: '₹5L - ₹2Cr', tenure: '1-10 yrs',
-      fee: '1.5% - 2.5%', status: 'active',
-      category: 'Business', applicants: 156,
-      created: '2024-01-12', type: 'Secured'
-    }
-  ]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showAddLoanPopup, setShowAddLoanPopup] = useState(false);
+
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  const categories = ['all', 'Property', 'Unsecured', 'Vehicle', 'Business'];
+  const categories = ["all", ...ALLOWED_LOAN_TYPES.map(t => t.replace("_", " "))];
   const statuses = ['all', 'active', 'inactive'];
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+  const mappedProducts = products.map(p => ({
+    id: p.id,
+    name: p.name,
+    category: p.category.replace("_", " "),
+    interest: `${p.minInterestRate}% - ${p.maxInterestRate}%`,
+    amount: `₹${(p.minAmount / 100000).toFixed(1)}L - ₹${(p.maxAmount / 10000000).toFixed(1)}Cr`,
+    tenure: `${p.minTenureMonths / 12}-${p.maxTenureMonths / 12} yrs`,
+    fee: `${p.processingFee}%`,
+    status: p.isActive ? "active" : "inactive",
+    type: p.secured ? "Secured" : "Unsecured",
+    applicants: 0,
+    created: p.createdAt,
+  }));
+
+  const filteredProducts = mappedProducts.filter(p => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.category.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesStatus = selectedStatus === 'all' || p.status === selectedStatus;
-    return matchesSearch && matchesCategory && matchesStatus;
+
+    const matchesStatus =
+      selectedStatus === "all" || p.status === selectedStatus;
+
+    return matchesSearch && matchesStatus;
   });
 
-  const deleteProduct = (id) => {
-    if (window.confirm('Delete this product?')) {
-      setProducts(products.filter(p => p.id !== id));
+
+  const deleteProduct = async (id) => {
+    if (!window.confirm("Delete this product?")) return;
+
+    try {
+      await axios.delete(`/api/loan-types/${id}`);
+      fetchLoanTypes();
+    } catch (error) {
+      alert("Delete failed");
     }
   };
 
@@ -74,6 +84,36 @@ const LoanProduct = () => {
     return colors[category] || 'bg-gray-50 text-gray-700';
   };
 
+  useEffect(() => {
+    fetchLoanTypes();
+  }, []);
+
+  const fetchLoanTypes = async () => {
+  try {
+    setLoading(true);
+
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_BASE_URL}/loantypes`,
+      { withCredentials: true }
+    );
+
+    // ✅ backend wraps data
+    const loanTypes = res.data.data;
+
+    const filtered = loanTypes.filter(item =>
+      ALLOWED_LOAN_TYPES.includes(item.category)
+    );
+
+    setProducts(filtered);
+  } catch (error) {
+    console.error("Loan types fetch failed", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       {/* Header */}
@@ -88,7 +128,10 @@ const LoanProduct = () => {
               <Download className="w-4 h-4 mr-2" />
               Export
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center text-sm">
+            <button
+              onClick={() => setShowAddLoanPopup(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center text-sm"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </button>
@@ -329,6 +372,15 @@ const LoanProduct = () => {
           </div>
         </div>
       </div>
+      {showAddLoanPopup && (
+  <AddLoanTypes
+    onClose={() => {
+      setShowAddLoanPopup(false);
+      fetchLoanTypes(); // popup close ke baad list refresh
+    }}
+  />
+)}
+
     </div>
   );
 };

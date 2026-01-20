@@ -7,16 +7,21 @@ import {
   User
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 
 export default function SidebarNav() {
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
-  
+  const { user } = useSelector((state) => state.auth);
+
+
   // State for Level 1 Menu (like LMS, Configuration, Reports)
-  const [openMenu, setOpenMenu] = useState(null); 
-  
+  const [openMenu, setOpenMenu] = useState(null);
+
   // State for Level 2 Menu (like Repayment inside LMS)
-  const [openSubMenu, setOpenSubMenu] = useState(null);
+  const [openSubMenu, setOpenSubMenu] = useState({});
+
 
   const location = useLocation();
 
@@ -28,52 +33,137 @@ export default function SidebarNav() {
 
   // Handle Level 2 Click (Repayment inside LMS)
   const handleSubMenuClick = (name, e) => {
-    e.stopPropagation(); // Stop bubbling to Parent
-    setOpenSubMenu(openSubMenu === name ? null : name);
+    e.stopPropagation();
+    setOpenSubMenu(prev => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
   };
+
 
   // --- MENU DATA STRUCTURE ---
   const menuItems = [
     {
       category: "Core",
       items: [
-        { name: "Dashboard", icon: <PieChart size={20} />, path: "/admin" },
+        {
+          name: "Dashboard",
+          icon: <PieChart size={20} />,
+          path: user?.role === "EMPLOYEE" ? "/employee" : "/admin",
+          permission: "VIEW_DASHBOARD"
+        }
+
       ]
     },
     {
       category: "Loan Ops",
       items: [
-        { name: "LOS", icon: <FilePlus2 size={20} />, path: "/admin/los" },
-        
+        {
+          name: "LOS",
+          icon: <FilePlus2 size={20} />,
+          path: user?.role === "EMPLOYEE" ? "/employee/los" : "/admin/los",
+          permission: "VIEW_LOS"
+        },
+
+
         // --- LMS SECTION ---
-        { 
-          name: "LMS", 
-          icon: <Briefcase size={20} />, 
+        {
+          name: "LMS",
+          icon: <Briefcase size={20} />,
+          permission: "VIEW_LMS",
           subItems: [
-            { name: "Loan Entry", path: "/admin/loanEntry"},
-            
+
+            {
+              name: "Loan Entry",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/loanEntry"
+                : "/admin/loanEntry",
+              permission: "CREATE_LOAN"
+            },
+
             // --- REPAYMENT (Dropdown) ---
-            { 
-              name: "Repayment", 
+            {
+              name: "Repayment",
+              permission: "VIEW_REPAYMENT",
               subItems: [
-                { name: "NACH Registration", path: "/admin/nach" },
-                { name: "PDC Receipt", path: "/admin/PdcReceipts" },
+                {
+                  name: "NACH Registration",
+                  path: user?.role === "EMPLOYEE"
+                    ? "/employee/nach"
+                    : "/admin/nach",
+                  permission: "VIEW_NACH"
+                },
+                {
+                  name: "PDC Receipt",
+                  path: user?.role === "EMPLOYEE"
+                    ? "/employee/PdcReceipts"
+                    : "/admin/PdcReceipts",
+                  permission: "VIEW_PDC"
+                }
               ]
             },
-            
-            // { name: "Customer", path: "/admin/customer"},
-            { name: "Disbursement", path: "/admin/disbursement"},
-            { name: "EMI Management", path: "/admin/emi-management"},
-            { name: "Loan Closer", path: "/admin/loan-closer"},
-            // { name: "Task", path: "/admin/task" },
-            { name: "Waiver", path: "/admin/waiver" },
-            { name: "Repossess", path: "/admin/repossess" },
+
+            {
+              name: "Disbursement",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/disbursement"
+                : "/admin/disbursement",
+              permission: "VIEW_DISBURSEMENT"
+            },
+
+            {
+              name: "EMI Management",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/emi-management"
+                : "/admin/emi-management",
+              permission: "VIEW_EMI"
+            },
+
+            {
+              name: "Loan Closer",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/loan-closer"
+                : "/admin/loan-closer",
+              permission: "VIEW_LOAN_CLOSER"
+            },
+
+            {
+              name: "Waiver",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/waiver"
+                : "/admin/waiver",
+              permission: "VIEW_WAIVER"
+            },
+
+            {
+              name: "Repossess",
+              path: user?.role === "EMPLOYEE"
+                ? "/employee/repossess"
+                : "/admin/repossess",
+              permission: "VIEW_REPOSSESS"
+            },
           ]
         },
-        
+
+
         // { name: "Loan Requests", icon: <Banknote size={20} />, path: "/admin/loan-requests" },
-        { name: "Borrowers", icon: <Users size={20} />, path: "/admin/borrowers" },
-        { name: "User Details", icon: <User size={20} />, path: "reports/user-details" },
+        {
+          name: "Borrowers",
+          icon: <Users size={20} />,
+          path: user?.role === "EMPLOYEE"
+            ? "/employee/borrowers"
+            : "/admin/borrowers",
+          permission: "VIEW_BORROWERS"
+        },
+        {
+          name: "Leads",
+          icon: <User size={20} />,
+          path: user?.role === "EMPLOYEE"
+            ? "/employee/reports/leads"
+            : "/admin/reports/leads",
+          permission: "VIEW_LEADS"
+        },
+
       ]
     },
     {
@@ -94,20 +184,19 @@ export default function SidebarNav() {
             { name: "IMD Authorization", path: "/admin/accounting/imd-authorization" },
             { name: "Reciept Entry", path: "/admin/accounting/reciept-entry" },
             // { name: "Trial Balance", path: "/admin/accounting/trial-balance" },
-          ] 
+          ]
         },
-        
+
         // --- REPORTS SECTION (Updated with List) ---
-        { 
-          name: "Reports", 
-          icon: <FileText size={20} />, 
+        {
+          name: "Reports",
+          icon: <FileText size={20} />,
           subItems: [
-           { name: "DUE List", path: "/admin/due-list"},
-            
+            { name: "DUE List", path: "/admin/due-list" },
+
             // --- BUSINESS REPORTS (Dropdown) ---
-            { 
-              name: "Business Reports"
-              ,
+            {
+              name: "Business Reports",
               subItems: [
                 { name: "Disburs & Collection", path: "/admin/reports/disburs-collection" },
                 { name: "Customer And Booking List", path: "/admin/reports/customer-and-booking-list" },
@@ -124,9 +213,9 @@ export default function SidebarNav() {
       category: "Admin Control",
       items: [
         // --- CONFIGURATION ---
-        { 
-          name: "Configuration", 
-          icon: <Sliders size={20} />, 
+        {
+          name: "Configuration",
+          icon: <Sliders size={20} />,
           subItems: [
             { name: "Employee Add", path: "/admin/configuration/employee" },
             { name: "Partner Add", path: "/admin/configuration/partner" },
@@ -141,10 +230,11 @@ export default function SidebarNav() {
           ]
         },
         { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },
+        { name: "Permission Management", icon: <ShieldCheck size={20} />, path: "/admin/permission-management" },
 
         {
           name: "System Settings",
-          icon: <Settings size={20} />, 
+          icon: <Settings size={20} />,
           subItems: [
             { name: "Company Details", path: "/admin/system-setting/company-details" },
             { name: "Loan Configuration", path: "/admin/system-setting/loan-configuration" },
@@ -155,6 +245,17 @@ export default function SidebarNav() {
       ]
     }
   ];
+
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    if (user.role === "ADMIN") return true; // Admin ko sab allowed
+    return user.permissions?.includes(permission);
+  };
+
+  if (!user) {
+    return null; // ⛔ jab tak user load na ho
+  }
+
 
   return (
     <>
@@ -208,136 +309,132 @@ export default function SidebarNav() {
 
         {/* MENU LIST */}
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-          {menuItems.map((section, index) => (
-            <div key={index} className="mb-6">
+          {menuItems.map((section, index) => {
+            // 🔒 Admin Control sirf ADMIN ke liye
+            if (section.category === "Admin Control" && user?.role !== "ADMIN") {
+              return null;
+            }
 
-              {/* Category Label */}
-              <div className="px-4 mb-2 text-xs uppercase font-semibold text-gray-500">
-                {expanded ? section.category : <hr className="border-gray-700 w-10 mx-auto" />}
-              </div>
+            return (
+              <div key={index} className="mb-6">
 
-              <div className="space-y-1 px-3">
-                {section.items.map((item) => {
-                  
-                  // Level 1 Logic
-                  const hasSubMenu = item.subItems && item.subItems.length > 0;
-                  const isMenuOpen = openMenu === item.name;
-                  const isActive = !hasSubMenu && location.pathname === item.path;
+                {/* Category Label */}
+                <div className="px-4 mb-2 text-xs uppercase font-semibold text-gray-500">
+                  {expanded ? section.category : <hr className="border-gray-700 w-10 mx-auto" />}
+                </div>
 
-                  return (
-                    <div key={item.name}>
-                      
-                      {/* LEVEL 1 ITEM RENDER */}
-                      {hasSubMenu ? (
-                        <button
-                          onClick={() => handleMenuClick(item.name)}
-                          className={`
-                            w-full flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer
-                            ${isMenuOpen ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"}
-                            ${expanded ? "" : "justify-center"}
-                          `}
-                        >
-                           <div className={`flex items-center ${expanded ? "gap-3" : ""}`}>
-                             <span className={isMenuOpen ? "text-blue-500" : ""}>{item.icon}</span>
-                             {expanded && <span className="text-sm font-medium">{item.name}</span>}
-                           </div>
-                           
-                           {expanded && (
-                             <ChevronDown 
-                               size={16} 
-                               className={`transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
-                             />
-                           )}
-                        </button>
-                      ) : (
-                        <Link
-                          to={item.path}
-                          onClick={() => setMobileOpen(false)}
-                          className={`
-                            flex items-center p-3 rounded-xl transition-all 
-                            ${expanded ? "gap-3" : "justify-center"}
-                            ${isActive ? "bg-white text-gray-900 shadow" : "hover:bg-gray-800 hover:text-white"}
-                          `}
-                        >
-                          <span className={isActive ? "text-blue-600" : ""}>{item.icon}</span>
-                          {expanded && <span className="text-sm">{item.name}</span>}
-                        </Link>
-                      )}
+                <div className="space-y-1 px-3">
+                  {section.items
+                    .filter(item => !item.permission || hasPermission(item.permission))
+                    .map((item) => {
 
-                      {/* LEVEL 2 LIST (Inside Reports, LMS, Configuration) */}
-                      {hasSubMenu && isMenuOpen && expanded && (
-                        <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
-                          {item.subItems.map((subItem) => {
-                             
-                             // Check for Level 2 nesting
-                             const hasDeepMenu = subItem.subItems && subItem.subItems.length > 0;
-                             const isDeepOpen = openSubMenu === subItem.name;
-                             const isSubActive = !hasDeepMenu && location.pathname === subItem.path;
+                      const hasSubMenu = item.subItems && item.subItems.length > 0;
+                      const isMenuOpen = openMenu === item.name;
+                      const isActive =
+                        !hasSubMenu && location.pathname.startsWith(item.path);
 
-                             return (
-                               <div key={subItem.name}>
-                                 {hasDeepMenu ? (
-                                    // BUTTON (Dropdown Trigger)
-                                    <button
-                                      onClick={(e) => handleSubMenuClick(subItem.name, e)}
-                                      className={`
-                                        w-full flex items-center justify-between px-4 py-2 text-sm rounded-lg transition-colors
-                                        ${isDeepOpen ? "text-white bg-gray-800" : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"}
-                                      `}
-                                    >
-                                       <div className="flex items-center gap-2">
-                                         {subItem.icon && <span className="text-current opacity-70">{subItem.icon}</span>}
-                                         <span>{subItem.name}</span>
-                                       </div>
-                                       <ChevronDown 
-                                          size={14} 
-                                          className={`transition-transform duration-200 ${isDeepOpen ? "rotate-180" : ""}`} 
-                                       />
-                                    </button>
-                                 ) : (
-                                    // NORMAL LINK (With Optional Icon Support)
-                                    <Link
-                                      to={subItem.path}
-                                      onClick={() => setMobileOpen(false)}
-                                      className={`
-                                        flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors
-                                        ${isSubActive ? "text-white bg-blue-600/20" : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/50"}
-                                      `}
-                                    >
-                                      {/* Render Icon if present (e.g. for Reports/Configuration) */}
-                                      {subItem.icon && <span className="text-current opacity-70">{subItem.icon}</span>}
-                                      {subItem.name}
-                                    </Link>
-                                 )}
+                      return (
+                        <div key={item.name}>
 
-                                 {/* LEVEL 3 LIST */}
-                                 {hasDeepMenu && isDeepOpen && (
-                                    <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
-                                       {subItem.subItems.map((deepItem) => (
-                                          <Link
-                                            key={deepItem.name}
-                                            to={deepItem.path}
-                                            onClick={() => setMobileOpen(false)}
-                                            className="block px-4 py-2 text-xs text-gray-400 hover:text-white hover:bg-gray-800/50 rounded-lg transition-colors"
-                                          >
-                                             {deepItem.name}
-                                          </Link>
-                                       ))}
+                          {/* LEVEL 1 */}
+                          {hasSubMenu ? (
+                            <button
+                              onClick={() => handleMenuClick(item.name)}
+                              className={`
+                      w-full flex items-center justify-between p-3 rounded-xl transition-all
+                      ${isMenuOpen ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"}
+                      ${expanded ? "" : "justify-center"}
+                    `}
+                            >
+                              <div className={`flex items-center ${expanded ? "gap-3" : ""}`}>
+                                <span className={isMenuOpen ? "text-blue-500" : ""}>{item.icon}</span>
+                                {expanded && <span className="text-sm font-medium">{item.name}</span>}
+                              </div>
+                              {expanded && (
+                                <ChevronDown
+                                  size={16}
+                                  className={`transition-transform ${isMenuOpen ? "rotate-180" : ""}`}
+                                />
+                              )}
+                            </button>
+                          ) : (
+                            <Link
+                              to={item.path}
+                              onClick={() => setMobileOpen(false)}
+                              className={`
+                      flex items-center p-3 rounded-xl transition-all
+                      ${expanded ? "gap-3" : "justify-center"}
+                      ${isActive ? "bg-white text-gray-900 shadow" : "hover:bg-gray-800 hover:text-white"}
+                    `}
+                            >
+                              <span className={isActive ? "text-blue-600" : ""}>{item.icon}</span>
+                              {expanded && <span className="text-sm">{item.name}</span>}
+                            </Link>
+                          )}
+
+                          {/* LEVEL 2 */}
+                          {hasSubMenu && isMenuOpen && expanded && (
+                            <div className="mt-1 ml-4 pl-4 border-l border-gray-700 space-y-1">
+                              {item.subItems
+                                .filter(sub => !sub.permission || hasPermission(sub.permission))
+                                .map((sub) => {
+
+                                  const hasDeep = sub.subItems && sub.subItems.length > 0;
+                                  const isDeepOpen = openSubMenu[sub.name];
+
+
+                                  return (
+                                    <div key={sub.name}>
+                                      {hasDeep ? (
+                                        <button
+                                          onClick={(e) => handleSubMenuClick(sub.name, e)}
+                                          className="w-full flex justify-between px-4 py-2 text-sm rounded-lg text-gray-400 hover:bg-gray-800/50 hover:text-white"
+                                        >
+                                          <span>{sub.name}</span>
+                                          <ChevronDown
+                                            size={14}
+                                            className={`transition-transform ${isDeepOpen ? "rotate-180" : ""}`}
+                                          />
+                                        </button>
+                                      ) : (
+                                        <Link
+                                          to={sub.path}
+                                          className="block px-4 py-2 text-sm rounded-lg text-gray-400 hover:bg-gray-800/50 hover:text-white"
+                                        >
+                                          {sub.name}
+                                        </Link>
+                                      )}
+
+                                      {/* LEVEL 3 */}
+                                      {hasDeep && isDeepOpen && (
+                                        <div className="ml-4 mt-1 space-y-1">
+                                          {sub.subItems
+                                            .filter(d => !d.permission || hasPermission(d.permission))
+                                            .map((deep) => (
+                                              <Link
+                                                key={deep.name}
+                                                to={deep.path}
+                                                className="block px-4 py-2 text-xs text-gray-400 hover:bg-gray-800/50 hover:text-white rounded"
+                                              >
+                                                {deep.name}
+                                              </Link>
+                                            ))}
+                                        </div>
+                                      )}
                                     </div>
-                                 )}
-                               </div>
-                             )
-                          })}
+                                  );
+                                })}
+                            </div>
+                          )}
                         </div>
-                      )}
-
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                </div>
               </div>
+            );
+          })}
 
-            </div>
-          ))}
+
         </div>
 
         {/* PROFILE SECTION */}
@@ -350,8 +447,11 @@ export default function SidebarNav() {
             />
             {expanded && (
               <div>
-                <h4 className="text-white text-sm font-semibold">Rahul Kumar</h4>
-                <p className="text-xs text-gray-400">Super Admin</p>
+                <h4 className="text-white text-sm font-semibold">
+                  {user?.name || "User"}
+                </h4>
+                <p className="text-xs text-gray-400">{user?.role}</p>
+
               </div>
             )}
           </div>
