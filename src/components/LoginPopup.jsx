@@ -36,24 +36,23 @@ export default function LoginPopup({ isOpen, onClose }) {
   }, [isOpen, dispatch]);
 
   // Handle successful login
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // Show success message
-      setShowSuccess(true);
-      
-      // After 2 seconds, navigate to admin dashboard
-      const timer = setTimeout(() => {
-        onClose();
-        if (user.role === 'ADMIN') {
-          navigate("/admin");
-        } else {
-          navigate("/dashboard");
-        }
-      }, 2000); // 2 seconds delay for success message
-      
-      return () => clearTimeout(timer);
+ useEffect(() => {
+  if (!isAuthenticated || !user) return;
+
+  setShowSuccess(true);
+
+  const timer = setTimeout(() => {
+    onClose();
+
+    if (user.role === "ADMIN") {
+      navigate("/admin");
+    } else if (user.role === "EMPLOYEE") {
+      navigate("/employee");
     }
-  }, [isAuthenticated, user, navigate, onClose]);
+  }, 1500);
+
+  return () => clearTimeout(timer);
+}, [isAuthenticated, user, navigate, onClose]);
 
   // Close on escape key
   useEffect(() => {

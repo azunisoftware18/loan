@@ -71,26 +71,26 @@ const ActionMenu = ({
   }, [isOpen, closeMenu]);
 
   useEffect(() => {
-  if (!isOpen) return;
+    if (!isOpen) return;
 
-  const handleScroll = () => closeMenu();
+    const handleScroll = () => closeMenu();
 
-  window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("scroll", handleScroll, true);
 
-  return () => {
-    window.removeEventListener("scroll", handleScroll, true);
-  };
-}, [isOpen, closeMenu]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [isOpen, closeMenu]);
 
 
   /* ---------------- MENU ---------------- */
   const Menu = (
-     <div
-    ref={menuRef}
-    role="menu"
-    style={{ top: coords.top, left: coords.left }}
-    className={`fixed w-60 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden ${menuClassName}`}
-  >
+    <div
+      ref={menuRef}
+      role="menu"
+      style={{ top: coords.top, left: coords.left }}
+      className={`fixed w-60 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999] overflow-hidden ${menuClassName}`}
+    >
       {enableSearch && (
         <div className="p-2 border-b">
           <div className="relative">
@@ -110,22 +110,22 @@ const ActionMenu = ({
         {filteredItems.length ? (
           filteredItems.map((item, i) => (
             <button
-  key={i}
-  type="button"
-  disabled={item.disabled}
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    item.onClick?.();
-    closeMenu();
-  }}
-  className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2
+              key={i}
+              type="button"
+              disabled={item.disabled}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                item.onClick?.();
+                closeMenu();
+              }}
+              className={`w-full px-4 py-2 text-left text-sm flex items-center gap-2
     ${item.danger ? "text-red-600 hover:bg-red-50" : "hover:bg-blue-50"}
     disabled:opacity-40`}
->
-  {item.icon && <item.icon className="w-4 h-4" />}
-  {item.label}
-</button>
+            >
+              {item.icon && <item.icon className="w-4 h-4" />}
+              {item.label}
+            </button>
 
           ))
         ) : (

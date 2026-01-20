@@ -1,59 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Phone, MoreVertical, ChevronLeft, ChevronRight, Mail, MapPin, PhoneCall, Edit, Trash2, User } from 'lucide-react';
-import axios from "axios";
-const VIEW_ALL_LEAD_URL = import.meta.env.VITE_VIEW_ALL_LEAD_URL;
+import { useGetLeads } from '../../../hooks/useLeads';
 
 
-const UserDetails = () => {
+const Leads = () => {
 
-  const [loanData, setLoanData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { data: loanData = [], isLoading } = useGetLeads();
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [activeMenu, setActiveMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredData, setFilteredData] = useState([]);
 
-
-
-  useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        setLoading(true);
-
-        const response = await axios.get(
-          import.meta.env.VITE_VIEW_ALL_LEAD_URL,
-          { withCredentials: true }
-        );
-
-        setLoanData(response.data.data || []);
-        setFilteredData(response.data.data || []);
-      } catch (error) {
-        console.error(
-          "Error fetching leads:",
-          error.response?.data || error.message
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeads();
-  }, []);
-
-
-
-
-
-  // Pagination logic
-  const lastIndex = currentPage * itemsPerPage;
-  const firstIndex = lastIndex - itemsPerPage;
-  const currentItems = filteredData.slice(firstIndex, lastIndex);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
+ 
   const toggleMenu = (id) => {
     setActiveMenu(activeMenu === id ? null : id);
   };
+
+ const filteredData = useMemo(() => {
+  if (!searchTerm) return loanData;
+
+  const lower = searchTerm.toLowerCase();
+
+  return loanData.filter((item) =>
+    item.fullName?.toLowerCase().includes(lower) ||
+    item.email?.toLowerCase().includes(lower) ||
+    item.contactNumber?.includes(searchTerm) ||
+    item.city?.toLowerCase().includes(lower) ||
+    item.loanType?.name?.toLowerCase().includes(lower)
+  );
+}, [loanData, searchTerm]);
+
+ // Pagination logic
+  const lastIndex = currentPage * itemsPerPage;
+  const firstIndex = lastIndex - itemsPerPage;
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentItems = filteredData.slice(firstIndex, lastIndex);
+
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -64,38 +47,21 @@ const UserDetails = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeMenu]);
 
-  const getLoanTypeColor = (type) => {
-    const colors = {
-      'Home_Loan': 'bg-blue-50 text-blue-700 border-blue-200',
-      'Personal_Loan': 'bg-purple-50 text-purple-700 border-purple-200',
-      'Car_Loan': 'bg-green-50 text-green-700 border-green-200',
-      'Business_Loan': 'bg-amber-50 text-amber-700 border-amber-200',
-      'Education_Loan': 'bg-indigo-50 text-indigo-700 border-indigo-200'
-    };
-    return colors[type] || 'bg-gray-50 text-gray-700 border-gray-200';
+  const getLoanTypeColor = (name = "") => {
+    const key = name.toLowerCase();
+
+    if (key.includes("home")) return "bg-blue-50 text-blue-700 border-blue-200";
+    if (key.includes("personal")) return "bg-purple-50 text-purple-700 border-purple-200";
+    if (key.includes("car")) return "bg-green-50 text-green-700 border-green-200";
+    if (key.includes("business")) return "bg-amber-50 text-amber-700 border-amber-200";
+    if (key.includes("education")) return "bg-indigo-50 text-indigo-700 border-indigo-200";
+
+    return "bg-gray-50 text-gray-700 border-gray-200";
   };
 
 
-  useEffect(() => {
-  if (!searchTerm) {
-    setFilteredData(loanData);
-    return;
-  }
 
-  const lowerSearch = searchTerm.toLowerCase();
-
-  const filtered = loanData.filter((item) =>
-    item.fullName?.toLowerCase().includes(lowerSearch) ||
-    item.email?.toLowerCase().includes(lowerSearch) ||
-    item.contactNumber?.includes(searchTerm) ||
-    item.city?.toLowerCase().includes(lowerSearch) ||
-    item.loanType?.toLowerCase().includes(lowerSearch)
-  );
-
-  setFilteredData(filtered);
-  setCurrentPage(1); // search pe page reset
-}, [searchTerm, loanData]);
-
+ 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -109,7 +75,7 @@ const UserDetails = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-1">User Details</h2>
+              <h2 className="text-xl font-semibold text-gray-800 mb-1">Leads</h2>
               <div className="flex items-center gap-4">
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">
                   <User size={14} />
@@ -153,7 +119,12 @@ const UserDetails = () => {
         {/* Table Container */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
-          {loading && (<div className="p-6 text-center text-gray-500"> Loading user leads... </div>)}
+          {isLoading && (
+            <div className="p-6 text-center text-gray-500">
+              Loading user Leads...
+            </div>
+          )}
+
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -229,8 +200,11 @@ const UserDetails = () => {
 
                     {/* Loan Type Column */}
                     <td className="px-8 py-5">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium border ${getLoanTypeColor(item.loanType)}`}>
-                        {item.loanType}
+                      <span
+                        className={`inline-flex items-center px-3 py-1.5 rounded-2xl text-sm font-medium border 
+      ${getLoanTypeColor(item.loanType?.name)}`}
+                      >
+                        {item.loanType?.name || "—"}
                       </span>
                     </td>
 
@@ -354,4 +328,4 @@ const UserDetails = () => {
   );
 };
 
-export default UserDetails;
+export default Leads;

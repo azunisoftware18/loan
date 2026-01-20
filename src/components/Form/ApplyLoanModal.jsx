@@ -1,5 +1,6 @@
-import axios from "axios";
 import React, { useState } from "react";
+import { useCreateLead, useGetLeads } from "../../hooks/useLeads";
+import { useLoanTypes } from "../../hooks/useLoan";
 
 export default function ApplyLoanModal({ onClose }) {
   const [formData, setFormData] = useState({
@@ -10,49 +11,51 @@ export default function ApplyLoanModal({ onClose }) {
     gender: "",
     state: "",
     city: "",
-    pinCode: "",
+    pinCode: "",  
     address: "",
-    aadhar: "",
-    pan: "",
-    loanType: "",
+    loanTypeId: "",
     loanAmount: "",
-    customerProfile: "",
-    existingCustomer: "",
   });
+
+
+
+  const { data: loanTypes = [], isLoading: loadingLoanTypes } = useLoanTypes();
+  const { mutate: createLead, isPending } = useCreateLead();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async (e) => {
+ const handleSubmit = (e) => {
   e.preventDefault();
 
-  const payload = {
-    fullName: formData.fullName,
-    contactNumber: formData.contactNumber,
-    email: formData.email,
-    dob: formData.dob,
-    gender: formData.gender,
-    loanType: formData.loanType,
-    loanAmount: Number(formData.loanAmount),
-    city: formData.city || null,
-    state: formData.state || null,
-    pinCode: formData.pinCode || null,
-    address: formData.address || null,
-  };
+const payload = {
+  fullName: formData.fullName,
+  email: formData.email,
+  contactNumber: formData.contactNumber,
+  dob: formData.dob,
+  gender: formData.gender,
+  city: formData.city,
+  state: formData.state,
+  pinCode: formData.pinCode,
+  address: formData.address,
+  loanTypeId: String(formData.loanTypeId),
+  loanAmount: Number(formData.loanAmount),
+};
 
-  try {
-    const response = await axios.post(
-      import.meta.env.VITE_LEAD_API_URL,
-      payload
-    );
 
+
+
+ createLead(payload, {
+  onSuccess: () => {
     alert("Lead submitted successfully");
     onClose();
-  } catch (error) {
-    alert(error.response?.data?.message || "Validation error");
-  }
+  },
+});
+
 };
+
+
 
   const handleClose = () => {
     onClose();
@@ -64,6 +67,10 @@ const handleSubmit = async (e) => {
       onClose();
     }
   };
+
+
+
+
 
   return (
     <div
@@ -260,20 +267,23 @@ const handleSubmit = async (e) => {
               Loan Type <span className="text-red-500">*</span>
             </label>
             <select
-              name="loanType"
-              value={formData.loanType}
+              name="loanTypeId"
+              value={formData.loanTypeId}
               onChange={handleChange}
               required
-              className="w-full text-xs sm:text-sm border border-gray-300 rounded-md sm:rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
             >
-              <option value="">Select Loan Type</option>
-              <option value="BUSINESS_LOAN">Business Loan</option>
-              <option value="HOME_LOAN">Home Loan</option>
-              <option value="VEHICLE_LOAN">Vehicle Loan</option>
-              <option value="PERSONAL_LOAN">Personal Loan</option>
-              <option value="EDUCATION_LOAN">Education Loan</option>
-              <option value="GOLD_LOAN">Gold Loan</option>
+              <option value="">
+                {loadingLoanTypes ? "Loading loan types..." : "Select Loan Type"}
+              </option>
+
+              {loanTypes.map((loan) => (
+                <option key={loan.id} value={loan.id}>
+                  {loan.name}   {/* USER ko sirf naam */}
+                </option>
+              ))}
             </select>
+
 
 
           </div>
@@ -296,13 +306,15 @@ const handleSubmit = async (e) => {
 
           {/* Submit Button */}
           <div className="xs:col-span-2 lg:col-span-2 mt-2 sm:mt-4 lg:mt-6">
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-sm sm:text-base py-3 sm:py-3.5 rounded-md sm:rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-lg"
-            >
-              SUBMIT
-            </button>
-          </div>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white"
+              >
+                {isPending ? "Submitting..." : "SUBMIT"}
+              </button>
+
+            </div>
         </form>
 
         {/* Footer Note */}

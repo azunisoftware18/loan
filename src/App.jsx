@@ -54,7 +54,6 @@ import Dashboard from "./pages/mainPages/dashboard.jsx";
 import Los from "./pages/adminPages/Los.jsx";
 import LoanRequests from "./pages/adminPages/LoanRequests.jsx";
 import Borrowers from "./pages/adminPages/Borrowers.jsx";
-import Reports from "./pages/adminPages/Reports.jsx";
 import Configuration from "./pages/adminPages/Configuration.jsx";
 import AdminRoles from "./pages/adminPages/AdminRoles.jsx";
 
@@ -91,13 +90,13 @@ import CustomerAndBookingList from "./pages/adminPages/reports/CustomerAndBookin
 import SalesTargetAndAchievement from "./pages/adminPages/reports/SalesTargetAndAchievement.jsx";
 import NpaReports from "./pages/adminPages/reports/NpaReports.jsx";
 import CrcReport from "./pages/adminPages/reports/CrcReport.jsx";
-import UserDetails from "./pages/adminPages/reports/UserDetails.jsx";
 
 /* SYSTEM SETTINGS */
 import CompanyDetails from "./pages/adminPages/SystemSettings/CompanyDetails.jsx";
 import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfiguration.jsx";
 import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
+import Leads from "./pages/adminPages/reports/Leads.jsx";
 
 
 function App() {
@@ -162,7 +161,6 @@ function App() {
         <Route path="los" element={<Los />} />
         <Route path="loan-requests" element={<LoanRequests />} />
         <Route path="borrowers" element={<Borrowers />} />
-        <Route path="reports" element={<Reports />} />
         <Route path="configuration" element={<Configuration />} />
         <Route path="admin-roles" element={<AdminRoles />} />
 
@@ -199,7 +197,7 @@ function App() {
         <Route path="reports/sales-target-and-achievement" element={<SalesTargetAndAchievement />} />
         <Route path="reports/npa-reports" element={<NpaReports />} />
         <Route path="reports/crc-report" element={<CrcReport />} />
-        <Route path="reports/user-details" element={<UserDetails />} />
+        <Route path="reports/leads" element={<Leads />} />
 
         {/* SYSTEM SETTINGS */}
         <Route path="system-setting/company-details" element={<CompanyDetails />} />
