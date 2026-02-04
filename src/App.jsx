@@ -97,6 +97,7 @@ import LoanConfiguration from "./pages/adminPages/SystemSettings/LoanConfigurati
 import SecuritySettings from "./pages/adminPages/SystemSettings/SecuritySettings.jsx";
 import PaymentSettings from "./pages/adminPages/SystemSettings/PaymentSettings.jsx";
 import Leads from "./pages/adminPages/reports/Leads.jsx";
+import Profile from "./components/Profile.jsx";
 
 
 function App() {
@@ -206,7 +207,7 @@ function App() {
         <Route path="system-setting/payment-settings" element={<PaymentSettings />} />
 
         //Profile
-        
+        <Route path="profile" element={<Profile />} />
       </Route>
 
     </Routes>

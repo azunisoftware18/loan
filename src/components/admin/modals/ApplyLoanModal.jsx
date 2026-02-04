@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useCreateLead } from "../../hooks/useLeads";
-import { useLoanTypes } from "../../hooks/useLoan";
+import { useCreateLead } from "../../../hooks/useLeads";
+import { useLoanTypes } from "../../../hooks/useLoan";
+import toast from "react-hot-toast";
 
 export default function ApplyLoanModal({ onClose }) {
   const [formData, setFormData] = useState({
@@ -72,11 +73,11 @@ export default function ApplyLoanModal({ onClose }) {
 
     createLead(payload, {
       onSuccess: () => {
-        alert("Lead submitted successfully");
+        toast.success("Application submitted successfully ");
         onClose();
       },
       onError: (error) => {
-        alert(`Error: ${error.message || "Failed to submit lead"}`);
+        toast.error(`Error: ${error.message || "Failed to submit application"}`);
       }
     });
   };

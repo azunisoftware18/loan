@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, Menu, X, Phone, MapPin, Clock, User } from "lucide-react";
-import ApplyLoanModal from "./Form/ApplyLoanModal";
 import LoginPopup from "./LoginPopup";
 import { useSelector, useDispatch } from "react-redux"; // ✅ Redux hooks import karo
 import { logout } from "../redux/slices/authSlice"; // ✅ Logout action import karo
+import ApplyLoanModal from "./admin/modals/ApplyLoanModal";
 
 export default function Header() {
   const [showModal, setShowModal] = useState(false);

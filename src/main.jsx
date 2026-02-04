@@ -7,6 +7,7 @@ import { store } from "./redux/store";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
+import { Toaster } from "react-hot-toast";
 
 // ✅ React Query Client
 const queryClient = new QueryClient();
@@ -16,6 +17,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
+        <Toaster
+  position="top-right"
+  toastOptions={{
+    duration: 3000,
+    style: {
+      fontSize: "14px",
+    },
+  }}
+/>
       </BrowserRouter>
     </QueryClientProvider>
   </Provider>

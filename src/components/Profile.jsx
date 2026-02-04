@@ -15,7 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const AdminProfile = () => {
+const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -481,4 +481,4 @@ const AdminProfile = () => {
   );
 };
 
-export default AdminProfile;
+export default Profile;

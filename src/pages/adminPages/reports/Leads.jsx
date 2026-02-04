@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Phone, MoreVertical, ChevronLeft, ChevronRight, Mail, MapPin, PhoneCall, Edit, Trash2, User } from 'lucide-react';
 import { useGetLeads } from '../../../hooks/useLeads';
+import Pagination from '../../../components/admin/common/Pagination';
+import ActionMenu from '../../../components/admin/AdminButtons/ActionMenu';
 
 const Leads = () => {
   const { data: responseData = {}, isLoading } = useGetLeads();
-
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 6;
   const [activeMenu, setActiveMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -16,38 +17,38 @@ const Leads = () => {
 
   // Extract leads data from the nested response structure
   const loanData = useMemo(() => {
-    if (!responseData || !responseData.data) {
-      return [];
-    }
-    
-    // Handle the nested structure: responseData.data.data
+    if (!responseData || !responseData.data) return [];
+
     const data = responseData.data;
-    
-    // Case 1: Direct array in data.data
+
+    const sortByCreatedAtAsc = (arr) =>
+      [...arr].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
     if (data.data && Array.isArray(data.data)) {
-      return data.data;
+      return sortByCreatedAtAsc(data.data);
     }
-    
-    // Case 2: Array directly in data
+
     if (Array.isArray(data)) {
-      return data;
+      return sortByCreatedAtAsc(data);
     }
-    
-    // Case 3: Check for other common property names
+
     if (data.leads && Array.isArray(data.leads)) {
-      return data.leads;
+      return sortByCreatedAtAsc(data.leads);
     }
-    
+
     if (data.items && Array.isArray(data.items)) {
-      return data.items;
+      return sortByCreatedAtAsc(data.items);
     }
-    
+
     if (data.results && Array.isArray(data.results)) {
-      return data.results;
+      return sortByCreatedAtAsc(data.results);
     }
-    
+
     return [];
   }, [responseData]);
+
 
   const filteredData = useMemo(() => {
     if (!searchTerm) return loanData;
@@ -73,14 +74,18 @@ const Leads = () => {
     });
   }, [loanData, searchTerm]);
 
-  // Pagination logic - ensure filteredData is always an array
   const totalItems = Array.isArray(filteredData) ? filteredData.length : 0;
-  const lastIndex = currentPage * itemsPerPage;
-  const firstIndex = lastIndex - itemsPerPage;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const currentItems = Array.isArray(filteredData) 
-    ? filteredData.slice(firstIndex, lastIndex)
-    : [];
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
+  const currentItems = filteredData.slice(startIndex, endIndex);
+
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -91,22 +96,35 @@ const Leads = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [activeMenu]);
 
-  const getLoanTypeColor = (name = "") => {
-    const key = name.toLowerCase();
+    const getLoanTypeColor = (name = "") => {
+      const key = name.toLowerCase();
 
-    if (key.includes("home")) return "bg-blue-50 text-blue-700 border-blue-200";
-    if (key.includes("personal")) return "bg-purple-50 text-purple-700 border-purple-200";
-    if (key.includes("car")) return "bg-green-50 text-green-700 border-green-200";
-    if (key.includes("business")) return "bg-amber-50 text-amber-700 border-amber-200";
-    if (key.includes("education")) return "bg-indigo-50 text-indigo-700 border-indigo-200";
+      if (key.includes("home")) return "bg-blue-50 text-blue-700 border-blue-200";
+      if (key.includes("personal")) return "bg-purple-50 text-purple-700 border-purple-200";
+      if (key.includes("car")) return "bg-green-50 text-green-700 border-green-200";
+      if (key.includes("business")) return "bg-amber-50 text-amber-700 border-amber-200";
+      if (key.includes("education")) return "bg-indigo-50 text-indigo-700 border-indigo-200";
 
-    return "bg-gray-50 text-gray-700 border-gray-200";
-  };
+      return "bg-gray-50 text-gray-700 border-gray-200";
+    };
 
-  // Debug: Log the data structure
-  console.log("Response Data:", responseData);
-  console.log("Extracted Loan Data:", loanData);
-  console.log("Filtered Data:", filteredData);
+  const actions = [
+    {
+      label: "Edit",
+      icon: <Edit size={16} />,
+      onClick: () => {
+        console.log("Edit clicked", item.id);
+      },
+    },
+    {
+      label: "Delete",
+      icon: <Trash2 size={16} />,
+      isDanger: true,
+      onClick: () => {
+        console.log("Delete clicked", item.id);
+      },
+    },
+  ];
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -173,7 +191,7 @@ const Leads = () => {
           {/* Table */}
           {!isLoading && (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto flex-1">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
                     <tr className="bg-gray-50">
@@ -209,9 +227,8 @@ const Leads = () => {
                               </div>
                               <div className="ml-4">
                                 <div className="text-base font-semibold text-gray-900">{item.fullName || 'Unknown'}</div>
-                                <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                                  <Mail size={12} />
-                                  {item.email || 'No email'}
+                                <div className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md inline-block mt-1">
+                                  {item.leadNumber || 'N/A'}
                                 </div>
                               </div>
                             </div>
@@ -226,15 +243,10 @@ const Leads = () => {
                                   {item.contactNumber || 'No phone number'}
                                 </span>
                               </div>
-                              {item.contactNumber && (
-                                <a
-                                  href={`tel:${item.contactNumber}`}
-                                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
-                                >
-                                  <PhoneCall size={12} />
-                                  Call Customer
-                                </a>
-                              )}
+                              <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                <Mail size={12} />
+                                {item.email || 'No email'}
+                              </div>
                             </div>
                           </td>
 
@@ -268,33 +280,10 @@ const Leads = () => {
                           {/* Actions Column */}
                           <td className="px-8 py-5 text-right relative">
                             <div className="flex justify-end">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleMenu(item.id);
-                                }}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                              >
-                                <MoreVertical size={20} className="text-gray-500" />
-                              </button>
+                              <ActionMenu actions={actions} />
 
-                              {activeMenu === item.id && (
-                                <div className="absolute right-12 mt-10 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                                  {item.contactNumber && (
-                                    <a
-                                      href={`tel:${item.contactNumber}`}
-                                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
-                                    >
-                                      <PhoneCall size={16} className="text-green-600" />
-                                      Call Now
-                                    </a>
-                                  )}
-                                  <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-gray-50">
-                                    <Trash2 size={16} />
-                                    Delete Record
-                                  </button>
-                                </div>
-                              )}
+
+
                             </div>
                           </td>
                         </tr>
@@ -322,69 +311,23 @@ const Leads = () => {
                 </table>
               </div>
 
-              {/* Pagination - Only show if there are items */}
-              {totalItems > 0 && (
-                <div className="px-8 py-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-sm text-gray-600">
-                    Showing <span className="font-semibold">{Math.min(firstIndex + 1, totalItems)}</span> to{" "}
-                    <span className="font-semibold">{Math.min(lastIndex, totalItems)}</span> of{" "}
-                    <span className="font-semibold">{totalItems}</span> entries
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className={`p-2.5 rounded-lg border ${currentPage === 1
-                        ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                        : 'border-gray-300 text-gray-700 hover:bg-white hover:shadow-sm transition-all'}`}
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
-
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 h-10 rounded-lg text-sm font-medium ${currentPage === pageNum
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-700 hover:bg-gray-100'}`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className={`p-2.5 rounded-lg border ${currentPage === totalPages
-                        ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                        : 'border-gray-300 text-gray-700 hover:bg-white hover:shadow-sm transition-all'}`}
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
       </div>
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          containerClassName="fixed bottom-20 right-6 z-50 flex gap-2 bg-white px-4 py-2 rounded-xl shadow-lg border border-gray-200"
+          buttonClassName="hover:bg-gray-100 text-gray-700"
+          activeButtonClassName="bg-blue-600 text-white"
+          maxVisiblePages={5}
+        />
+      )}
+
     </div>
   );
 };
