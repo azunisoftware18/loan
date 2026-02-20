@@ -59,7 +59,7 @@ export const usePermissions = () => {
   try {
     setLoading(prev => ({ ...prev, getUsers: true }));
 
-    const res = await api.get("/users"); // ← fix URL if needed
+    const res = await api.get("/user/all"); // ← fix URL if needed
 
     if (res.data?.success) {
       setUsers(res.data.data || []);
