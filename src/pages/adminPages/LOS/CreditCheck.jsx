@@ -8,8 +8,81 @@ import {
   Lock, Unlock, Eye, Check, X, CalendarDays,
   IndianRupee, Key, FolderOpen, Loader, ArrowLeft
 } from 'lucide-react';
+import useCredit from '../../../hooks/useCredit';
+
+
 
 const CreditCheck = () => {
+  const { fetchCredit } = useCredit();
+  const getScoreMeta = (score) => {
+    if (score >= 750) return { status: 'Excellent', color: 'emerald', riskGrade: 'A' };
+    if (score >= 700) return { status: 'Good', color: 'blue', riskGrade: 'B+' };
+    if (score >= 650) return { status: 'Fair', color: 'amber', riskGrade: 'C' };
+    return { status: 'Poor', color: 'rose', riskGrade: 'D' };
+  };
+
+  const formatAccountType = (type) => {
+    if (!type) return 'Loan';
+    return type
+      .toString()
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  const normalizeCreditReport = (apiResponse, loanKey, monthlyIncome = 0) => {
+    const report = apiResponse?.data || apiResponse;
+    if (!report || typeof report !== 'object') return null;
+
+    const score = typeof report.creditScore === 'number' ? report.creditScore : null;
+    const scoreMeta = score !== null ? getScoreMeta(score) : null;
+    const existingLoans = (report.creditAccount || []).map((account, index) => {
+      const isDefault = typeof account.dpd === 'number' && account.dpd > 0;
+      const isActive = account.accountStatus === 'ACTIVE';
+      const status = isDefault ? 'Default' : (isActive ? 'Active' : 'Closed');
+      const statusColor = isDefault ? 'rose' : (isActive ? 'emerald' : 'gray');
+      return {
+        id: account.id || index + 1,
+        loanType: formatAccountType(account.accountType),
+        bankName: account.lenderName || 'Unknown Lender',
+        emiAmount: account.emiAmount || 0,
+        outstandingAmount: account.outstanding || 0,
+        overdueAmount: isDefault ? (account.emiAmount || 0) : 0,
+        status,
+        statusColor
+      };
+    });
+
+    const totalExistingEMI = typeof report.totalMonthlyEmi === 'number'
+      ? report.totalMonthlyEmi
+      : existingLoans.reduce((sum, loan) => sum + loan.emiAmount, 0);
+
+    const riskGrade = scoreMeta?.riskGrade || 'B';
+    const provider = report.provider || 'Credit Bureau';
+    const creditRemarks = score !== null
+      ? `${provider} score ${score}. Total outstanding ${report.totalOutstandingLoans || 0}.`
+      : `Credit report fetched from ${provider}.`;
+
+    return {
+      loanNumber: loanKey,
+      creditScores: score !== null
+        ? [{ bureau: provider, score, status: scoreMeta.status, color: scoreMeta.color }]
+        : [],
+      coApplicant: null,
+      existingLoans,
+      creditAnalysis: {
+        monthlyIncome,
+        totalExistingEMI,
+        foirPercentage: monthlyIncome ? ((totalExistingEMI / monthlyIncome) * 100).toFixed(2) : 0,
+        eligibleEMICapacity: monthlyIncome ? (monthlyIncome * 0.5).toFixed(0) : 0,
+        riskGrade,
+        recommendedLoanAmount: 0,
+        recommendedTenure: 0,
+        interestRate: 0,
+        creditRemarks
+      }
+    };
+  };
   // Loan applications database
   const [loanApplications, setLoanApplications] = useState([
     {
@@ -79,6 +152,8 @@ const CreditCheck = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [recentSearches, setRecentSearches] = useState(['LON-2024-001', 'LON-2024-002']);
+
+  const [apiCreditData, setApiCreditData] = useState({});
 
   // Credit data for each loan
   const [creditData, setCreditData] = useState({
@@ -238,7 +313,7 @@ const CreditCheck = () => {
   const [userRole] = useState('CREDIT_OFFICER');
 
   // Handle loan number search
-  const handleLoanNumberSearch = () => {
+  const handleLoanNumberSearch = async () => {
     if (!loanNumberInput.trim()) {
       setSearchError('Please enter a loan number');
       return;
@@ -247,25 +322,65 @@ const CreditCheck = () => {
     setIsSearching(true);
     setSearchError('');
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const foundApplication = loanApplications.find(app => 
-        app.loanNumber.toLowerCase() === loanNumberInput.toLowerCase().trim() ||
-        app.applicationNumber.toLowerCase() === loanNumberInput.toLowerCase().trim()
-      );
+    const normalizedQuery = loanNumberInput.trim();
+    let fetchedCredit = null;
 
-      if (foundApplication) {
-        setSelectedApplication(foundApplication);
-        // Add to recent searches
-        if (!recentSearches.includes(loanNumberInput.toUpperCase())) {
-          setRecentSearches(prev => [loanNumberInput.toUpperCase(), ...prev.slice(0, 3)]);
-        }
-      } else {
-        setSearchError(`No loan found with number: ${loanNumberInput}`);
-      }
-      
-      setIsSearching(false);
-    }, 800);
+    try {
+      fetchedCredit = await fetchCredit(normalizedQuery);
+    } catch (err) {
+      setSearchError(err.message || 'Failed to fetch credit report');
+    }
+
+    const foundApplication = loanApplications.find(app => 
+      app.loanNumber.toLowerCase() === normalizedQuery.toLowerCase() ||
+      app.applicationNumber.toLowerCase() === normalizedQuery.toLowerCase()
+    );
+
+    const loanKey = normalizedQuery.toUpperCase();
+    const normalizedCredit = fetchedCredit
+      ? normalizeCreditReport(fetchedCredit, loanKey, foundApplication?.monthlyIncome || 0)
+      : null;
+
+    if (normalizedCredit) {
+      setApiCreditData(prev => ({
+        ...prev,
+        [loanKey]: normalizedCredit
+      }));
+    }
+
+    if (foundApplication) {
+      setSelectedApplication(foundApplication);
+    } else if (fetchedCredit) {
+      const applicant = fetchedCredit.applicant || {};
+      const loanNumber = fetchedCredit.loanNumber || normalizedQuery.toUpperCase();
+      setSelectedApplication({
+        id: fetchedCredit.id || loanNumber,
+        applicationNumber: fetchedCredit.applicationNumber || loanNumber,
+        loanNumber,
+        applicantName: fetchedCredit.applicantName || applicant.name || 'Unknown Applicant',
+        coApplicantName: fetchedCredit.coApplicantName || fetchedCredit.coApplicant?.name || null,
+        loanType: fetchedCredit.loanType || 'Loan',
+        loanAmount: fetchedCredit.loanAmount || 0,
+        branchName: fetchedCredit.branchName || 'Unknown Branch',
+        currentStage: fetchedCredit.currentStage || 'Credit Check',
+        monthlyIncome: fetchedCredit.monthlyIncome || applicant.monthlyIncome || 0,
+        panNumber: fetchedCredit.panNumber || applicant.panNumber || 'N/A',
+        dob: fetchedCredit.dob || applicant.dob || 'N/A',
+        mobile: fetchedCredit.mobile || applicant.mobile || 'N/A',
+        employmentType: fetchedCredit.employmentType || applicant.employmentType || 'N/A',
+        companyName: fetchedCredit.companyName || applicant.companyName || 'N/A',
+        tenure: fetchedCredit.tenure || 0,
+        interestRate: fetchedCredit.interestRate || 0
+      });
+    } else {
+      setSearchError(`No loan found with number: ${normalizedQuery}`);
+    }
+
+    if (!recentSearches.includes(normalizedQuery.toUpperCase())) {
+      setRecentSearches(prev => [normalizedQuery.toUpperCase(), ...prev.slice(0, 3)]);
+    }
+
+    setIsSearching(false);
   };
 
   // Handle Enter key press
@@ -295,7 +410,9 @@ const CreditCheck = () => {
   };
 
   // Get current application data
-  const currentCreditData = selectedApplication ? creditData[selectedApplication.loanNumber] : null;
+  const currentCreditData = selectedApplication
+    ? (apiCreditData[selectedApplication.loanNumber] || creditData[selectedApplication.loanNumber])
+    : null;
   const currentDecision = selectedApplication ? decisions[selectedApplication.loanNumber] : null;
 
   // Calculate total existing EMI
@@ -1105,15 +1222,15 @@ const CreditCheck = () => {
                 </div>
                 
                 {/* Decision Info */}
-                {currentDecision?.status !== 'pending' && (
+                {currentDecision && currentDecision.status !== 'pending' && (
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">Officer</span>
-                      <span className="font-medium text-gray-900">{currentDecision.officerName}</span>
+                      <span className="font-medium text-gray-900">{currentDecision.officerName || 'N/A'}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm mt-1">
                       <span className="text-gray-500">Decision Date</span>
-                      <span className="font-medium text-gray-900">{currentDecision.decisionDate}</span>
+                      <span className="font-medium text-gray-900">{currentDecision.decisionDate || 'N/A'}</span>
                     </div>
                   </div>
                 )}
