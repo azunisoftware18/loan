@@ -104,6 +104,7 @@ import TechnicalReview from "./pages/adminPages/LOS/TechnicalReview.jsx";
 import LegalCompliance from "./pages/adminPages/LOS/LegalCompliance.jsx";
 import Documents from "./pages/adminPages/LOS/Documents.jsx";
 import Sanction from "./pages/adminPages/LOS/Sanction.jsx";
+import BranchAdmin from "./pages/adminPages/Configuration/BranchAdmin.jsx";
 
 
 function App() {
@@ -201,10 +202,10 @@ function App() {
         <Route path="configuration/loan-product" element={<LoanProduct />} />
         <Route path="configuration/location" element={<Location />} />
         <Route path="configuration/masters-setup" element={<MastersSetup />} />
-        
         <Route path="configuration/credit-asignment" element={<CreditAsignment />} />
         <Route path="configuration/vehicle-masters" element={<VehicleMasters />} />
         <Route path="configuration/consumer-durable" element={<ConsumerDurable />} />
+        <Route path="configuration/branch-admin" element={<BranchAdmin />} />
 
         {/* REPORTS */}
         <Route path="reports/attendance-report" element={<AttendanceReport />} />

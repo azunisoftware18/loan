@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from "react-redux";
 
 import {
   X,
@@ -22,14 +21,16 @@ import {
   Clock,
   CreditCard,
   FileCheck,
-  ChevronDown
+  ChevronDown,
+  IndianRupee
 } from 'lucide-react';
-import axios from 'axios';
-import { addLoanType } from '../../../redux/slices/loanTypesSlice';
+import { useCreateLoanType, useUpdateLoanType } from '../../../hooks/useLoan';
+import toast from 'react-hot-toast';
 
-function AddLoanTypes({ onClose }) {
+function AddLoanTypes({ onClose, editData}) {
 
-  const dispatch = useDispatch();
+  const createLoanTypeMutation = useCreateLoanType();
+  const updateLoanTypeMutation = useUpdateLoanType();
   // Form state
   const [formData, setFormData] = useState({
     // Section 1: Basic Information
@@ -78,9 +79,62 @@ interestType: 'FLAT',
     estimatedProcessingTimeDays: '',
     
     // Section 8: Documentation
-    documentsRequired: '',
+    documentsRequired: [],
   });
 
+  useEffect(() => {
+  if (editData) {
+    setFormData({
+      loanCode: editData.code || '',
+      loanName: editData.name || '',
+      loanCategory: editData.category || '',
+      securedLoan: editData.secured || false,
+      description: editData.description || '',
+
+      minLoanAmount: editData.minAmount || '',
+      maxLoanAmount: editData.maxAmount || '',
+      minTenure: editData.minTenureMonths || '',
+      maxTenure: editData.maxTenureMonths || '',
+
+      interestType: editData.interestType || 'FLAT',
+      minInterestRate: editData.minInterestRate || '',
+      maxInterestRate: editData.maxInterestRate || '',
+      defaultInterestRate: editData.defaultInterestRate || '',
+
+      processingFeeType: editData.processingFeeType || 'PERCENTAGE',
+      processingFeeValue: editData.processingFee || '',
+
+      gstApplicable: editData.gstApplicable || false,
+      gstPercentage: editData.gstPercentage || '',
+
+      minAge: editData.minAge || '',
+      maxAge: editData.maxAge || '',
+
+      minMonthlyIncome: editData.minIncome || '',
+      employmentType: editData.employmentType || '',
+
+      minCibilScore: editData.minCibilScore || '',
+      maxCibilScore: editData.maxCibilScore || '',
+
+      prepaymentAllowed: editData.prepaymentAllowed || false,
+      foreclosureAllowed: editData.foreclosureAllowed || false,
+      prepaymentCharges: editData.prepaymentCharges || '',
+      foreclosureCharges: editData.foreclosureCharges || '',
+
+      activeStatus: editData.isActive ?? true,
+      publicVisibility: editData.isPublic ?? true,
+      approvalRequired: editData.approvalRequired ?? true,
+
+      estimatedProcessingTimeDays:
+        editData.estimatedProcessingTimeDays || '',
+
+      // ✅ Documents split
+      documentsRequired: editData.documentsRequired
+        ? editData.documentsRequired.split(",")
+        : [],
+    });
+  }
+}, [editData]);
   // Validation state
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -118,10 +172,29 @@ interestType: 'FLAT',
 
   // Document requirement options
   const documentOptions = [
-    { value: 'BASIC', label: 'Basic Documents Only' },
-    { value: 'STANDARD', label: 'Standard Documentation' },
-    { value: 'COMPREHENSIVE', label: 'Comprehensive Documentation' },
-  ];
+  { value: 'Aadhaar Card', label: 'Aadhaar Card' },
+  { value: 'PAN Card', label: 'PAN Card' },
+  { value: 'Photo', label: 'Photo' },
+  { value: 'Salary Slip', label: 'Salary Slip' },
+];
+
+  const handleDocumentChange = (doc) => {
+  setFormData((prev) => {
+    const exists = prev.documentsRequired.includes(doc);
+
+    if (exists) {
+      return {
+        ...prev,
+        documentsRequired: prev.documentsRequired.filter(d => d !== doc),
+      };
+    } else {
+      return {
+        ...prev,
+        documentsRequired: [...prev.documentsRequired, doc],
+      };
+    }
+  });
+};
 
   // Generate loan code based on category
   useEffect(() => {
@@ -258,106 +331,105 @@ interestType: 'FLAT',
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!isFormValid()) return;
+  if (!isFormValid()) return;
 
-    const payload = {
-      code: formData.loanCode,
-      name: formData.loanName,
-      category: formData.loanCategory,
-      secured: formData.securedLoan,
-      description: formData.description || undefined,
+  const payload = {
+    code: formData.loanCode,
+    name: formData.loanName,
+    category: formData.loanCategory,
+    secured: formData.securedLoan,
+    description: formData.description || undefined,
 
-      minAmount: Number(formData.minLoanAmount),
-      maxAmount: Number(formData.maxLoanAmount),
-      minTenureMonths: Number(formData.minTenure),
-      maxTenureMonths: Number(formData.maxTenure),
+    minAmount: Number(formData.minLoanAmount),
+    maxAmount: Number(formData.maxLoanAmount),
+    minTenureMonths: Number(formData.minTenure),
+    maxTenureMonths: Number(formData.maxTenure),
 
-      interestType: formData.interestType,
-      minInterestRate: Number(formData.minInterestRate),
-maxInterestRate: Number(formData.maxInterestRate),
-defaultInterestRate: Number(formData.defaultInterestRate),
+    interestType: formData.interestType,
+    minInterestRate: Number(formData.minInterestRate),
+    maxInterestRate: Number(formData.maxInterestRate),
+    defaultInterestRate: Number(formData.defaultInterestRate),
 
+    processingFeeType: formData.processingFeeType,
+    processingFee: formData.processingFeeValue
+      ? Number(formData.processingFeeValue)
+      : undefined,
 
-      processingFeeType: formData.processingFeeType,
-      processingFee: formData.processingFeeValue ? Number(formData.processingFeeValue) : undefined,
-
-      gstApplicable: formData.gstApplicable,
-      gstPercentage: formData.gstApplicable && formData.gstPercentage 
-        ? Number(formData.gstPercentage) 
+    gstApplicable: formData.gstApplicable,
+    gstPercentage:
+      formData.gstApplicable && formData.gstPercentage
+        ? Number(formData.gstPercentage)
         : undefined,
 
-      minAge: Number(formData.minAge),
-      maxAge: Number(formData.maxAge),
+    minAge: Number(formData.minAge),
+    maxAge: Number(formData.maxAge),
 
-      minIncome: formData.minMonthlyIncome
-        ? Number(formData.minMonthlyIncome)
-        : undefined,
+    minIncome: formData.minMonthlyIncome
+      ? Number(formData.minMonthlyIncome)
+      : undefined,
 
-      employmentType: formData.employmentType || undefined,
+    employmentType: formData.employmentType || undefined,
 
-      minCibilScore: formData.minCibilScore
-        ? Number(formData.minCibilScore)
-        : undefined,
+    minCibilScore: formData.minCibilScore
+      ? Number(formData.minCibilScore)
+      : undefined,
 
-      maxCibilScore: formData.maxCibilScore
-        ? Number(formData.maxCibilScore)
-        : undefined,
+    maxCibilScore: formData.maxCibilScore
+      ? Number(formData.maxCibilScore)
+      : undefined,
 
-      prepaymentAllowed: formData.prepaymentAllowed,
-      foreclosureAllowed: formData.foreclosureAllowed,
-      prepaymentCharges: formData.prepaymentAllowed && formData.prepaymentCharges
+    prepaymentAllowed: formData.prepaymentAllowed,
+    foreclosureAllowed: formData.foreclosureAllowed,
+
+    prepaymentCharges:
+      formData.prepaymentAllowed && formData.prepaymentCharges
         ? Number(formData.prepaymentCharges)
         : undefined,
-      foreclosureCharges: formData.foreclosureAllowed && formData.foreclosureCharges
+
+    foreclosureCharges:
+      formData.foreclosureAllowed && formData.foreclosureCharges
         ? Number(formData.foreclosureCharges)
         : undefined,
 
-      isActive: formData.activeStatus,
-      isPublic: formData.publicVisibility,
-      approvalRequired: formData.approvalRequired,
+    isActive: formData.activeStatus,
+    isPublic: formData.publicVisibility,
+    approvalRequired: formData.approvalRequired,
 
-      estimatedProcessingTimeDays: formData.estimatedProcessingTimeDays
+    estimatedProcessingTimeDays:
+      formData.estimatedProcessingTimeDays
         ? Number(formData.estimatedProcessingTimeDays)
         : undefined,
 
-      documentsRequired:
-  formData.documentsRequired === "BASIC"
-    ? "Aadhaar,PAN"
-    : formData.documentsRequired === "STANDARD"
-    ? "Aadhaar,PAN,Salary Slip,Bank Statement"
-    : formData.documentsRequired === "COMPREHENSIVE"
-    ? "Aadhaar,PAN,Salary Slip,Bank Statement,ITR"
+    documentsRequired:
+  formData.documentsRequired.length > 0
+    ? formData.documentsRequired.join(",")
     : undefined,
+  };
 
-    };
+  try {
+  if (editData) {
+    await updateLoanTypeMutation.mutateAsync({
+      id: editData.id,
+      data: payload,
+    });
 
-    try {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/loantypes`,
-    payload,
-    { withCredentials: true }
-  );
+    toast.success("Loan Type updated successfully");
+  } else {
+    await createLoanTypeMutation.mutateAsync(payload);
 
-  // ✅ SUCCESS MESSAGE
-  alert("Loan Type created successfully ✅");
+    toast.success("Loan Type created successfully");
+  }
 
-  // ✅ Redux store update (optional but recommended)
-  dispatch(addLoanType(res.data.data));
-
-  // ✅ Close popup
   onClose();
-
 } catch (error) {
-  console.error("BACKEND ERROR 👉", error.response?.data);
-  alert(
-    error.response?.data?.message ||
-    "Failed to create loan type"
+  toast.error(
+    error?.response?.data?.message ||
+    "Operation failed"
   );
 }
-
-  };
+};
 
   // Render field with validation
   const renderField = (label, name, type = 'text', placeholder = '', options = []) => {
@@ -563,7 +635,7 @@ defaultInterestRate: Number(formData.defaultInterestRate),
                 {/* Section 2: Loan Amount & Tenure */}
                 <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                   <div className="flex items-center mb-6">
-                    <DollarSign className="w-5 h-5 text-blue-600 mr-3" />
+                    <IndianRupee className="w-5 h-5 text-blue-600 mr-3" />
                     <h3 className="text-lg font-medium text-gray-900">Loan Amount & Tenure</h3>
                   </div>
                   
@@ -781,20 +853,35 @@ defaultInterestRate: Number(formData.defaultInterestRate),
                         <div className="flex items-center space-x-2">
                           <FileText className="w-4 h-4 text-gray-400" />
                           <div className="relative w-full">
-                            <select
-                              name="documentsRequired"
-                              value={formData.documentsRequired}
-                              onChange={handleChange}
-                              onBlur={handleBlur}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
-                            >
-                              <option value="">Select document requirement level</option>
-                              {documentOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="space-y-2">
+  <label className="block text-sm font-medium text-gray-700">
+    Documents Required
+  </label>
+
+  <div className="grid grid-cols-2 gap-3">
+    {documentOptions.map((doc) => (
+      <label
+        key={doc.value}
+        className="flex items-center gap-2 p-2 border rounded-lg cursor-pointer hover:bg-gray-50"
+      >
+        <input
+          type="checkbox"
+          checked={formData.documentsRequired.includes(doc.value)}
+          onChange={() => handleDocumentChange(doc.value)}
+          className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+        />
+
+        <span className="text-sm text-gray-700">
+          {doc.label}
+        </span>
+      </label>
+    ))}
+  </div>
+
+  <p className="text-xs text-gray-500">
+    Select required documents for this loan
+  </p>
+</div>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                               <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
@@ -821,7 +908,7 @@ defaultInterestRate: Number(formData.defaultInterestRate),
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
-                    Create Loan Type
+                    {editData ? "Update Loan Type" : "Create Loan Type"}
                   </button>
                   <button
                     type="button"

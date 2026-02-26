@@ -7,9 +7,17 @@ import {
 } from 'lucide-react';
 import { useGetLoanApplications, useUpdateLoan } from '../../../hooks/useLoanApplication.js';
 import toast from 'react-hot-toast';
+import useDocuments from '../../../hooks/useDocuments.js';
 
 export default function KycVerification() {
   // --- STATE ---
+  const {
+  documents,
+  fetchDocumentsByLoanId,
+  verifyDocument,
+  rejectDocument,
+  loading: docsLoading
+} = useDocuments();
   const [activeDoc, setActiveDoc] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -42,17 +50,17 @@ export default function KycVerification() {
   const { data: loans = [], isLoading } = useGetLoanApplications();
   const updateLoan = useUpdateLoan();
 
- const kycList = useMemo(() => {
-  return loans.map((loan) => ({
-    ...loan,
-    normalizedStatus: (
-      loan.status ||
-      loan.loanStatus ||
-      loan.kycStatus ||
-      ""
-    ).toLowerCase(),
-  }));
-}, [loans]);
+  const kycList = useMemo(() => {
+    return loans.map((loan) => ({
+      ...loan,
+      normalizedStatus: (
+        loan.status ||
+        loan.loanStatus ||
+        loan.kycStatus ||
+        ""
+      ).toLowerCase(),
+    }));
+  }, [loans]);
 
   const StatusBadge = ({ status }) => {
 
@@ -166,44 +174,47 @@ export default function KycVerification() {
   // --- LOGIC ---
 
   const filteredData = useMemo(() => {
-  return kycList.filter(item => {
+    return kycList.filter(item => {
 
-    const status = item.normalizedStatus;
+      const status = item.normalizedStatus;
 
-    const matchesTab =
-      activeTab === "all" ? true :
-      activeTab === "pending" ? status === "kyc_pending" :
-      activeTab === "verified" ? status === "approved" :
-      status === "rejected";
+      const matchesTab =
+        activeTab === "all" ? true :
+          activeTab === "pending" ? status === "kyc_pending" :
+            activeTab === "verified" ? status === "approved" :
+              status === "rejected";
 
-    const matchesSearch =
-      item.applicantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.loanNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch =
+        item.applicantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.loanNumber?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesTab && matchesSearch;
+      return matchesTab && matchesSearch;
 
-  });
-}, [kycList, activeTab, searchTerm]);
+    });
+  }, [kycList, activeTab, searchTerm]);
+
+  useEffect(() => {
+    if (selectedCustomer && documents[selectedCustomer.id]) {
+      const keys = Object.keys(documents[selectedCustomer.id]);
+      if (keys.length > 0) {
+        setActiveDoc(keys[0]);
+      }
+    }
+  }, [selectedCustomer, documents]);
 
 
 
-
-
-  const handleVerifyClick = (customer) => {
+  const handleVerifyClick = async (customer) => {
     setSelectedCustomer(customer);
 
-    // 🔹 First document auto preview
-    setActiveDoc(Object.keys(customer.documents || {})[0]);
+    // 🔥 Backend se documents fetch karo
+    await fetchDocumentsByLoanId(customer.id);
 
-    setCibilData({
-      ...cibilData,
-      score: customer.cibilScore,
-      band: customer.cibilBand,
-    });
-
+    setActiveDoc(null); // first doc auto select useEffect karega
     setShowModal(true);
   };
-
+  const customerDocs = documents[selectedCustomer?.id] || {};
+  const docKeys = Object.keys(customerDocs);
 
   // --- MODAL: VERIFICATION VIEW ---
   const VerificationModal = () => (
@@ -216,7 +227,7 @@ export default function KycVerification() {
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               <ShieldCheck className="text-blue-600" /> KYC Verification
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Reviewing documents for <span className="font-bold text-gray-700">{selectedCustomer.customerName}</span></p>
+            <p className="text-sm text-gray-500 mt-1">Reviewing documents for <span className="font-bold text-gray-700">{selectedCustomer.applicantName}</span></p>
           </div>
           <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-200 rounded-full"><XCircle size={24} className="text-gray-500" /></button>
         </div>
@@ -233,21 +244,25 @@ export default function KycVerification() {
             {/* Mock Document Image */}
             <div className="w-full h-full bg-gray-800 rounded-lg border-2 border-gray-700 flex items-center justify-center text-gray-500">
               <div className="text-center">
-                {activeDoc ? (
+                {docsLoading ? (
+                  <p className="text-white">Loading Documents...</p>
+                ) : activeDoc ? (
                   <img
-                    src={documents[activeDoc]}
+                    src={customerDocs[activeDoc]}
                     alt={activeDoc}
                     className="max-h-full object-contain rounded"
                   />
                 ) : (
-                  <div className="text-center text-gray-400">
+                  <div className="text-gray-400">
                     <FileText size={64} className="mx-auto mb-4 opacity-50" />
                     <p>No Preview</p>
                   </div>
                 )}
-
-
-                <p className="text-xs mt-2">Preview Unavailable in Mock</p>
+                {!activeDoc && !docsLoading && (
+                  <p className="text-xs mt-2 text-gray-400">
+                    No preview available
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-4 flex gap-4 overflow-x-auto w-full p-2">
@@ -259,7 +274,7 @@ export default function KycVerification() {
                     className="min-w-[100px] h-20 bg-gray-800 rounded border-2 border-gray-700 cursor-pointer flex flex-col items-center justify-center text-xs text-gray-300 hover:border-blue-500"
                   >
                     <img
-                      src={documents[doc]}
+                      src={customerDocs[doc]}
                       alt={doc}
                       className="h-12 object-contain mb-1"
                     />
@@ -279,7 +294,7 @@ export default function KycVerification() {
           {/* Middle: Data Matching Form (30%) */}
           <div className="w-full lg:w-2/5 bg-white border-l border-gray-200 flex flex-col">
             <div className="p-6 flex-1 overflow-y-auto">
-              
+
               <div className="space-y-6">
                 {/* Name Match */}
                 <div className="p-4 bg-green-50 rounded-xl border border-green-100">
@@ -289,13 +304,13 @@ export default function KycVerification() {
                     <CheckCircle size={20} className="text-green-600" />
                   </div>
                   <div className="text-xs text-gray-600 mt-2">
-                    System: {selectedCustomer.customerName}<br />
-                    Doc: {selectedCustomer.customerName}
+                    System: {selectedCustomer.applicantName}<br />
+                    Doc: {selectedCustomer.applicantName}
                   </div>
                 </div>
 
                 {/* PAN Field */}
-                
+
 
                 {/* Risk Flag */}
                 {selectedCustomer.risk === 'High' && (
@@ -410,7 +425,7 @@ export default function KycVerification() {
             </div>
 
             {/* CIBIL Actions */}
-           
+
           </div>
         </div>
 
@@ -451,8 +466,6 @@ export default function KycVerification() {
       </div>
     </div>
   );
-  const documents = selectedCustomer?.documents || {};
-  const docKeys = Object.keys(documents);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 lg:p-10 font-sans">
@@ -551,20 +564,20 @@ export default function KycVerification() {
                       <div className="font-bold text-gray-800">{item.applicantName}</div>
                       <div className="text-xs text-blue-600">{item.loanNumber}</div>
                     </td>
-                  <td className="px-6 py-4 text-gray-600">
-  {Object.keys(item.documents || {}).length > 0 ? (
-    Object.keys(item.documents).map((doc) => (
-      <span
-        key={doc}
-        className="inline-block bg-gray-100 px-2 py-1 rounded text-xs mr-1 uppercase"
-      >
-        {doc.replaceAll("_", " ")}
-      </span>
-    ))
-  ) : (
-    <span className="text-gray-400 text-xs">No Docs</span>
-  )}
-</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {Object.keys(item.documents || {}).length > 0 ? (
+                        Object.keys(item.documents).map((doc) => (
+                          <span
+                            key={doc}
+                            className="inline-block bg-gray-100 px-2 py-1 rounded text-xs mr-1 uppercase"
+                          >
+                            {doc.replaceAll("_", " ")}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-400 text-xs">No Docs</span>
+                      )}
+                    </td>
 
                     <td className="px-6 py-4">
                       <CibilScoreBadge score={item.cibilScore} />
@@ -595,7 +608,7 @@ export default function KycVerification() {
 
       </div>
 
-   
+
 
       {/* Modal Injection */}
       {showModal && selectedCustomer && <VerificationModal />}

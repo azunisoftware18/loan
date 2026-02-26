@@ -23,12 +23,13 @@ const DynamicDocumentUpload = ({
   ]);
 
   const documentOptions = [
-    "Aadhar Card",
+    "Aadhaar Card",
     "PAN Card",
     "Electricity Bill",
     "Driving License",
     "Voter ID",
-    "Passport"
+    "Passport",
+    "Photo"
   ];
 
 
