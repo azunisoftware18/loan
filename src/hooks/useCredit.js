@@ -2,7 +2,8 @@ import api from "../lib/axios.config";
 import axios from "axios";
 
 const useCredit = () => {
-
+  
+//TODO : Add reason for credit refresh in the future
   const fetchCredit = async (query, reason = "credit_refresh") => {
     if (!query) {
       throw new Error("Query is required");
