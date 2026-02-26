@@ -150,20 +150,25 @@ const PartnerList = () => {
 
     // --- FILTERED DATA LOGIC ---
     const filteredPartners = useMemo(() => {
-        return partners.filter(partner => {
-            const matchesSearch =
-                partner.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                partner.partnerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                partner.phone.includes(searchQuery) ||
-                partner.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                partner.partnerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                partner.city.toLowerCase().includes(searchQuery.toLowerCase());
+       return Array.isArray(partners)
+  ? partners.filter(partner => {
+      const matchesSearch =
+        partner.companyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.partnerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.phone?.includes(searchQuery) ||
+        partner.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.partnerId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.city?.toLowerCase().includes(searchQuery.toLowerCase());
 
-            const matchesStatus = filterStatus === 'All' || partner.status === filterStatus;
-            const matchesType = filterType === 'All' || partner.partnerType === filterType;
+      const matchesStatus =
+        filterStatus === 'All' || partner.status === filterStatus;
 
-            return matchesSearch && matchesStatus && matchesType;
-        });
+      const matchesType =
+        filterType === 'All' || partner.partnerType === filterType;
+
+      return matchesSearch && matchesStatus && matchesType;
+    })
+  : [];
     }, [partners, searchQuery, filterStatus, filterType]);
 
     const totalPages = Math.ceil(filteredPartners.length / itemsPerPage);

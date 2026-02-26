@@ -75,9 +75,21 @@ const DocumentsManagementPage = () => {
 
 
   // Get current application documents
-  const currentDocuments = selectedApplication
-    ? documents[selectedApplication.id] || []
-    : [];
+  const currentDocuments = useMemo(() => {
+  if (!selectedApplication) return [];
+
+  const docsObj = documents[selectedApplication.id] || {};
+
+  return Object.keys(docsObj).map((key, index) => ({
+    id: index + 1,
+    name: key.replaceAll("_", " ").toUpperCase(),
+    url: docsObj[key],
+    status: "PENDING", // mock status
+    category: key,
+    applicantType: "APPLICANT",
+    uploadDate: "—",
+  }));
+}, [documents, selectedApplication]);
 
   // Handle document verification
   const handleVerify = async (docId) => {
@@ -264,7 +276,6 @@ const DocumentsManagementPage = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Applicant</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Upload Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -302,42 +313,7 @@ const DocumentsManagementPage = () => {
                           {doc.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => window.open('#', '_blank')}
-                            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                            title="View"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            onClick={() => window.open('#', '_blank')}
-                            className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                            title="Download"
-                          >
-                            <Download size={16} />
-                          </button>
-                          {doc.status === 'PENDING' && (
-                            <>
-                              <button
-                                onClick={() => handleVerify(doc.id)}
-                                className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg"
-                                title="Verify"
-                              >
-                                <CheckCircle size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleReject(doc.id)}
-                                className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
-                                title="Reject"
-                              >
-                                <XCircle size={16} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                   
                     </tr>
                   ))}
 

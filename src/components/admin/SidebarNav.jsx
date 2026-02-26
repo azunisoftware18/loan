@@ -223,12 +223,14 @@ export default function SidebarNav() {
             { name: "Employee Add", path: "/admin/configuration/employee" },
             { name: "Partner Add", path: "/admin/configuration/partner" },
             { name: "Branch Management", path: "/admin/configuration/BranchManagement" },
+            { name: "Branch Admin", path: "/admin/configuration/branch-admin" },
             { name: "Loan Swap", path: "/admin/configuration/loan-swap" },
             { name: "Loan Product", path: "/admin/configuration/loan-product" },
             { name: "Location", path: "/admin/configuration/location" },
             { name: "masters setup", path: "/admin/configuration/masters-setup" },
             { name: "Vehicle Masters", path: "/admin/configuration/vehicle-masters" },
             { name: "Consumer Durable", path: "/admin/configuration/consumer-durable" },
+            
           ]
         },
         { name: "Admin Roles", icon: <ShieldCheck size={20} />, path: "/admin/admin-roles" },

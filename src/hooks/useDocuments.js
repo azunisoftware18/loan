@@ -108,15 +108,13 @@ const uploadDocumentsBulk = async (loanId, rows) => {
 
 
 
-  const verifyDocument = async (docId) => {
-    await api.patch(`/documents/${docId}/verify`);
-  };
+ const verifyDocument = async (docId) => {
+  return api.patch(`/documents/${docId}/verify`);
+};
 
-  const rejectDocument = async (docId, reason) => {
-    await api.patch(`/documents/${docId}/reject`, {
-      reason,
-    });
-  };
+const rejectDocument = async (docId, reason) => {
+  return api.patch(`/documents/${docId}/reject`, { reason });
+};
 
 
   return {

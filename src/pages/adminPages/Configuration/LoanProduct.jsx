@@ -4,10 +4,11 @@ import {
   DollarSign, Percent, Calendar, Users,
   TrendingUp, Shield, FileText, CheckCircle, XCircle,
   Download, MoreVertical, Tag, Clock, ChevronDown,
-  X, Info, CreditCard, UserCheck, BarChart, FileCheck
+  X, Info, CreditCard, UserCheck, BarChart, FileCheck,
+  IndianRupee
 } from 'lucide-react';
-import axios from "axios";
 import AddLoanTypes from '../../../components/admin/modals/AddLoanTypes';
+import { useDeleteLoanType, useLoanTypes } from '../../../hooks/useLoan';
 
 const ALLOWED_LOAN_TYPES = [
   "PERSONAL_LOAN",
@@ -52,21 +53,19 @@ const ProductViewModal = ({ product, onClose }) => {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
             <div className="flex items-center gap-2 mt-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                product.category === 'HOME LOAN' ? 'bg-blue-50 text-blue-700' :
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.category === 'HOME LOAN' ? 'bg-blue-50 text-blue-700' :
                 product.category === 'PERSONAL LOAN' ? 'bg-purple-50 text-purple-700' :
-                product.category === 'VEHICLE LOAN' ? 'bg-orange-50 text-orange-700' :
-                product.category === 'EDUCATION LOAN' ? 'bg-teal-50 text-teal-700' :
-                product.category === 'BUSINESS LOAN' ? 'bg-indigo-50 text-indigo-700' :
-                'bg-yellow-50 text-yellow-700'
-              }`}>
+                  product.category === 'VEHICLE LOAN' ? 'bg-orange-50 text-orange-700' :
+                    product.category === 'EDUCATION LOAN' ? 'bg-teal-50 text-teal-700' :
+                      product.category === 'BUSINESS LOAN' ? 'bg-indigo-50 text-indigo-700' :
+                        'bg-yellow-50 text-yellow-700'
+                }`}>
                 {product.category}
               </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${
-                product.status === 'active' 
-                  ? 'text-green-600 bg-green-50 border-green-200' 
-                  : 'text-red-600 bg-red-50 border-red-200'
-              }`}>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium border ${product.status === 'active'
+                ? 'text-green-600 bg-green-50 border-green-200'
+                : 'text-red-600 bg-red-50 border-red-200'
+                }`}>
                 {product.status}
               </span>
               <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
@@ -93,12 +92,12 @@ const ProductViewModal = ({ product, onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
+                  <IndianRupee className="w-5 h-5 text-blue-600" />
                   <span className="text-sm font-medium text-blue-700">Loan Amount Range</span>
                 </div>
                 <p className="text-lg font-bold text-gray-900">{product.amount}</p>
               </div>
-              
+
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Percent className="w-5 h-5 text-green-600" />
@@ -106,7 +105,7 @@ const ProductViewModal = ({ product, onClose }) => {
                 </div>
                 <p className="text-lg font-bold text-gray-900">{product.interest}</p>
               </div>
-              
+
               <div className="bg-purple-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="w-5 h-5 text-purple-600" />
@@ -195,8 +194,8 @@ const ProductViewModal = ({ product, onClose }) => {
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  {product.original?.prepaymentAllowed 
-                    ? 'Customers can make early payments without penalty' 
+                  {product.original?.prepaymentAllowed
+                    ? 'Customers can make early payments without penalty'
                     : 'Early payments are not permitted'}
                 </p>
               </div>
@@ -213,8 +212,8 @@ const ProductViewModal = ({ product, onClose }) => {
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  {product.original?.foreclosureAllowed 
-                    ? 'Loan can be closed before tenure completion' 
+                  {product.original?.foreclosureAllowed
+                    ? 'Loan can be closed before tenure completion'
                     : 'Loan closure before tenure is restricted'}
                 </p>
               </div>
@@ -253,9 +252,7 @@ const ProductViewModal = ({ product, onClose }) => {
           >
             Close
           </button>
-          <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Edit Product
-          </button>
+
         </div>
       </div>
     </div>
@@ -263,11 +260,12 @@ const ProductViewModal = ({ product, onClose }) => {
 };
 
 const LoanProduct = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { data: products = [], isLoading: loading, refetch } = useLoanTypes();
+  const deleteMutation = useDeleteLoanType();
   const [showAddLoanPopup, setShowAddLoanPopup] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editProduct, setEditProduct] = useState(null);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -275,13 +273,13 @@ const LoanProduct = () => {
 
   const categories = ["all", ...ALLOWED_LOAN_TYPES.map(t => t.replace("_", " "))];
   const statuses = ['all', 'active', 'inactive'];
-
-  const mappedProducts = products.map(p => ({
+  const safeProducts = Array.isArray(products) ? products : [];
+  const mappedProducts = (Array.isArray(products) ? products : []).map(p => ({
     id: p.id,
     name: p.name || 'Unnamed Product',
     category: p.category ? p.category.replace("_", " ") : 'Unknown',
     interest: `${p.minInterestRate || 0}% - ${p.maxInterestRate || 0}%`,
-    amount: p.minAmount && p.maxAmount 
+    amount: p.minAmount && p.maxAmount
       ? `₹${(p.minAmount / 100000).toFixed(1)}L - ₹${(p.maxAmount / 10000000).toFixed(1)}Cr`
       : 'Amount not set',
     tenure: p.minTenureMonths && p.maxTenureMonths
@@ -311,15 +309,14 @@ const LoanProduct = () => {
     setShowViewModal(true);
   };
 
-  const deleteProduct = async (id) => {
+  const deleteProduct = (id) => {
     if (!window.confirm("Delete this product?")) return;
 
-    try {
-      await axios.delete(`/api/loan-types/${id}`);
-      fetchLoanTypes();
-    } catch (error) {
-      alert("Delete failed");
-    }
+    deleteMutation.mutate(id, {
+      onError: () => {
+        alert("Delete failed");
+      }
+    });
   };
 
   const getStatusColor = (status) => {
@@ -338,47 +335,7 @@ const LoanProduct = () => {
     return colors[category] || 'bg-gray-50 text-gray-700';
   };
 
-  useEffect(() => {
-    fetchLoanTypes();
-  }, []);
 
-  const fetchLoanTypes = async () => {
-    try {
-      setLoading(true);
-      console.log("Fetching loan types...");
-
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/loantypes`,
-        { withCredentials: true }
-      );
-
-      console.log("API Response:", res.data);
-      
-      let loanTypes = [];
-      
-      if (res.data && res.data.data) {
-        if (res.data.data.data && Array.isArray(res.data.data.data)) {
-          loanTypes = res.data.data.data;
-        } else if (Array.isArray(res.data.data)) {
-          loanTypes = res.data.data;
-        }
-      } else if (Array.isArray(res.data)) {
-        loanTypes = res.data;
-      }
-
-      const filtered = loanTypes.filter(item => 
-        item && ALLOWED_LOAN_TYPES.includes(item.category)
-      );
-
-      setProducts(filtered || []);
-      
-    } catch (error) {
-      console.error("Loan types fetch failed", error);
-      console.error("Error details:", error.response?.data || error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Calculate stats
   const activeProductsCount = products.filter(p => p.status === 'active').length;
@@ -412,7 +369,7 @@ const LoanProduct = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Total Products', value: totalProducts, icon: DollarSign, color: 'bg-blue-500' },
+            { label: 'Total Products', value: totalProducts, icon: IndianRupee, color: 'bg-blue-500' },
             { label: 'Active Products', value: activeProductsCount, icon: CheckCircle, color: 'bg-green-500' },
             { label: 'Total Applicants', value: 0, icon: Users, color: 'bg-purple-500' },
             { label: 'Avg Interest Rate', value: '9.8%', icon: Percent, color: 'bg-orange-500' }
@@ -557,7 +514,7 @@ const LoanProduct = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <DollarSign className="w-4 h-4 text-gray-400 mr-2" />
+                        <IndianRupee className="w-4 h-4 text-gray-400 mr-2" />
                         <span className="text-sm text-gray-600">Loan Amount</span>
                       </div>
                       <span className="font-semibold">{product.amount}</span>
@@ -598,7 +555,8 @@ const LoanProduct = () => {
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
+                        onClick={() => setEditProduct(product.original)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                         title="Edit Product"
                       >
@@ -618,8 +576,8 @@ const LoanProduct = () => {
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {search || selectedCategory !== 'all' || selectedStatus !== 'all' 
-                  ? "No products found" 
+                {search || selectedCategory !== 'all' || selectedStatus !== 'all'
+                  ? "No products found"
                   : "No loan products available"}
               </h3>
               <p className="text-gray-600 mb-6">
@@ -673,13 +631,15 @@ const LoanProduct = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
-      {showAddLoanPopup && (
+      {(showAddLoanPopup || editProduct) && (
         <AddLoanTypes
+          editData={editProduct}
           onClose={() => {
             setShowAddLoanPopup(false);
-            fetchLoanTypes();
+            setEditProduct(null);
+            refetch();
           }}
         />
       )}
