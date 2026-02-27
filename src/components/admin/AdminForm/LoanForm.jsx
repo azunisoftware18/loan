@@ -128,7 +128,9 @@ const LoanApplicationForm = ({
   const user = useSelector((state) => state.auth.user);
 
   const { data: loanTypesResponse, isLoading: loanTypesLoading } = useLoanTypes();
-  const loanTypes = loanTypesResponse?.data || [];
+  const loanTypes = Array.isArray(loanTypesResponse)
+  ? loanTypesResponse
+  : [];
 
   const [leadNumber, setLeadNumber] = useState('');
   const { refetch: fetchLead, isFetching: leadLoading } = useLeadSearch(leadNumber, false);
