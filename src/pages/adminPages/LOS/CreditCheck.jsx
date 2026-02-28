@@ -13,7 +13,7 @@ import useCredit from '../../../hooks/useCredit';
 
 
 const CreditCheck = () => {
-  const { fetchCreditReport, fetchCredit } = useCredit();
+  const { fetchCredit } = useCredit();
   const getScoreMeta = (score) => {
     if (score >= 750) return { status: 'Excellent', color: 'emerald', riskGrade: 'A' };
     if (score >= 700) return { status: 'Good', color: 'blue', riskGrade: 'B+' };
@@ -326,7 +326,7 @@ const CreditCheck = () => {
     let fetchedCredit = null;
 
     try {
-      fetchedCredit = await fetchCreditReport(normalizedQuery);
+      fetchedCredit = await fetchCredit(normalizedQuery);
     } catch (err) {
       setSearchError(err.message || 'Failed to fetch credit report');
     }
