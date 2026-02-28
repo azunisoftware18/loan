@@ -1,43 +1,57 @@
 import api from "../lib/axios.config";
 import axios from "axios";
 
-
-
 const useCredit = () => {
 
-  const hanleAxiosError = (error, fallbackMessage) => {
+  const handleAxiosError = (error, fallbackMessage) => {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message ?? fallbackMessage);
+      const message = error.response?.data?.message ?? fallbackMessage;
+      return new Error(message);
     }
-    throw new Error(fallbackMessage);
-  }
-  
-  //TODO : Add reason for credit refresh in the future
+    return new Error(fallbackMessage);
+  };
+
+  // Force refresh credit report
   const fetchCredit = async (query, reason = "credit_refresh") => {
     if (!query) {
       throw new Error("Query is required");
     }
 
     try {
-      const { data } = await api.post(
-        `/credit/credit-report/${query}/refresh`,
+      const response = await api.post(
+        `/credit/credit-report/refresh`,
         { reason },
-       
+        { params: { q: query } }
       );
 
-      return data;
+      // 🔥 Return only actual report
+      return response.data.data;
+
     } catch (error) {
-      hanleAxiosError(error, "Failed to fetch credit report");
-    };
-    
-    const fetchCreditReport = async (query) => {
-    
-      const data = await api.get(`/credit/credit-report/${query}`);
-      return data;
-    };
-
-
-    return { fetchCredit, fetchCreditReport };
+      throw handleAxiosError(error, "Failed to fetch credit report");
+    }
   };
-}
+
+  // Get existing credit report (cached)
+  const fetchCreditReport = async (query) => {
+    if (!query) {
+      throw new Error("Query is required");
+    }
+
+    try {
+      const response = await api.get(
+        `/credit/credit-report`,
+        { params: { q: query } }
+      );
+
+      return response.data.data;
+
+    } catch (error) {
+      throw handleAxiosError(error, "Failed to fetch credit report");
+    }
+  };
+
+  return { fetchCredit, fetchCreditReport };
+};
+
 export default useCredit;
