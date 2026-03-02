@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { 
   Plus, X, Search, FileText, Check, Ban, AlertCircle, 
   Eye, User, Calendar, DollarSign, TrendingUp, Mail, Phone, MapPin, Hash, 
-  IndianRupee
+  IndianRupee, Building, Briefcase, CreditCard, Download, Printer,
+  Shield, Users, FileCheck, Clock, Home, BadgeCheck, CircleDot,
+  FileSignature, Landmark, Copy, CheckCircle, Info, ArrowLeft
 } from 'lucide-react';
 import Button from '../../../components/admin/common/Button';
 import LoanForm from '../../../components/admin/AdminForm/LoanForm';
@@ -94,6 +96,27 @@ const Applications = () => {
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
+  };
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  // Format currency helper
+  const formatCurrency = (amount) => {
+    if (!amount && amount !== 0) return 'N/A';
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
   return (
@@ -223,7 +246,7 @@ const Applications = () => {
                       </div>
                       <div className="text-sm text-slate-600 flex items-center gap-2">
                         <Phone size={14} className="text-slate-400" />
-                        {app.customer?.phone || '—'}
+                        {app.customer?.contactNumber || '—'}
                       </div>
                     </div>
                   </td>
@@ -241,7 +264,11 @@ const Applications = () => {
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-medium text-sm">
+                    <span className={`px-3 py-1.5 rounded-lg font-medium text-sm ${
+                      app.cibilScore >= 750 ? 'bg-green-100 text-green-700' :
+                      app.cibilScore >= 650 ? 'bg-yellow-100 text-yellow-700' :
+                      app.cibilScore ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                    }`}>
                       {app.cibilScore ?? 'N/A'}
                     </span>
                   </td>
@@ -278,190 +305,542 @@ const Applications = () => {
         </div>
       </div>
 
-      {/* VIEW DETAILS MODAL - Redesigned */}
+      {/* VIEW DETAILS MODAL - COMPREHENSIVE REDESIGN */}
       {viewModalOpen && selectedApp && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center">
-                  <FileText className="text-white" size={20} />
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-6xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            {/* Modal Header with Gradient */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
+                  <FileText className="text-white" size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800">Application Details</h2>
-                  <p className="text-xs text-slate-500">ID: {selectedApp.id}</p>
+                  <h2 className="text-xl font-bold text-white">Loan Application Details</h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <p className="text-sm text-blue-100">ID: {selectedApp.id}</p>
+                    <span className="w-1 h-1 rounded-full bg-blue-300"></span>
+                    <p className="text-sm text-blue-100">Loan Number: {selectedApp.loanNumber}</p>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setViewModalOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-colors"
-              >
-                <X size={20} className="text-slate-500" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  onClick={() => window.print()}
+                >
+                  <Printer size={20} className="text-white" />
+                </button>
+                <button
+                  className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                  onClick={() => {/* Handle download */}}
+                >
+                  <Download size={20} className="text-white" />
+                </button>
+                <button
+                  onClick={() => setViewModalOpen(false)}
+                  className="w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors ml-2"
+                >
+                  <X size={20} className="text-white" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
-              {/* Status Banner */}
-              <div className={`p-4 rounded-xl border ${getStatusColor(selectedApp.status)}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {selectedApp.status?.toLowerCase() === 'approved' && <Check className="text-green-600" size={24} />}
-                    {selectedApp.status?.toLowerCase() === 'rejected' && <Ban className="text-red-600" size={24} />}
-                    {selectedApp.status?.toLowerCase() === 'pending' && <AlertCircle className="text-yellow-600" size={24} />}
+              {/* Status Banner with Timeline */}
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl p-5 border border-blue-100">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+                      selectedApp.status?.toLowerCase() === 'approved' ? 'bg-green-100' :
+                      selectedApp.status?.toLowerCase() === 'rejected' ? 'bg-red-100' :
+                      'bg-yellow-100'
+                    }`}>
+                      {selectedApp.status?.toLowerCase() === 'approved' && <CheckCircle size={32} className="text-green-600" />}
+                      {selectedApp.status?.toLowerCase() === 'rejected' && <Ban size={32} className="text-red-600" />}
+                      {selectedApp.status?.toLowerCase() === 'pending' && <AlertCircle size={32} className="text-yellow-600" />}
+                    </div>
                     <div>
-                      <p className="font-semibold">Current Status: {selectedApp.status || 'Pending'}</p>
-                      <p className="text-sm opacity-75 mt-0.5">
-                        {selectedApp.status?.toLowerCase() === 'approved' ? 'Application has been approved' :
-                         selectedApp.status?.toLowerCase() === 'rejected' ? 'Application has been rejected' :
-                         'Application is under review'}
-                      </p>
+                      <p className="text-sm text-slate-500">Current Status</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <h3 className="text-2xl font-bold text-slate-800 capitalize">{selectedApp.status || 'Pending'}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(selectedApp.status)}`}>
+                          {selectedApp.status || 'Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Quick Stats */}
+                  <div className="flex gap-4">
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">Application Date</p>
+                      <p className="font-medium text-slate-800">{formatDate(selectedApp.applicationDate)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500">Last Updated</p>
+                      <p className="font-medium text-slate-800">{formatDate(selectedApp.updatedAt)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline/Approval Info */}
+                {(selectedApp.approvedAt || selectedApp.rejectedAt) && (
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock size={16} className="text-slate-400" />
+                      {selectedApp.approvedAt && (
+                        <span>Approved on {formatDate(selectedApp.approvedAt)} by {selectedApp.approvedBy || 'System'}</span>
+                      )}
+                      {selectedApp.rejectedAt && (
+                        <span>Rejected on {formatDate(selectedApp.rejectedAt)} - Reason: {selectedApp.rejectionReason || 'Not specified'}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Personal Information Section - Enhanced */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <User size={18} className="text-blue-600" />
+                    Personal Information
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      icon={<User size={16} className="text-blue-500" />}
+                      label="Full Name"
+                      value={selectedApp.customer ? 
+                        `${selectedApp.customer.title || ''} ${selectedApp.customer.firstName || ''} ${selectedApp.customer.middleName || ''} ${selectedApp.customer.lastName || ''}`.trim()
+                        : null}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Mail size={16} className="text-blue-500" />}
+                      label="Email"
+                      value={selectedApp.customer?.email}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Phone size={16} className="text-blue-500" />}
+                      label="Phone"
+                      value={selectedApp.customer?.contactNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Phone size={16} className="text-blue-500" />}
+                      label="Alternate Phone"
+                      value={selectedApp.customer?.alternateNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Calendar size={16} className="text-blue-500" />}
+                      label="Date of Birth"
+                      value={selectedApp.customer?.dob ? formatDate(selectedApp.customer.dob) : null}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="Gender"
+                      value={selectedApp.customer?.gender}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="Marital Status"
+                      value={selectedApp.customer?.maritalStatus}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="Nationality"
+                      value={selectedApp.customer?.nationality}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="Category"
+                      value={selectedApp.customer?.category}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<User size={16} className="text-blue-500" />}
+                      label="Spouse Name"
+                      value={selectedApp.customer?.spouseName}
+                      fallback="Not provided"
+                    />
+                  </div>
+
+                  {/* Address - Full Width */}
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <InfoCard 
+                      icon={<MapPin size={16} className="text-blue-500" />}
+                      label="Residential Address"
+                      value={selectedApp.customer ? 
+                        `${selectedApp.customer.address || ''}, ${selectedApp.customer.city || ''}, ${selectedApp.customer.state || ''} - ${selectedApp.customer.pinCode || ''}`.trim()
+                        : null}
+                      fallback="Not provided"
+                      fullWidth
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* KYC & Identity Section */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Shield size={18} className="text-blue-600" />
+                    KYC & Identity Details
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      icon={<CreditCard size={16} className="text-blue-500" />}
+                      label="Aadhaar Number"
+                      value={selectedApp.customer?.aadhaarNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<FileText size={16} className="text-blue-500" />}
+                      label="PAN Number"
+                      value={selectedApp.customer?.panNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<FileText size={16} className="text-blue-500" />}
+                      label="Voter ID"
+                      value={selectedApp.customer?.voterId}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<FileText size={16} className="text-blue-500" />}
+                      label="Passport Number"
+                      value={selectedApp.customer?.passportNumber}
+                      fallback="Not provided"
+                    />
+                  </div>
+
+                  {/* KYC Status */}
+                  {selectedApp.kyc && (
+                    <div className="mt-4 p-3 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-700">KYC Status:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            selectedApp.kyc.status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
+                            selectedApp.kyc.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedApp.kyc.status}
+                          </span>
+                        </div>
+                        {selectedApp.kyc.verifiedBy && (
+                          <span className="text-xs text-slate-500">
+                            Verified by: {selectedApp.kyc.verifiedBy} on {formatDate(selectedApp.kyc.verifiedAt)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Documents */}
+                      {selectedApp.kyc.documents && selectedApp.kyc.documents.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium text-slate-500 mb-2">Uploaded Documents</p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedApp.kyc.documents.map((doc, idx) => (
+                              <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-slate-200">
+                                <FileText size={14} className="text-blue-500" />
+                                <span className="text-xs text-slate-700">{doc.documentType}</span>
+                                <span className={`w-2 h-2 rounded-full ${
+                                  doc.verificationStatus === 'verified' ? 'bg-green-500' :
+                                  doc.verificationStatus === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}></span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Employment & Financial Section */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Briefcase size={18} className="text-blue-600" />
+                    Employment & Financial Details
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      icon={<Briefcase size={16} className="text-blue-500" />}
+                      label="Employment Type"
+                      value={selectedApp.customer?.employmentType?.replace('_', ' ')}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Monthly Income"
+                      value={selectedApp.customer?.monthlyIncome ? formatCurrency(selectedApp.customer.monthlyIncome) : null}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Annual Income"
+                      value={selectedApp.customer?.annualIncome ? formatCurrency(selectedApp.customer.annualIncome) : null}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Other Income"
+                      value={selectedApp.customer?.otherIncome ? formatCurrency(selectedApp.customer.otherIncome) : null}
+                      fallback="Not provided"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bank Details Section */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Landmark size={18} className="text-blue-600" />
+                    Bank Account Details
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      icon={<Building size={16} className="text-blue-500" />}
+                      label="Bank Name"
+                      value={selectedApp.customer?.bankName}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<CreditCard size={16} className="text-blue-500" />}
+                      label="Account Number"
+                      value={selectedApp.customer?.bankAccountNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="IFSC Code"
+                      value={selectedApp.customer?.ifscCode}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<Hash size={16} className="text-blue-500" />}
+                      label="Account Type"
+                      value={selectedApp.customer?.accountType}
+                      fallback="Not provided"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Loan Details Section */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <TrendingUp size={18} className="text-blue-600" />
+                    Loan Details
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      label="Loan Number"
+                      value={selectedApp.loanNumber}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      label="Loan Type ID"
+                      value={selectedApp.loanTypeId}
+                      fallback="Not provided"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Requested Amount"
+                      value={selectedApp.requestedAmount ? formatCurrency(selectedApp.requestedAmount) : null}
+                      fallback="Not specified"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Approved Amount"
+                      value={selectedApp.approvedAmount ? formatCurrency(selectedApp.approvedAmount) : null}
+                      fallback="Not approved yet"
+                    />
+                    <InfoCard 
+                      label="Tenure"
+                      value={selectedApp.tenureMonths ? `${selectedApp.tenureMonths} months` : null}
+                      fallback="Not specified"
+                    />
+                    <InfoCard 
+                      label="Interest Rate"
+                      value={selectedApp.interestRate ? `${selectedApp.interestRate}% p.a.` : null}
+                      fallback="Not specified"
+                    />
+                    <InfoCard 
+                      label="Interest Type"
+                      value={selectedApp.interestType}
+                      fallback="Not specified"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="EMI Amount"
+                      value={selectedApp.emiAmount ? formatCurrency(selectedApp.emiAmount) : null}
+                      fallback="Not calculated"
+                    />
+                    <InfoCard 
+                      icon={<IndianRupee size={16} className="text-blue-500" />}
+                      label="Total Payable"
+                      value={selectedApp.totalPayable ? formatCurrency(selectedApp.totalPayable) : null}
+                      fallback="Not calculated"
+                    />
+                    <InfoCard 
+                      label="Loan Purpose"
+                      value={selectedApp.loanPurpose}
+                      fallback="Not specified"
+                    />
+                    <InfoCard 
+                      label="Purpose Details"
+                      value={selectedApp.purposeDetails}
+                      fallback="Not specified"
+                      fullWidth
+                    />
+                  </div>
+
+                  {/* CIBIL Score with Visual */}
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <p className="text-xs text-slate-500 mb-1">CIBIL Score</p>
+                        <div className={`w-24 h-24 rounded-2xl flex items-center justify-center text-2xl font-bold ${
+                          selectedApp.cibilScore >= 750 ? 'bg-green-100 text-green-700' :
+                          selectedApp.cibilScore >= 650 ? 'bg-yellow-100 text-yellow-700' :
+                          selectedApp.cibilScore ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {selectedApp.cibilScore || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-800">Credit Assessment</p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {selectedApp.cibilScore >= 750 ? 'Excellent credit history' :
+                           selectedApp.cibilScore >= 650 ? 'Good credit history' :
+                           selectedApp.cibilScore ? 'Fair credit history - May require additional verification' :
+                           'Credit score not available'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Personal Information Section */}
-              <div className="bg-slate-50 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <User size={18} className="text-blue-500" />
-                  Personal Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InfoCard 
-                    icon={<User size={16} className="text-blue-500" />}
-                    label="Full Name"
-                    value={`${selectedApp.customer?.firstName || ''} ${selectedApp.customer?.lastName || ''}`}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    icon={<Mail size={16} className="text-blue-500" />}
-                    label="Email"
-                    value={selectedApp.customer?.email}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    icon={<Phone size={16} className="text-blue-500" />}
-                    label="Phone"
-                    value={selectedApp.customer?.phone}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    icon={<Calendar size={16} className="text-blue-500" />}
-                    label="Date of Birth"
-                    value={selectedApp.customer?.dateOfBirth}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    icon={<MapPin size={16} className="text-blue-500" />}
-                    label="Address"
-                    value={selectedApp.customer?.address}
-                    fallback="Not provided"
-                    fullWidth
-                  />
-                </div>
-              </div>
-
-              {/* Financial Information Section */}
-              <div className="bg-slate-50 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <IndianRupee size={18} className="text-blue-500" />
-                  Financial Information
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InfoCard 
-                    label="Monthly Income"
-                    value={selectedApp.customer?.monthlyIncome ? `₹${Number(selectedApp.customer.monthlyIncome).toLocaleString()}` : null}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    label="PAN Number"
-                    value={selectedApp.customer?.panNumber}
-                    fallback="Not provided"
-                  />
-                  <InfoCard 
-                    label="Aadhaar Number"
-                    value={selectedApp.customer?.aadhaarNumber}
-                    fallback="Not provided"
-                  />
-                </div>
-              </div>
-
-              {/* Loan Details Section */}
-              <div className="bg-slate-50 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <TrendingUp size={18} className="text-blue-500" />
-                  Loan Details
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <InfoCard 
-                    label="Loan Type"
-                    value={selectedApp.loanType}
-                    fallback="Not specified"
-                  />
-                  <InfoCard 
-                    label="Amount"
-                    value={selectedApp.requestedAmount ? `₹${Number(selectedApp.requestedAmount).toLocaleString()}` : null}
-                    fallback="Not specified"
-                  />
-                  <InfoCard 
-                    label="Tenure"
-                    value={selectedApp.tenureMonths ? `${selectedApp.tenureMonths} months` : null}
-                    fallback="Not specified"
-                  />
-                  <InfoCard 
-                    label="Interest Rate"
-                    value={selectedApp.interestRate ? `${selectedApp.interestRate}% p.a.` : null}
-                    fallback="Not specified"
-                  />
-                </div>
-              </div>
-
-              {/* CIBIL Score */}
-              <div className="bg-slate-50 rounded-xl p-5">
-                <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Credit Score</h3>
-                <div className="flex items-center gap-4">
-                  <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold
-                    ${selectedApp.cibilScore >= 750 ? 'bg-green-100 text-green-700' :
-                      selectedApp.cibilScore >= 650 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'}`}>
-                    {selectedApp.cibilScore || 'N/A'}
+              {/* Co-applicants Section */}
+              {selectedApp.coapplicants && selectedApp.coapplicants.length > 0 && (
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                    <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                      <Users size={18} className="text-blue-600" />
+                      Co-Applicants ({selectedApp.coapplicants.length})
+                    </h3>
                   </div>
-                  <div>
-                    <p className="font-medium text-slate-700">CIBIL Score</p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      {selectedApp.cibilScore >= 750 ? 'Excellent' :
-                       selectedApp.cibilScore >= 650 ? 'Good' :
-                       selectedApp.cibilScore ? 'Needs Improvement' : 'Not available'}
-                    </p>
+                  <div className="p-5">
+                    {selectedApp.coapplicants.map((co, idx) => (
+                      <div key={idx} className="mb-4 last:mb-0 p-4 bg-slate-50 rounded-lg">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <InfoCard label="Name" value={`${co.firstName || ''} ${co.lastName || ''}`.trim()} />
+                          <InfoCard label="Relation" value={co.relation} />
+                          <InfoCard label="Contact" value={co.contactNumber} />
+                          <InfoCard label="Email" value={co.email} />
+                          <InfoCard label="PAN" value={co.panNumber} />
+                          <InfoCard label="Aadhaar" value={co.aadhaarNumber} />
+                          <InfoCard label="Employment" value={co.employmentType} />
+                          <InfoCard label="Monthly Income" value={co.monthlyIncome ? formatCurrency(co.monthlyIncome) : null} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Loan Settings */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-5 py-3 border-b border-slate-200">
+                  <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                    <Settings size={18} className="text-blue-600" />
+                    Additional Loan Settings
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <InfoCard 
+                      label="Foreclosure Allowed"
+                      value={selectedApp.foreclosureAllowed ? 'Yes' : 'No'}
+                    />
+                    <InfoCard 
+                      label="Prepayment Allowed"
+                      value={selectedApp.prepaymentAllowed ? 'Yes' : 'No'}
+                    />
+                    <InfoCard 
+                      label="Late Payment Fee"
+                      value={selectedApp.latePaymentFee ? formatCurrency(selectedApp.latePaymentFee) : 'Not set'}
+                    />
+                    <InfoCard 
+                      label="Bounce Charges"
+                      value={selectedApp.bounceCharges ? formatCurrency(selectedApp.bounceCharges) : 'Not set'}
+                    />
+                    <InfoCard 
+                      label="Foreclosure Charges"
+                      value={selectedApp.foreclosureCharges ? `${selectedApp.foreclosureCharges}%` : 'Not set'}
+                    />
+                    <InfoCard 
+                      label="Prepayment Charges"
+                      value={selectedApp.prepaymentCharges ? `${selectedApp.prepaymentCharges}%` : 'Not set'}
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-slate-100 px-6 py-4 flex justify-end gap-3">
-              <button
-                onClick={() => setViewModalOpen(false)}
-                className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 transition-colors"
-              >
-                Close
-              </button>
-              {selectedApp.status?.toLowerCase() !== 'approved' && (
+            {/* Modal Footer with Actions */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 flex justify-between items-center">
+              <div className="text-sm text-slate-500">
+                <Clock size={14} className="inline mr-1" />
+                Created: {formatDate(selectedApp.createdAt)} | Branch: {selectedApp.branchId}
+              </div>
+              <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    updateStatus({
-                      id: selectedApp.id,
-                      status: "approved",
-                    });
-                    setViewModalOpen(false);
-                  }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-colors shadow-lg shadow-green-200"
+                  onClick={() => setViewModalOpen(false)}
+                  className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-medium hover:bg-slate-50 transition-colors"
                 >
-                  Approve Application
+                  Close
                 </button>
-              )}
+                {selectedApp.status?.toLowerCase() !== 'approved' && (
+                  <button
+                    onClick={() => {
+                      updateStatus({
+                        id: selectedApp.id,
+                        status: "approved",
+                      });
+                      setViewModalOpen(false);
+                    }}
+                    className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-colors shadow-lg shadow-green-200 flex items-center gap-2"
+                  >
+                    <CheckCircle size={18} />
+                    Approve Application
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -511,17 +890,37 @@ const Applications = () => {
   );
 };
 
-// Helper component for info cards
+// Enhanced InfoCard component
 const InfoCard = ({ icon, label, value, fallback = '—', fullWidth = false }) => (
-  <div className={fullWidth ? 'md:col-span-2' : ''}>
+  <div className={fullWidth ? 'md:col-span-2 lg:col-span-4' : ''}>
     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1">
       {icon}
       {label}
     </p>
-    <p className="text-sm font-medium text-slate-800">
-      {value || <span className="text-slate-400">{fallback}</span>}
+    <p className="text-sm font-medium text-slate-800 break-words">
+      {value ? value : <span className="text-slate-400 italic">{fallback}</span>}
     </p>
   </div>
+);
+
+// Settings icon component
+const Settings = ({ size, className }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.09A10 10 0 0 0 12 18a10 10 0 0 0 6.26-2.22l.07-.09z"></path>
+    <path d="M4.6 9a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.09A10 10 0 0 0 12 6a10 10 0 0 0-6.26 2.22l-.07.09z"></path>
+  </svg>
 );
 
 export default Applications;
