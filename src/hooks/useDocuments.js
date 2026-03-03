@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import api from "../lib/axios.config";
 
 const useDocuments = () => {
+
   const [applications, setApplications] = useState([]);
   const [documents, setDocuments] = useState({});
+  const [requiredDocuments, setRequiredDocuments] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchApplications = async () => {
+  // ✅ prevents multiple api calls
+  const requiredDocsCache = useRef({});
+
+  /* ===============================
+      FETCH APPLICATIONS
+  =============================== */
+  const fetchApplications = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -19,113 +27,167 @@ const useDocuments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchDocumentsByLoanId = async (loanId) => {
-    const res = await api.get(
-      `/loan-applications/${loanId}/documents`
-    );
+  /* ===============================
+      FETCH UPLOADED DOCUMENTS
+  =============================== */
+  const fetchDocumentsByLoanId = useCallback(
+    async (loanId) => {
+      if (!loanId) return;
 
-    setDocuments(prev => ({
-      ...prev,
-      [loanId]: res.data.data,
-    }));
-  };
+      try {
+        const res = await api.get(`/loan-applications/${loanId}/documents`);
+        
+        // Process documents to ensure consistent format
+        const processedDocs = res.data.data.map(doc => ({
+          ...doc,
+          documentId: doc.id, // Use actual document ID
+          fileName: doc.documentPath?.split('/').pop() || 'document',
+          fileUrl: doc.documentPath,
+          verified: doc.verificationStatus === 'verified'
+        }));
 
-  const uploadDocument = async (loanId, file, documentType) => {
-    const formData = new FormData();
-
-    formData.append(documentType, file);
-
-    return api.post(
-      `/loan-applications/${loanId}/documents`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        setDocuments(prev => ({
+          ...prev,
+          [loanId]: processedDocs,
+        }));
+      } catch (error) {
+        console.error("Error fetching documents:", error);
       }
-    );
-  };
-
-
-const uploadDocumentsBulk = async (loanId, rows) => {
-
-  // ==============================
-  // 🔹 PRIMARY APPLICANT (BULK)
-  // ==============================
-
-  const primaryRows = rows.filter(
-    r => r.applicantType === "APPLICANT"
+    },
+    []
   );
 
-  if (primaryRows.length > 0) {
+  /* ===============================
+      FETCH REQUIRED DOCS FROM LOANTYPE
+  =============================== */
+  const fetchRequiredDocumentsByLoanId = useCallback(
+    async (loanId) => {
+      if (!loanId) return;
 
-    const primaryForm = new FormData();
+      // ✅ already fetched
+      if (requiredDocsCache.current[loanId]) return;
 
-    primaryRows.forEach(row => {
-      if (!row.file) return;
-
-      primaryForm.append(row.docType, row.file);
-    });
-
-    await api.post(
-      `/loan-applications/${loanId}/documents`,
-      primaryForm,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      try {
+        const res = await api.get(`/loan-applications/${loanId}`);
+        
+        // Get documents required string from loan type
+        const docsString = res.data?.data?.loanType?.documentsRequired;
+        
+        if (!docsString) {
+          setRequiredDocuments(prev => ({
+            ...prev,
+            [loanId]: []
+          }));
+          return;
         }
+
+        // Split and create document objects with proper IDs
+        const docs = docsString.split(",").map((doc, index) => {
+          const docName = doc.trim();
+          // Create a consistent ID based on document name
+          const docId = docName.toLowerCase().replace(/\s+/g, '_');
+          
+          return {
+            id: docId, // Use a string ID instead of index
+            documentName: docName,
+            mandatory: true,
+            applicantType: "APPLICANT", // Default to APPLICANT, will be overridden by co-applicant docs
+            acceptedFormats: [".pdf", ".jpg", ".jpeg", ".png"],
+            maxSize: 5,
+            documentType: docName
+          };
+        });
+
+        requiredDocsCache.current[loanId] = true;
+
+        setRequiredDocuments(prev => ({
+          ...prev,
+          [loanId]: docs
+        }));
+
+      } catch (err) {
+        console.error(err);
       }
-    );
-  }
-
-  // ==============================
-  // 🔹 CO-APPLICANT (SINGLE LOOP)
-  // ==============================
-
-  const coApplicantRows = rows.filter(
-    r => r.applicantType === "CO_APPLICANT"
+    },
+    []
   );
 
-  for (const row of coApplicantRows) {
+  /* ===============================
+      UPLOAD CO-APPLICANT DOCUMENT
+  =============================== */
+  const uploadCoApplicantDocument = useCallback(
+    async (coApplicantId, file, documentType) => {
+      if (!coApplicantId || !file) return;
 
-    if (!row.file || !row.coApplicantId) continue;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("documentType", documentType);
 
-    const formData = new FormData();
-    formData.append(row.docType, row.file);
+      const res = await api.post(
+        `/co-applicant/documents/${coApplicantId}/upload`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    await api.post(
-      `/co-applicant/documents/${row.coApplicantId}/upload`,
-      formData
-    );
-  }
-};
+      return res.data;
+    },
+    []
+  );
 
+  /* ===============================
+      BULK UPLOAD
+  =============================== */
+  const uploadDocumentsBulk = useCallback(
+    async (loanId, rows) => {
+      const primaryRows = rows.filter(r => r.applicantType === "APPLICANT");
 
+      if (primaryRows.length > 0) {
+        const formData = new FormData();
 
+        primaryRows.forEach(row => {
+          if (!row.file) return;
+          formData.append("documents", row.file);
+          formData.append("documentTypes", row.docType);
+        });
 
+        await api.post(
+          `/loan-applications/${loanId}/documents/bulk`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+      }
+    },
+    []
+  );
 
+  /* ===============================
+      VERIFY / REJECT DOCUMENTS
+  =============================== */
+  const verifyDocument = useCallback(
+    async (docId) =>
+      api.patch(`/documents/${docId}/verify`),
+    []
+  );
 
-
- const verifyDocument = async (docId) => {
-  return api.patch(`/documents/${docId}/verify`);
-};
-
-const rejectDocument = async (docId, reason) => {
-  return api.patch(`/documents/${docId}/reject`, { reason });
-};
-
+  const rejectDocument = useCallback(
+    async (docId, reason) =>
+      api.patch(`/documents/${docId}/reject`, { reason }),
+    []
+  );
 
   return {
     applications,
     documents,
+    requiredDocuments,
     loading,
     error,
     fetchApplications,
     fetchDocumentsByLoanId,
-    uploadDocument,
+    fetchRequiredDocumentsByLoanId,
     uploadDocumentsBulk,
+    uploadCoApplicantDocument,
     verifyDocument,
     rejectDocument,
   };
